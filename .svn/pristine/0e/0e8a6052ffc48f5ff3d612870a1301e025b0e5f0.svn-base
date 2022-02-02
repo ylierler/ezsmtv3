@@ -1,0 +1,150 @@
+Linux Instructions:
+
+To compile Cmodels at the prompt type
+1. % ./configure
+2. % make
+
+Windows Instructions (for Windows 8 see below):
+
+1. Install MinGW with Msys (http://www.mingw.org/) 
+In Msys (MinSW shell) at the prompt type in Cmodels directory
+2. configure
+3. make
+
+Windows 8 instructions (these instructions are due to Benjamin Susman)
+1. Ensured gcc is installed and added to the $PATH.
+2. Install cygwin64 
+3. run cygwin and follow the instructions for Linux 
+Remark: during the installation for cygwin64: the "make" command must be selected during the installation process. gcc can also be added during the installation.
+
+You need to have following files in the directory you are going to run Cmodels:
+    gringo  OR  lparse >= 1.0.14 that supports option --dlp-choice 
+
+
+To download Sat solver Relsat and grounder Lparse or Gringo you need 
+to check its official web page: 
+- Relsat(http://www.satlib.org/solvers.html), 
+- Lparse(http://www.tcs.hut.fi/Software/smodels/) 
+- Gringo(http://potassco.sourceforge.net/) 
+
+Usage: lparse [--dlp-choice] [--dlp] name_of_a_logic_program | cmodels [--dlp]
+[solver][number][-verify <0 or 1>][-atomreason][-numlf <number>] 
+[name_config_file][-le][-bj][-bt]
+[-ext <string>][-keep]  [-heur <number>]
+Usage: gringo [--dlp-choice] [--dlp] name_of_a_logic_program | cmodels [--dlp]
+[solver][number][-verify <0 or 1>][-atomreason][-numlf <number>] 
+[name_config_file][-le][-bj][-bt]
+[-ext <string>][-keep]  [-heur <number>]
+Usage: 
+cmodels [--dlp]
+[solver][number][-verify <0 or 1>][-atomreason][-numlf <number>] 
+[name_config_file][-le][-bj]
+[-ext <string>][-keep] [-heur <number>]
+< name_of_a_grounded_by_lparse_logic_program
+
+Where: 
+[dlp-choice] stands for: the  input logic program
+<name_of_a_logic_program > is disjunctive  (with\without choice rules).
+
+[dlp] stands for: the  input logic program
+<name_of_a_logic_program > is disjunctive  without choice rules. The
+rules of the form
+           a1 | a2 | ... | an :- body.
+                or
+           { a(X) : b(X) } :- body.
+   are allowed.
+
+Note that when the program is disjunctive use of flag --dlp-choice or --dlp is
+requiered by LPARSE. 
+When flag --dlp is used by lparse ---> flag --dlp shall be used by Cmodels 
+
+[-verify <0 or 1>] 0 or 1 specify the method for verifying the models
+		of completion, when program is disjunctive. 
+        1 -- is a method similar to the one implemented in GnT
+	    0 -- is a method similar to the one implemented in Dlv (default) 
+
+[solver] stands for:
+	[-zc] calls Zchaff v. 2007.3.12 to find the solution (default)
+	[-ms] calls Minisat v. 2 beta to find the solution 
+	[-ms1] calls Minisat v. 1.12b  to find the solution 
+	[-si] calls Simo to find the solution
+	[-rs] calls Relsat v. 2 to find the solutions. The system must be named relsat or may be specified differently in CONFIG file
+
+
+[-mb] identifies rules with the same bodies that allows identifying them with the same auxiliary atom
+[number] number of models of complitions to compute( 0 - stands for all, 1 is default) 
+
+[-atomreason] forces cmodels to add loopf formula only partially 
+[-loopformula1] build and add only one loop formula at a time (default all found loop formulas, i.e., per each SCC)
+
+[-numlf <number>] in case when program is disjunctive by default only 1 clause
+	         from loop formula is added. With this flag you can specify how many
+             clauses you would like to be added
+           
+[name_config_file] name of configuration file, CONFIG is default
+[-le] in case of Simo performs backjumping and learning
+[-bj] performs backjumping
+[-bt] performs backtracking
+
+[-keep] keeps intermediate files
+[-ext <string>] starts intermediate files with  specified extension <string>
+
+
+[-statistics] printout the statistics
+For instance output of Cmodels with option -param:
+-----------------------------------------
+Stats #a 375&#cl 2077&#r 1731&#e 271& SAT \\
+mc
+& 1&#s 1&#l 0&#m 1&#mf 1&tf 0&ts 0&tr 0&tt 0.02
+-----------------------------------------
+Stands for:
+Number of atoms is 375, number of clauses 2077, number of rules is 1731,
+number of completion equivalences is 271, problem is Satisfiable,
+the SAT solver invoked is mChaff, 
+the number of solutions searched for is 1, the number of found solutions is 1,
+the number of loop formulas is 0, number of found models of completion is 1,
+number of models of completions found before the first answer set was computed
+is 1, time to compute first solution is 0, solver time is 0, 
+reason computation time is 0, total time is  0.02 .
+Note that runtime calculations may be not reliable since
+the in case of Chaff and Relsat cmodels invokes the systems from outised.
+We recommend to use standart linux/sun command ''time'' in order
+to have a reliable data. 
+
+With no arguments specified one solution will be found and mchaff 
+will be called.
+
+If configuration file [name_config_file] is not specified and default 
+file CONFIG  does not exist in the directory then by default current 
+directory will be assumed to be a path to program:
+
+relsat
+
+
+
+The format of configuration file.
+
+There is one  keyword:  relsat . After it the path to relsat  has to be specified. 
+In case if some path is not specified 
+then the default( current directory) will be taken as a path.
+
+SAMPLE CONFIG FILE:
+relsat  relsat
+
+----------
+Starting Version 3.86
+flags
+-dimacs and -cdimacs 
+are supported that instruct cmodels to produce DIMACS file and "named" DIMACS file containing clausified completion. 
+Cmodels will stop once that is done.
+
+Flag 
+-w
+instructs cmodels to find WFM and stop
+
+
+
+
+
+
+

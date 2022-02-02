@@ -1,0 +1,98 @@
+//3.57 Includes
+//        HCF check        
+//        modularity in model checking
+//        loopformula by default
+//3.58 fixes the bug with loopformula from now on for disj programs only part of loop formula is added where head atom is sat
+//    
+//3.59 includes -eloop flag that performs elementary set computation
+// and adds loop formulas of elementary loops when needed
+// 
+//July 31st 2006: 
+//3.60 tightness bug fix through away SCC of 1 element
+//     now all the unsat loops are added 
+//
+//3.6x    Ilkka's circuit component's 
+//        where implemented -bc flag is used plus bcircuit program
+//        must be present  
+//        impl is preliminary hence output is not readable
+//        no positive time results were gained
+//        as Cmodels CNF representation is more compact and seem to 
+//        be better suit
+
+// May 15, 2006
+// -adding HCF verification functions for the whole program and for Sccs
+// -fixing modular verification from DLV minTestUnf
+// May 16, 2006
+// - adding minTestNEWGnt, minTestNEWGntSCC that incorporate
+//          some processing of a program before giving it to SAT
+//          for verification  
+// - adding  posBodyInScc, negBodyInM for shortening 
+//          minTestNEWGntSCC minTestUnfSCC
+// - fixing bug with minTestUnfSCC in loopformula building area
+//   as we were trying to 1) build a loopformula  based on the assignment
+//   instead of newly found model
+//   and 2) old SCC could interfeer with new ones
+//
+//May 19,2006
+// - fixinf bug with schur that occured with WF preprocessing
+//   cleaning up code for WF so that it only contains functions for WF
+//   itself
+//
+// - removed nonmodular dlv and newGnt
+// - debuging of modular dlv method as it finds some component Unf although it is probably found
+// 
+//May 23, 2006
+//
+// -at ctable.cc editing (1*) so that if there are many solutions to
+// find and program is tight and mchaff is used we say that program 
+// is not tight and force system to work in assat way
+// since there occured a very strange bug, i.e. mchaff would find correct
+solutions, while cmodels would fail to print them out correctly.
+three days ago bug did not occur, meanwhile the changes that happend look not
+to be relevant to here. Open question!
+
+May 24, 2006
+- Mchaff has some strange error at the execution of stratcomp20.3 
+it only finds one solution. I suspect it can have sth to do with the bug from
+yesterday as mchaff itself finds the right solution, but cmodels has
+troubles interpreting it right. As relsat uses the same algo everywhere.
+I discontinue for now support of Chaff by not allowing it in Main to read as an argument. Since we have Zchaff it must be a good substitution.
+// goals: mChaff executable is no longer publically available 
+//               for now it is a question if mchaff should be supported
+//               or we remove support of mchaff
+//               zChaff is default  
+
+May 25, 2006
+
+- api and 
+- cmodels 
+now can be used as libraries, where api can read in the program
+while cmodels may perform the computation
+
+Tomorrow I plan to add the ruletype nested and store all the rules
+as nested ones, this way i can reduce all the code twice as i will need
+only one copy since all the operations for disjunctive and nondisjunctive
+rules look to be the same.
+
+important
+-- adding new atom for each body this was we will have compact loopformulas
+   with the atoms that occured
+-- hcf
+-- elementary loops
+-- niemela's addition Analyse first before proceeding!
+
+
+May 26:
+
+  Added NestedRule class and now at the point of adopting the whole
+code not to Basicrule basic but to Nestedrule
+ 
+  At the moment i am at adopting createCompletion()
+
+  Also extended class Clauses so that building clauses would be much handier
+
+
+May 30
+
+-  how about if all the heads of disjunctive rule are false-atoms:
+ now we do not take care of such case

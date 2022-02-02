@@ -1,0 +1,160 @@
+The circuit has 117274 gates
+The circuit has 109869 gates and 199745 edges after simplification
+The circuit has 56872 gates and 149976 edges after sharing
+The circuit has 56760 gates and 142961 edges after simplification
+The circuit has 55287 gates and 142920 edges after sharing
+The circuit has 55287 gates and 142714 edges after simplification
+The circuit has 55237 gates and 142714 edges after sharing
+The circuit has 55237 gates and 142714 edges after simplification
+The circuit has 55237 gates and 142714 edges after sharing
+The circuit has 55237 gates after normalization
+The circuit has 55237 gates and 142714 edges after simplification
+The circuit has 55237 gates and 142714 edges after sharing
+The max-min height of the circuit is 4
+The max-max height of the circuit is 19
+The circuit has 55235 relevant gates
+The circuit has 2830 relevant input gates
+The cnf has 51386 variables and 232596 clauses
+------------------
+After erasing negative guys
+The cnf has 51386 variables and 232596 clauses
+
+The cnf has 51386 variables and 232596 clauses
+
+The circuit has 20546 gates
+The circuit has 18842 gates and 63346 edges after simplification
+The circuit has 14634 gates and 60178 edges after sharing
+The circuit has 14614 gates and 60007 edges after simplification
+The circuit has 14589 gates and 60007 edges after sharing
+The circuit has 14589 gates and 60007 edges after simplification
+The circuit has 14589 gates and 60007 edges after sharing
+The circuit has 14589 gates after normalization
+The circuit has 14589 gates and 60007 edges after simplification
+The circuit has 14589 gates and 60007 edges after sharing
+The max-min height of the circuit is 3
+The max-max height of the circuit is 19
+The circuit has 14587 relevant gates
+The circuit has 2811 relevant input gates
+The cnf has 11684 variables and 72813 clauses
+
+
+time cmodels -silent -statistics < ../tests/bw15lp.gr
+Stats #a 9905&#cl 64764&#r 81729&#nr 44299& SAT \\
+
+/u/yuliya/nonTightDisjCmodels/cmodelsSimplify % time cmodels -silent -statistics -bc -keep < ../tests/pigeon_10_9_U.gr
+Decision: 950/1127      Time: 12.6168/86400
+Unsatisfiable
+Stats #a 211&#cl 0&#r 1829&#nr 1810& UNK \\
+&tight 
+& 1&#s 0&-&-&-
+& ttr 0.00 & tcm 0.00 & tcl 0.00 & tsat 0.00 & tverif 0.00 & tlf 0.00 & tt 0.00 
+20.473u 0.076s 0:20.61 99.6%    0+0k 0+0io 0pf+0w
+
+Pigeon-hole problem has negative circles:
+/u/yuliya/nonTightDisjCmodels/cmodelsSimplify % time cmodels -silent -statistics   < ../tests/pigeon_10_9_U.gr
+Stats #a 391&#cl 2391&#r 1829&#nr 1810& UNSAT \\
+zc 
+&tight 
+& 1&#s 0&-&-&-
+& ttr 0.00 & tcm 0.00 & tcl 0.00 & tsat 4.860 & tverif 0.00 & tlf 0.00 & tt 4.860 
+4.840u 0.024s 0:04.87 99.7%     0+0k 0+0io 0pf+0w
+------
+The circuit has 2121 gates
+The circuit has 2121 gates and 3690 edges after simplification
+The circuit has 1317 gates and 2160 edges after sharing
+The circuit has 1310 gates and 2145 edges after simplification
+The circuit has 1304 gates and 2145 edges after sharing
+The circuit has 1304 gates and 2145 edges after simplification
+The circuit has 1304 gates and 2145 edges after sharing
+The circuit has 1304 gates after normalization
+The circuit has 1304 gates and 2145 edges after simplification
+The circuit has 1304 gates and 2145 edges after sharing
+The max-min height of the circuit is 2
+The max-max height of the circuit is 2
+The circuit has 1303 relevant gates
+The circuit has 177 relevant input gates
+The cnf has 1127 variables and 4040 clauses
+20.541u 0.072s 
+
+Non-cycle Queen encoding: 
+10 queens:
+The circuit has 1692 gates
+The circuit has 1692 gates and 3140 edges after simplification
+The circuit has 1682 gates and 3140 edges after sharing
+The circuit has 1681 gates and 3140 edges after simplification
+The circuit has 1681 gates and 3140 edges after sharing
+The circuit has 1681 gates after normalization
+The circuit has 1681 gates and 3140 edges after simplification
+The circuit has 1681 gates and 3140 edges after sharing
+The max-min height of the circuit is 2
+The max-max height of the circuit is 2
+The circuit has 1680 relevant gates
+The circuit has 100 relevant input gates
+The cnf has 1581 variables and 6000 clauses
+Executing zchaff...
+
+Satisfiable
+0.020u 0.000s 0:00.02 100.0%    0+0k 0+0io 0pf+0w
+
+/u/yuliya/nonTightDisjCmodels/cmodelsSimplify % time cmodels -silent -statistics < ../tests/q10.lp2.gr
+Stats #a 112&#cl 1592&#r 1080&#nr 1480& SAT \\
+zc 
+&tight 
+& 1&#s 1&-&-&-
+& ttr 0.00 & tcm 0.00 & tcl 0.00 & tsat 0.00 & tverif 0.00 & tlf 0.00 & tt 0.10 
+0.016u 0.004s 0:00.02 50.0%     0+0k 0+0io 0pf+0w
+
+80 queens
+BCircuit
+The circuit has 853522 gates
+
+The circuit has 853522 gates and 1693920 edges after simplification
+The circuit has 853442 gates and 1693920 edges after sharing
+The circuit has 853441 gates and 1693920 edges after simplification
+The circuit has 853441 gates and 1693920 edges after sharing
+The circuit has 853441 gates after normalization
+The circuit has 853441 gates and 1693920 edges after simplification
+The circuit has 853441 gates and 1693920 edges after sharing
+The max-min height of the circuit is 2
+The max-max height of the circuit is 2
+The circuit has 853440 relevant gates
+The circuit has 6400 relevant input gates
+The cnf has 847041 variables and 3368800 clauses
+37.334u 0.644s
+
+Cmodels
+Stats #a 6482&#cl 847122&#r 588240&#nr 840640& SAT \\
+zc 
+&tight 
+& 1&#s 1&-&-&-
+& ttr 0.490 & tcm 0.390 & tcl 0.10 & tsat 1.380 & tverif 0.00 & tlf 0.00 & tt 4.810 
+4.476u 0.352s 0:04.83 99.7%     0+0k 0+0io 0pf+0w
+
+Schur 2_n13_p3.gr:
+Has no cycle
+Stats #a 93&#cl 652&#r 861&#nr 559& SAT \\
+--------------
+The circuit has 512 gates
+The input gates are: _160 atom_159 atom_158 atom_157 atom_156 atom_155 atom_154 atom_153 atom_152 atom_151 atom_150 atom_149 atom_148 atom_147 atom_146 atom_145 atom_144 atom_60 atom_57 atom_54 atom_51 atom_40 atom_37 atom_34 atom_31 atom_20 atom_17 atom_14 atom_11 atom_50 atom_49 atom_48 atom_47 atom_46 atom_45 atom_44 atom_43 atom_42 atom_30 atom_29 atom_28 atom_27 atom_26 atom_25 atom_24 atom_23 atom_22 atom_10 atom_9 atom_8 atom_7 atom_6 atom_5 atom_4 atom_3 atom_2
+The circuit has 486 gates and 934 edges after simplification
+The circuit has 306 gates and 690 edges after sharing
+The circuit has 291 gates and 532 edges after simplification
+The circuit has 250 gates and 532 edges after sharing
+The circuit has 238 gates and 378 edges after simplification
+The circuit has 194 gates and 378 edges after sharing
+The circuit has 193 gates and 335 edges after simplification
+The circuit has 179 gates and 335 edges after sharing
+The circuit has 179 gates and 331 edges after simplification
+The circuit has 177 gates and 331 edges after sharing
+The circuit has 177 gates and 331 edges after simplification
+The circuit has 177 gates and 331 edges after sharing
+The circuit has 177 gates after normalization
+The circuit has 177 gates and 331 edges after simplification
+The circuit has 177 gates and 331 edges after sharing
+The max-min height of the circuit is 2
+The max-max height of the circuit is 2
+The circuit has 166 relevant gates
+The circuit has 32 relevant input gates
+The cnf has 135 variables and 449 clauses
+
+Stats #a 93&#cl 652&#r 861&#nr 559& SAT

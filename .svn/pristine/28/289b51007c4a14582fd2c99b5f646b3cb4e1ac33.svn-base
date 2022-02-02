@@ -1,0 +1,31 @@
+
+zChaff 2007.3.12 
+names changed from cpp to cc!!!
+
+for 64 bit files with 3 places  commented out:
+zchaff_solver.cc 
+
+196,198c196,198
+<     cout << "\rDecision: " << _assignment_stack[0]->size() << "/"
+<          <<num_variables() << "\tTime: " << get_cpu_time() -
+<            _stats.start_cpu_time << "/" << _params.time_limit << flush;
+---
+>       // cout << "\rDecision: " << _assignment_stack[0]->size() << "/"
+>       //   <<num_variables() << "\tTime: " << get_cpu_time() -
+>       //     _stats.start_cpu_time << "/" << _params.time_limit << flush;
+240a241
+> 
+620c621,622
+<     CClause &cl=clause(top_unsat_cls);
+---
+> 
+>     CClause &cl=clause(top_unsat_cls);//*top_unsat_cls;
+768c770
+<     cout << " CONFLICT during preprocess " <<endl;
+---
+>     //    cout << " CONFLICT during preprocess " <<endl;
+904c906
+<     cout << endl;
+---
+>       // cout << endl;
+1122a1125

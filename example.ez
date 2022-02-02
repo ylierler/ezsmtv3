@@ -1,0 +1,12 @@
+cspdomain(fd).
+cspvar(x).
+a :- c, not b.
+b :- d, not a.
+c :- d, not b.
+c :- d, not a.
+d :- c, not a.
+d :- not e, not b.
+e :- a, b.
+e :- not a, not b.
+required(x>=10) :- e.
+required(x<=9) :- not e.
