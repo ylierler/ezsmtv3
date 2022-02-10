@@ -1,0 +1,6 @@
+Answer: 1
+Stable Model: cspdomain(fd) required(ezcsp__geq(v(1),v(2))) required(ezcsp__sum(list(v,1),ezcsp__geq,39)) cspvar(s,20,40) required(ezcsp__sum(list(v,1),ezcsp__eq,s)) d(1) d(2) cspvar(v(2),10,20) cspvar(v(1),10,20) s=39 v(1)=20 v(2)=19 
+Answer: 2
+Stable Model: cspdomain(fd) required(ezcsp__geq(v(1),v(2))) required(ezcsp__sum(list(v,1),ezcsp__geq,39)) cspvar(s,20,40) required(ezcsp__sum(list(v,1),ezcsp__eq,s)) d(1) d(2) cspvar(v(2),10,20) cspvar(v(1),10,20) s=40 v(1)=20 v(2)=20 
+False
+Number of CP-to-ASP backtrackings: 1

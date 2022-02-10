@@ -1,0 +1,33 @@
+% SEND-MORE-MONEY example
+% output one solution with:
+%   ezcsp --bprolog star-send_more_money.ez
+%   Solution: m=1, s=9, {d,e,n,o,r]=0
+% output two solutions with:
+%   ezcsp -n 2 --bprolog star-send_more_money.ez
+
+cspdomain(fd).
+
+var(a(s);a(e);a(n);a(d);a(m);a(o);a(r);a(y)).
+cspvar(V,0,9) :- var(V).
+
+required(a(s)*1000 +
+	 a(e)*100 +
+	 a(n)*10 +
+	 a(d) +
+	 a(m)*1000 +
+	 a(o)*100 +
+	 a(r)*10 +
+	 a(e) =
+	 a(m)*10000+
+	 a(o)*1000+
+	 a(n)*100+
+	 a(e)*10+
+	 a(y)).
+
+% NOTE: we forgot about these constraints.
+%       it looks like you'll have to take care of != as well!
+required(a(s)!=0).
+required(a(m)!=0).
+
+%required(alldifferent([s,e,n,d,m,o,r,y])).
+required(alldifferent([a/1])).
