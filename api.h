@@ -24,6 +24,7 @@
 // Patrik.Simons@hut.fi
 #ifndef API_H
 #define API_H
+#include "atomrule.h"
 #include "graphscc.h"
 #include "defines.h"
 #include "timer.h"
