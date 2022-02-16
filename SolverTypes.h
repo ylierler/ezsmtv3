@@ -94,7 +94,6 @@ const lbool l_True  = toLbool( 1);
 const lbool l_False = toLbool(-1);
 const lbool l_Undef = toLbool( 0);
 
-
 //=================================================================================================
 // ClauseMinisat -- a simple class for representing a clause:
 class ClauseMinisat {

@@ -1,9 +1,0 @@
-% ezcsp --bprolog -n 0 ex4.ez
-
-cspdomain(lp).
-
-cspvar(t,0,1).
-cspvar(s,0,1).
-required(s+t==1).
-required(3*s>=1).
-required(3*t>=1).

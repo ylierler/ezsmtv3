@@ -287,7 +287,7 @@ int main (int argc, char *argv[])
   stringstream ss;
   ss.clear();
   ss.str("");
-  ss << "$EZSMTPLUS/ezcsp-2.1.1-r4660/pre-parser ";
+  ss<<"$EZSMTPLUS/tools/pre-parser ";
   for( int a = 0; a< ctable.cmodels.param.numOfFiles ; a++){
 	  if ( access( ctable.cmodels.param.files[a], F_OK ) == -1 ){
 		  cerr <<" *** Error: file "<<ctable.cmodels.param.files[a]<<" does not exist. ***"<<endl;

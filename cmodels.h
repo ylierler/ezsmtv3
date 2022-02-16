@@ -24,7 +24,7 @@
 #include "api.h"
 #include "interpret.h"
 #include <vector>
-#include "MiniSat_v1.12b/Solver.h"
+
 
 using namespace std;
 class Atom;
@@ -53,8 +53,7 @@ public:
   void * satMngMinimality;
   void * zchaffMng;
 
-  SimpSolver* minisatSolver; //minisat solver
-  ms1::Solver* mSolver1; //minisat solver
+
 
 
  
@@ -68,11 +67,15 @@ public:
 
 
   void cmodels(); //runs translation invokation and so on
+  void callSMTSolver(); // call EZSMT and SMT solver
+  void convertClausesToSMT(string fileName);
+  void printSMTAnswerSets(int fileCount, string fileName); // parse SMT solvers' results and print answer sets
+  void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
+  void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets
+  bool assertDifferentAnserSet(string fileName, int fileCount, string SMTStr, istringstream* iss); // add assertions so that new solution to the modified problem is different from previous solutions.
   bool addDenial(int* constraint_lits, int num_lits);
-  void markExternallyConstrainedAtoms (int* constainted_ayoms, int num_atoms, bool* trueExternal);
-  void singleSolve(int* answerset_lits,  int& num_atoms);
   void init(int* answerset_lits, int& num_atoms, const char **&symbolTable, int &symbolTableEntries);
-  void setTestPartialSolutionInfo(testPartialSolutionInfo *tpsi); /* [marcy 022812] */
+
 
 protected:
   Atom*** rec_buf_atoms; //recuired for the translation of card. constraints in polynomial time
@@ -108,7 +111,6 @@ protected:
   void add_fact_rule(Atom* a);
   
   inline void add_clause_from_compute (Atom *a, bool  pos);
-  inline void releaseSolvers();
   void createCompletion(); 
   void createRankingFormula();
   void createStrongRankingFormula(long curAtomsSize,string NumOfAtom);
@@ -145,13 +147,8 @@ protected:
   void print_clauses();
 
 
-  Result call_satSolver();
   Result preprocessing(bool& emptyprogram);
 
-
-
-
-  void loadClausesToZchaffManager();
 
   //add clauses performs simplifications 
   //within minisat
@@ -162,8 +159,6 @@ protected:
   void addReasonClause(int* reason);
   void print_time();
 
-  Result call_relsat();
-  Result call_assat_zchaff();
 
 
   
@@ -171,7 +166,6 @@ protected:
 
   void printReason(int* assignment, int found);
   void printSolution(bool* assignment, int found);
-  bool checkSolutions(bool* assignments, list<Atom*>& mminus );
   void findLFReason(bool* assignment, int* reason, int & reasonSize, list<Atom *>& mminus, int* =0);
 
   void loopRulesInit(const int& numSCC, 
@@ -193,9 +187,6 @@ protected:
 						   const int& inLoop,
 						   int* =0);
  //returns Number of Loopformulas build
-  Result call_simo();
-  Result call_zchaff();
-  Result call_minisat();
 
   void translateClauseToReason(int* reason, int & reasonSize);
   void addAssignmentClause(bool* assignments);
@@ -259,13 +250,6 @@ protected:
   void reasonSolverTime();
 
   
-  void createModelVerificationManager();
-  void createModelVerificationManagerMin(vector<Atom*> &atomsSCC);
-
-
-
-  int extendModelVerificationManager(bool* assignment);
-
 
   Timer solverTimer;
   Timer reasonTimer;
@@ -288,8 +272,7 @@ protected:
 //Creates Body imlies Head clause
   void createNestedRuleBodyAClause(NestedRule *r);
  
-  bool minTestGnt(bool *assignment, list<Atom*>& mminus );
-  bool testMinSCC(vector<Atom*>& atomsSCC);
+
   // function computes loop formula or reason based on:
   // assignment, atoms within which mminus is located (mminus)
   // it stores reason and reasonsize in the corresponding arguments
@@ -352,9 +335,6 @@ protected:
   bool completeWFM();
   bool pt();
 
-  Result call_solver_for_answer_sets();
-  Result call_incr_solver(bool* assignments);
-Result incr_solver_test();
 }
 ;
 #endif

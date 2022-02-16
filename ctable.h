@@ -134,9 +134,8 @@ public:
   }
 
   bool addDenial (int* constaint_lits, int num_lits);
-  void markExternallyConstrainedAtoms (int* constainted_ayoms, int& num_atoms, bool* trueExternal);
   int getNumberGroundedAtoms();
-  void setTestPartialSolutionInfo(testPartialSolutionInfo *tpsi); /* [marcy 022812] */
+
 
   void Initialize(int* answerset_lits, int& num_atoms, const char **&symbolTable, int &symbolTableEntries);
   void Initialize(int* answerset_lits, int& num_atoms);

@@ -1,4 +1,0 @@
-Answer: 1
-Stable Model: cspdomain(lp) cspvar(t,0,1) cspvar(s,0,1) required(ezcsp__eq(ezcsp__pl(s,t),1)) required(ezcsp__geq(ezcsp__tm(3,s),1)) required(ezcsp__geq(ezcsp__tm(3,t),1)) s=0.666666666666667 t=0.333333333333333 
-False
-Number of CP-to-ASP backtrackings: 1

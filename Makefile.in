@@ -37,26 +37,18 @@ endif
 
 .SUFFIXES: .o .cc 
 
-HEADERS = zchaff_base.h zchaff_clsgen.h zchaff_header.h zchaff_dbase.h zchaff_solver.h \
-Solver.h SimpSolver.h SolverTypes.h Vec.h Queue.h Alg.h BasicHeap.h BoxedVec.h Map.h Heap.h Sort.h \
+HEADERS = Solver.h SimpSolver.h SolverTypes.h Vec.h Queue.h Alg.h BasicHeap.h BoxedVec.h Map.h Heap.h Sort.h \
 stack.h  atomrule.h read.h graphscc.h\
  timer.h  program.h api.h ctable.h \
-tree.h  simo.h cmodels.h interpret.h param.h MiniSat_v1.12b/Solver.h  MiniSat_v1.12b/SolverTypes.h MiniSat_v1.12b/Global.h MiniSat_v1.12b/Queue.h MiniSat_v1.12b/Heap.h MiniSat_v1.12b/Sort.h MiniSat_v1.12b/VarOrder.h MiniSat_v1.12b/Constraints.h 
+tree.h  cmodels.h interpret.h param.h 
 
 SOLVER_SRCS = main.cc 
 SOLVER_OBJS = $(SOLVER_SRCS:.cc=.o)
 
-LIB_SRCS =  zchaff_utils.cc \
-	    zchaff_solver.cc\
-	    zchaff_base.cc \
-	    zchaff_dbase.cc \
-	    zchaff_c_wrapper.cc \
-	    zchaff_cpp_wrapper.cc \
-	SimpSolver.cc Solver.cc \
+LIB_SRCS =  SimpSolver.cc Solver.cc \
 	stack.cc  atomrule.cc read.cc \
 timer.cc  program.cc api.cc ctable.cc \
-tree.cc  simo.cc graphscc.cc cmodels.cc interpret.cc \
-MiniSat_v1.12b/Solver.cc MiniSat_v1.12b/Constraints.cc
+tree.cc  graphscc.cc cmodels.cc interpret.cc 
 
 LIB_OBJS = $(LIB_SRCS:.cc=.o)
 
@@ -64,28 +56,11 @@ LIB_OBJS = $(LIB_SRCS:.cc=.o)
 cmodels:   $(SOLVER_OBJS) libsat.a
 	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) $(SOLVER_OBJS) libsat.a -o ezsmtPlus
 
-zverify_bf: zverify_bf.cc	
-	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) zverify_bf.cc -o zverify_bf
-
-zverify_df: zverify_df.cc
-	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) zverify_df.cc -o zverify_df
-
-zcore: zcore_extract.cc
-	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) zcore_extract.cc -o zcore
-
-zminimal: zminimal.cc libsat.a
-	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) zminimal.cc libsat.a -o zminimal
-
 cnf_stats: cnf_stats.cc
 	  $(CXX) $(LINKFLAGS) $(CFLAGS) $(MFLAGS) cnf_stats.cc -o cnf_stats
 
 $(LIB_OBJS): $(HEADERS) Makefile
 
-zchaff_c_wrapper.cc:	zchaff_wrapper.wrp
-		sed 's/EXTERN/extern \"C\"/' zchaff_wrapper.wrp > zchaff_c_wrapper.cc
-
-zchaff_cpp_wrapper.cc:	zchaff_wrapper.wrp
-		sed 's/EXTERN//' zchaff_wrapper.wrp > zchaff_cpp_wrapper.cc
 
 libsat.a:   $(LIB_OBJS)
 	@rm -f libsat.a
@@ -96,7 +71,7 @@ libsat.a:   $(LIB_OBJS)
 #	$(CC) $(CFLAGS) $(MFLAGS) -c  $< 
 
 clean:	
-	rm -f *.o libsat.a cmodels1 *wrapper.cc zminimal zcore zverify_bf zverify_df cnf_stats
+	rm -f *.o libsat.a cmodels1 cnf_stats
 
 all: cmodels 
 	 	  

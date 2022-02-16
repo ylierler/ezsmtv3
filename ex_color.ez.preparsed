@@ -1,0 +1,114 @@
+cspvar(nWeight(N), 0, MV) :-
+  coloredPos(N), max_total_weight(MV).
+
+color(red).
+
+color(blue).
+
+color(green).
+
+leaf(L) :-
+  leafWeightCardinality(L, W, C).
+
+leafCost(L, W) :-
+  leaf(L), leafWeightCardinality(L, W, C), W <= C.
+
+leafCost(L, C) :-
+  leaf(L), leafWeightCardinality(L, W, C), C < W.
+
+coloredPos(L) :-
+  leaf(L), L != N, num(N).
+
+location(0).
+
+location(L) :-
+  leaf(L), L != N, num(N).
+
+1 { leafPos(L,N) : location(N) } 1 :-
+  leaf(L).
+
+ :-
+  leafPos(L1, N), leafPos(L2, N), location(N), L1 != L2.
+
+posColor(1, green) :-
+  leafPos(L1, 0), leafPos(L2, 1), leafWeightCardinality(L1, WL, CL), leafWeightCardinality(L2, WR, CR), leafCost(L2, W3), W1 = (WR + CR), W2 = (WL + W3), W1 < W2.
+
+posColor(1, blue) :-
+  leafPos(L2, 1), leafWeightCardinality(L2, W, C), C < W, not posColor(1, green).
+
+posColor(1, red) :-
+  leafPos(L2, 1), leafWeightCardinality(L2, W, C), W <= C, not posColor(1, green).
+
+1 { posColor(P,N) : color(N) } 1 :-
+  coloredPos(P), P > 1.
+
+required(ezcsp__leq(nWeight(N2), ezcsp__mn(ezcsp__pl(WR, CR), W2))) :-
+  not posColor(N, green), N > 1, coloredPos(N), leafPos(L, N), leafWeightCardinality(L, WR, CR), leafCost(L, W2), N2 = (N - 1).
+
+required(ezcsp__eq(nWeight(1), W)) :-
+  posColor(1, green), leafPos(L, 1), leafWeightCardinality(L, WR, CR), W = (WR + CR).
+
+required(ezcsp__eq(nWeight(1), W)) :-
+  not posColor(1, green), leafPos(L1, 0), leafPos(L2, 1), leafWeightCardinality(L1, WL, CL), leafCost(L2, WR), W = (WL + WR).
+
+required(ezcsp__eq(nWeight(N), W)) :-
+  coloredPos(N), N > 1, posColor(N, green), leafPos(L, N), leafWeightCardinality(L, WR, CR), W = (WR + CR).
+
+required(ezcsp__eq(nWeight(N), ezcsp__pl(nWeight(N2), WR))) :-
+  coloredPos(N), N > 1, not posColor(N, green), leafPos(L, N), leafCost(L, WR), N2 = (N - 1).
+
+required(ezcsp__sum(list(nWeight, 1), ezcsp__leq, MV)) :-
+  max_total_weight(MV).
+
+label_order(nWeight(N), 1) :-
+  coloredPos(N).
+
+required(ezcsp__gt(nWeight(Nm1), ezcsp__mn(ezcsp__pl(W, C), W2))) :-
+  not posColor(N, blue), N > 1, coloredPos(N), leafPos(L, N), leafWeightCardinality(L, W, C), C < W, Nm1 = (N - 1), leafCost(L, W2).
+
+required(ezcsp__gt(nWeight(Nm1), ezcsp__mn(ezcsp__pl(W, C), W2))) :-
+  not posColor(N, red), N > 1, coloredPos(N), leafPos(L, N), leafWeightCardinality(L, W, C), C >= W, Nm1 = (N - 1), leafCost(L, W2).
+
+ :-
+  not posColor(N, green), not posColor(N - 1, green), coloredPos(N - 1), leafPos(L1, N - 1), leafPos(L2, N), leafCost(L1, C1), leafCost(L2, C2), C1 > C2.
+
+ :-
+  not posColor(N, green), not posColor(N - 1, green), coloredPos(N - 1), leafPos(L1, N - 1), leafPos(L2, N), leafCost(L1, C), leafCost(L2, C), L1 > L2.
+
+leafWeightCardinality(1, 30, 4).
+
+leafWeightCardinality(2, 34, 59).
+
+leafWeightCardinality(3, 95, 33).
+
+leafWeightCardinality(4, 33, 79).
+
+leafWeightCardinality(5, 43, 0).
+
+leafWeightCardinality(6, 84, 56).
+
+leafWeightCardinality(7, 11, 79).
+
+leafWeightCardinality(8, 91, 79).
+
+innerNode(1).
+
+innerNode(2).
+
+innerNode(3).
+
+innerNode(4).
+
+innerNode(5).
+
+innerNode(6).
+
+innerNode(7).
+
+num(8).
+
+max_total_weight(495).
+
+ :-
+  leafPos(L1, P1), leafPos(L2, P2), posColor(P1, green), posColor(P2, green), L1 < L2, P1 > P2.
+

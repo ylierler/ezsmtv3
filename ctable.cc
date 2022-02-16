@@ -327,27 +327,13 @@ Ctable::Initialize(int* answerset_lits, int& num_atoms){
   
 }
 
-void
-Ctable::setTestPartialSolutionInfo(testPartialSolutionInfo *tpsi) { /* [marcy 022812] */
-	cmodels.setTestPartialSolutionInfo(tpsi);
-}
 
 bool 
 Ctable::addDenial (int* constraint_lits, int num_lits){
   //  print_lits(constraint_lits, num_lits,true);
   return cmodels.addDenial(constraint_lits, num_lits);
 }
-void
-Ctable::Solve(int* answerset_lits, int& num_atoms){
-  //  cout<<"Cmodels Solving \n";
-  if(solved){
-    //cout<<"Have been solved in initialize on the first call -- so a denial of the first model will kill that only answer set so we return unsat"<<endl;
-    num_atoms=-1;
-    return;
-  }
-  cmodels.singleSolve(answerset_lits, num_atoms);
-  //  print_lits(answerset_lits, num_atoms,false);
-}
+
 
 void
 Ctable::print_lits(int* constraint_lits, int num_lits, bool denial){
@@ -402,15 +388,7 @@ Ctable::print_lits(int* constraint_lits, int num_lits, bool denial){
 
 }
 
-void
-Ctable::markExternallyConstrainedAtoms(int* answerset_lits, int& num_atoms, bool* trueExternal){
-  //recall that external atoms propagators are only allowed in Minisat1 mode
-  if (cmodels.param.sys!=MINISAT1){
-	cerr<<"This functionality is supported only for MINISAT1 -ms1 option";
-	exit(0);
-	  }
-  cmodels.markExternallyConstrainedAtoms(answerset_lits, num_atoms, trueExternal);
-}
+
 
 void
 Ctable::calculate()
