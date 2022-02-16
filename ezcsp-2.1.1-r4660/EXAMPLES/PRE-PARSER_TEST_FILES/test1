@@ -1,0 +1,1 @@
+required(st(X) + d(X) >= e(Y)) :- l1(X), l2(Y).

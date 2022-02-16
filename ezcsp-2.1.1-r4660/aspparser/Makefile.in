@@ -1,0 +1,72 @@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+
+AR = @AR@
+CC = @CC@
+CPP = @CPP@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+RANLIB = @RANLIB@
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+CXXFLAGS = @CXXFLAGS@ $(DEFS)
+CFLAGS = @CFLAGS@ $(DEFS)
+RM=rm -f
+
+LDIST=dist
+
+CFLAGS += -g -Wall
+
+PARSERLIB=libaspparser.a
+
+.PHONY: all install clean
+
+all: $(PARSERLIB) dlv_rsig
+
+-include Makefile-local
+
+$(PARSERLIB): parser.o
+	$(AR) rcs $(PARSERLIB) parser.o
+
+dlv_rsig: dlv_rsig.o parser.o
+	$(CC) $(CFLAGS) -o dlv_rsig dlv_rsig.o -L. -laspparser
+
+
+install: $(PARSERLIB) dlv_rsig
+	@-( umask 22 ; mkdir -p $(bindir) ; chmod 0755 $(bindir) )
+	@-( umask 22 ; mkdir -p $(libdir) ; chmod 0755 $(libdir) )
+	@-( umask 22 ; mkdir -p $(includedir)/aspparser ; chmod 0755 $(includedir)/aspparser )
+	@$(INSTALL_PROGRAM) dlv_rsig $(bindir)
+	@$(INSTALL_DATA) $(PARSERLIB) $(libdir)
+	@$(INSTALL_DATA) parser.h $(includedir)/aspparser
+
+
+clean:
+	@$(RM) *.o
+	@$(RM) $(PARSERLIB) dlv_rsig
+
+distclean: clean
+	@$(RM) Makefile config.log config.status *config.cache $(PARSERLIB)

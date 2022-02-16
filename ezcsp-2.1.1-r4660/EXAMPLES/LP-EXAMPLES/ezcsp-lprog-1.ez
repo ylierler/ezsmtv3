@@ -1,0 +1,5 @@
+% ezcsp --bprolog -n 0 ezcsp-lprog-1.ez
+
+cspdomain(lp).
+cspvar(a,0,10).
+required(a=4).

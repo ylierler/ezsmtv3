@@ -1,0 +1,22 @@
+% Australia Map Coloring example
+% output one solution with:
+%   ezcsp --bprolog star-australia-map-coloring.ez
+%   Solution: nsw=1 nt=1 q=2 sa=3 t=1 v=2 wa=2
+% output two solutions with:
+%   ezcsp -n 2 --bprolog star-australia-map-coloring.ez
+%   Solution 1: nsw=1 nt=1 q=2 sa=3 t=1 v=2 wa=2
+%   Solution 2: nsw=1 nt=1 q=2 sa=3 t=2 v=2 wa=2
+
+cspdomain(fd).
+
+cspvar(wa;nt;sa;q;nsw;v;t,1,3).
+
+required(wa!=nt).
+required(wa!=sa).
+required(nt!=sa).
+required(nt!=q).
+required(sa!=q).
+required(sa!=nsw).
+required(sa!=v).
+required(q!=nsw).
+required(nsw!=v).

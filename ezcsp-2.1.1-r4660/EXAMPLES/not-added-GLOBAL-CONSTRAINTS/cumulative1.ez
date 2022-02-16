@@ -1,0 +1,12 @@
+% ezcsp --bprolog cumulative1.ez
+
+cspdomain(fd).
+
+dom(0..4).
+
+cspvar(v(D),0,10) :- dom(D).
+
+len(D,1) :- dom(D).
+res(D,1) :- dom(D).
+
+required(cumulative([v/1],[len/2],[res/2],1)).

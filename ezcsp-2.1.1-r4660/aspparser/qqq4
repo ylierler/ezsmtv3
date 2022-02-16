@@ -1,0 +1,10 @@
+#include <ListAndSet>
+
+#sig a(p),b(p).
+
+p([1]).
+p([1,2]).
+p([1,2,3]).
+
+a(X) v b(X).
+

@@ -1,0 +1,51 @@
+maxd(1001).
+
+cspdomain(fd).
+
+cspvar(s(T),0,M) :- task(T,D), maxd(M), D>0.
+cspvar(e(T),0,M) :- task(T,D), maxd(M), D>0.
+
+% task termination
+required(e(T) == s(T) + D) :- task(T,D), D>0.
+
+
+% earliest start
+required(s(T) >= EST) :-
+	task(T,D),
+	est(T,EST).
+
+
+% latest termination
+required(e(T) <= LET) :-
+	task(T,D),
+	let(T,LET).
+
+% overlap
+
+% CASE 1
+% s1 - s2 .... <0 if 1 starts before 2 starts
+% e1 - s2 .... <=0 if 1 ends before 2 starts (or same)
+% that is, (s1 - s2)*(e1 - s2) non-NEG
+cspvar(ds(T1,T2),-2*M,2*M) :- disj(T1,T2), maxd(M).
+required(ds(T1,T2)==s(T1) - s(T2)) :- disj(T1,T2).
+
+cspvar(de1(T1,T2),-2*M,2*M) :- disj(T1,T2), maxd(M).
+required(de1(T1,T2)==e(T1) - s(T2)) :- disj(T1,T2).
+
+required(ds(T1,T2)*de1(T1,T2)>=0) :- disj(T1,T2).
+
+% CASE 2
+% s1 - s2 .... >0 if 1 starts after 2 starts
+% s1 - e2 .... >=0 if 1 starts after 2 ends (or same)
+% that is, (s1 - s2)*(s1 - e2) non-NEG
+cspvar(de2(T1,T2),-2*M,2*M) :- disj(T1,T2), maxd(M).
+required(de2(T1,T2)==s(T1) - e(T2)) :- disj(T1,T2).
+
+required(ds(T1,T2)*de2(T1,T2)>=0) :- disj(T1,T2).
+
+
+% precedences
+required(e(T1) <= s(T2)) :-
+	task(T1,D1),
+	task(T2,D2),
+	prec(T1,T2).

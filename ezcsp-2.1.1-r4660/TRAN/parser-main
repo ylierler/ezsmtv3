@@ -1,0 +1,132 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+#define BUFS 102400
+
+
+/**
+ * We have to declare these here - they're not  in any header files
+ * we can inclde.  yyparse() is declared with an empty argument list
+ * so that it is compatible with the generated C code from bison.
+ *
+ */
+
+extern FILE *yyin;
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+
+extern "C" {
+  int             yylex( void );
+  YY_BUFFER_STATE yy_scan_string( const char * );
+  void            yy_delete_buffer( YY_BUFFER_STATE );
+}
+
+struct node *parse_program2(int n_files,char* files[])
+{
+	int n;
+	int yv;
+	char buf[BUFS+1];
+	void* pParser = ParseAlloc (malloc);
+
+	struct item *t0=NULL;
+
+	int f;
+	
+	program=(struct node *)calloc(1,sizeof(struct node));	/* empty head, in case the lexer discards all the input */
+
+	for(f=0;f<n_files;f++)
+	{	int fd;
+	
+		if (strcmp(files[f],"--")==0)
+			fd=fileno(stdin);
+		else
+		{	fd=open(files[f],O_RDONLY);
+			if (fd==-1)
+			{	std::clog << "Unable to read from file " << files[f] << "; skipping it." << std::endl;
+				continue;
+			}
+		}
+
+		while ( ( n=read(fd, buf, BUFS/2 )) >  0)
+		{	int i;
+	
+			i=n;
+	    		while (i>0 && buf[n-1]!='\n')
+			{	i=read(fd, &buf[n], 1 );
+				if (i>0) n++;
+			}
+			buf[n]='\0';
+			yy_scan_string(buf);
+			// on EOF yylex will return 0
+			while( (yv=yylex()) != 0)
+			{
+				//std::cout << " yylex() " << yv << " yylval.str " << yylval.str << std::endl;
+			
+				t0=maketerm(0);
+				t0->relation=strdup(yylval.str);
+
+				Parse (pParser, yv, t0);
+			}
+		}
+
+		if (strcmp(files[f],"--")!=0)
+			close(fd);
+	}
+
+	Parse (pParser, 0, t0);
+	ParseFree(pParser, free );
+
+	return(program);
+}
+
+#ifdef TRANSLATE2_MAIN
+int main(int argc,char **argv)
+{	argc--; argv++;
+	parse_program2(argc,argv);
+
+	output_program(program);
+}
+
+int main2(int argc,char** argv)
+{
+	int n;
+	int yv;
+	char buf[BUFS+1];
+	void* pParser = ParseAlloc (malloc);
+
+	struct item *t0=NULL;
+
+	std::cout << "Enter an expression like 3+5 <return>" << std::endl;
+	std::cout << "  Terminate with ^D" << std::endl;
+
+	while ( ( n=read(fileno(stdin), buf, BUFS/2 )) >  0)
+	{	int i;
+	
+		i=n;
+    		while (i>0 && buf[n-1]!='\n')
+		{	i=read(fileno(stdin), &buf[n], 1 );
+			if (i>0) n++;
+		}
+		buf[n]='\0';
+		yy_scan_string(buf);
+		// on EOF yylex will return 0
+		while( (yv=yylex()) != 0)
+		{
+			std::cout << " yylex() " << yv << " yylval.str " << yylval.str << std::endl;
+			
+			t0=maketerm(0);
+			t0->relation=strdup(yylval.str);
+
+			Parse (pParser, yv, t0);
+		}
+	}
+
+	Parse (pParser, 0, t0);
+	ParseFree(pParser, free );
+
+	output_program(program);
+}
+#endif /* TRANSLATE2_MAIN */

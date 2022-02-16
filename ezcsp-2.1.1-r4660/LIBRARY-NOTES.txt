@@ -1,0 +1,27 @@
+-------------------------------------------------------------------------------
+Notes on limitations of the solving libraries and other implementation details.
+
+CLP(FD)
+=====================
+* Solvers using CLP(FD) will return error if there are constraint variables 
+  that still have an infinite/unspecified domain (i.e., inf..sup) after all 
+  constraints have been asserted.
+  Consider using cspvar/3 for all constraint variables.
+  A ramification of this is that the clearbox mode (--cmodels-feedback) may
+  not work.
+
+
+SWI-Prolog
+=====================
+* clp(fd) returns an error if there are constraint variables whose upper bound
+  is sup or whose lower bound is inf after all constraints have been asserted.
+  For example:
+    cspvar(x).
+    required(x #>= 3).
+  will cause an error. Note that its translation to SWI-Prolog is equivalent
+  to:
+    :- use_module(library(clpfd)).
+    X #>= 3, labeling([],[X]).
+  Consider using cspvar/3 for all constraint variables.
+  A ramification of this is that the clearbox mode (--cmodels-feedback) may
+  not work.

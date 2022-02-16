@@ -1,0 +1,24 @@
+#begin_defined.
+
+ancestor(X,Y) :- pl_father(X,Y).
+ancestor(X,Y) :- pl_father(X,Z), ancestor(Z,Y).
+
+#end_defined.
+
+{father(X,Y)}:- related(X,Y).
+
+% relation pl_father/2 is "passed" as input
+% to the defined part.
+pl_father(X,Y) :- father(X,Y).
+
+related(15,0).
+related(16,0).
+
+% ezcsp-equivalent of query "ancestor(15,0) ?" or ":- not ancestor(15,0)."
+required(ancestor(15,0)).
+
+%
+% Expected answer:
+%
+% related(15,0) related(16,0) required(ancestor(15,0)) father(15,0) pl_father(15,0)
+%
