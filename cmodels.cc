@@ -162,13 +162,13 @@ Result Cmodels::preprocessing(bool& emptyprogram) {
 	output.numRules = program.number_of_rules;
 	sortRules();
 
-	//   cout<<"Number of Sorted Rules "<<program.number_of_rules<<endl;
+	cout<<"Number of Sorted Rules "<<program.number_of_rules<<endl;
 
 	initRuleLists4WF();
-	/*    cout<<"Final Program "<<endl;
-	 program.print();
-	 */
-	//  exit(0);
+	cout<<"Final Program "<<endl;
+	program.print();
+
+	// exit(0);
 	bool conflict = false;
 	conflict = wellFounded();
 	if (param.sys != SCC_LEVEL_RANKING && param.sys != LEVEL_RANKING
@@ -382,6 +382,9 @@ void Cmodels::convertClausesToSMT(string fileName) {
 	stringstream ss;
 	ss.clear();
 	ss.str("");
+
+	cout << param.dimacsFileName << endl;
+
 	ss << "python $EZSMTPLUS/tools/ezcsp-dimacs-to-smt.py "
 			<< param.dimacsFileName;
 	if (param.NLLogic)
@@ -3465,6 +3468,7 @@ inline void Cmodels::print_clauses() {
 // conflict and returns false, that means that clauses are UNSAT
 //
 bool Cmodels::print_output_for_sat() {
+	// TODO output SMT-lib format
 
 	switch (param.sys) {
 	// case ZCHAFF:  //creates ZCHAFF manager with clauses
@@ -3480,6 +3484,7 @@ bool Cmodels::print_output_for_sat() {
 }
 
 void Cmodels::print_DIMACS() {
+	cout << "printing dimacs format" << endl;
 	//creates cnf standard file for all sat solvers
 	unlink(param.dimacsFileName);
 	FILE* file = fopen(param.dimacsFileName, "w");

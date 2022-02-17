@@ -373,6 +373,7 @@ Output::print_wfm(){
   else if(out_f_c){
 
 	char filename[1024];
+  cout << "Output to file " << filename << endl;
 	sprintf(filename,"OUT%d",numSolutions);
 	FILE* file = fopen (filename, "w");
 	if(file){
