@@ -22,18 +22,22 @@
 // MA 02111-1307, USA.
 //
 // Patrik.Simons@hut.fi
+#include <cstdlib>
+#include <exception>
+#include <fstream>
 #include <iostream>
 #include <float.h>
 #include <limits.h>
+#include <sstream>
 #include <string.h>
 #include "atomrule.h"
 #include "program.h"
 #include "read.h"
 
-Read::Read (Program *p, Api *a)
+Read::Read (Program *p, RuleBuilder *a)
   : program (p), api (a)
 {
-  atoms = 0;
+  // atoms = 0;
   size = 0;
   models = 1;
 }
@@ -42,32 +46,33 @@ Read::Read (Program *p, Api *a)
 //
 Read::~Read ()
 {
-  delete[] atoms;
+  // delete[] atoms;
 }
 
 //
 //in case if array of atoms is not big enough already it will grow
 //
-void
-Read::grow ()
-{
-  long sz = size*2;
-  if (sz == 0)
-    sz = 256;
-  Atom **array = new Atom *[sz];
-  long i;
-  for (i = 0; i < size; i++)
-    array[i] = atoms[i];
-  size = sz;
-  for (; i < size; i++)
-    array[i] = 0;
-  delete[] atoms;
-  atoms = array;
-}
+// void
+// Read::grow ()
+// {
+//   long sz = size*2;
+//   if (sz == 0)
+//     sz = 256;
+//   Atom **array = new Atom *[sz];
+//   long i;
+//   for (i = 0; i < size; i++)
+//     array[i] = atoms[i];
+//   size = sz;
+//   for (; i < size; i++)
+//     array[i] = 0;
+//   delete[] atoms;
+//   atoms = array;
+// }
 
 //
 //creates an instance of a new atom
 //
+// FIXME Why do we use Atoms here? This seems like a leak of domain boundaries
 Atom *
 Read::getAtom (long n)
 {
@@ -165,31 +170,31 @@ Read::addBasicRule (FILE *f)
   api->begin_rule (BASICRULE);
   // Rule head
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 1)
-    {
-      cerr << "head atom out of bounds, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 1)
+  //   {
+  //     cerr << "head atom out of bounds, line " << linenumber << endl;
+  //     return 1;
+  //   }
   Atom *a = getAtom (n);
   api->add_head_repetition (a);
   // Body
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 0)
-    {
-      cerr << "total body size, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 0)
+  //   {
+  //     cerr << "total body size, line " << linenumber << endl;
+  //     return 1;
+  //   }
   long body = n;
   // Negative body
   count = fscanf(f,"%ld",&n);
 
-  if (count == EOF || n < 0 || n > body)
-    {
-	  cout<<n<<endl;
-	  cout<<body<<endl;
-      cerr << "negative body size, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 0 || n > body)
+  //   {
+	//   cout<<n<<endl;
+	//   cout<<body<<endl;
+  //     cerr << "negative body size, line " << linenumber << endl;
+  //     return 1;
+  //   }
   //  cout<<" Reading Negative part "<<endl;
   int retRB=readBody (f, n, false,BASICRULE);
   switch (retRB){
@@ -496,157 +501,252 @@ Read::addOptimizeRule (FILE *f)
  
 }
 
-int
-Read::read (FILE *f)
+
+enum StatementType
 {
-  // Read rules.
-  int type;
-  bool stop = false;
-  for (linenumber = 1; !stop; linenumber++){
-	  
-	// Rule Type
-	fscanf(f,"%d",&type);
-	switch (type)
-	  {
-	  case ENDRULE:
-		stop = true;
-		break;
-	  case BASICRULE:
-		if (addBasicRule (f))
-		  return 1;
-		break;
-	  case CONSTRAINTRULE:
-		if (addConstraintRule (f))
-		  return 1;
-		break;
-	  case CHOICERULE:
-		if (program->disjProgramLparse){
-		  if (addDisjunctionRule (f))
-			return 1;
-		}else{	  
-		  
-		  if (addChoiceRule (f))
-			return 1;
-		}
-		break;
-	  case DISJUNCTIONRULE:
-		if (addDisjunctionRule (f)){	    
-		  program->disj=true;	
-		  return 1;
-		}
-		break;
-	  case GENERATERULE:
-		if (addGenerateRule (f))
-		  return 1;
-		break;
-	  case WEIGHTRULE:
-		if (addWeightRule (f))
-		  return 1;
-		break;
-	  case OPTIMIZERULE:
-		if (addOptimizeRule (f))
-		  return 1;
-		break;
-	  default:
-		cout<< "Default "<<type<< endl;
-		cout<< "Line number "<< linenumber<<endl;
-		return 1;
-	  }
+END = 0,
+RULE = 1,
+MINIMIZE = 2,
+PROJECT = 3,
+OUTPUT = 4,
+EXTERNAL = 5,
+ASSUMPTION = 6,
+HEURISTIC = 7,
+EDGE = 8,
+THEORY = 9,
+COMMENT = 10
+};
+
+enum HeadType
+{
+DISJUNCTION = 0,
+CHOICE = 1
+};
+
+enum BodyType
+{
+NORMAL_BODY = 0,
+WEIGHT_BODY = 1
+};
+
+// enum HeadType
+
+int Read::readRule(istringstream& line)
+{
+  RuleBuilder builder();
+
+  int headType, headLength;
+  line >> headType >> headLength;
+
+  if (headType == DISJUNCTION)
+  {
+    for (int i = 0; i < headLength; i++)
+    {
+      int literal;
+      line >> literal;
+
+      builder.addHead(literal);
+    }
   }
-  // Read atom names.
-  const int len = 1024;
-  char s[len]; char *ret;
-  long i;
-  int count;
-  //f.getline (s, len);  // Get newline
-  ret = fgets(s,len,f);
+  else if (headType == CHOICE)
+  {
+    throw std::exception("Not implemented yet");
+  }
 
-  if (ret == NULL)
-    {
-      cerr << "expected atom names to begin on new line, line " 
-	<< linenumber << endl;
-      return 1;
-    }
+  int bodyType, bodyLength;
+  line >> bodyType >> bodyLength;
 
-  count = fscanf(f,"%ld",&i);
+  if (bodyType == NORMAL_BODY)
+  {
+    for (int i = 0; i < bodyLength; i++)
+    {
+      long literal;
+      line >> literal;
 
-  ret = fgets(s,len,f);
-  s[strlen(s)-1] = 0;
-  linenumber++;
-  while (i)
-    {
-      if (ret == NULL)
-	{
-	  cerr << "atom name too long or end of file, line " 
-	       << linenumber << endl;
-	  return 1;
-	}
-      Atom *a = getAtom (i);
-      if (*s)
-	api->set_name (a, s+1);
-      else
-	api->set_name (a, 0);
-      count = fscanf(f,"%ld",&i);
+      builder.addBody(literal);
+    }
+  }
+  else
+  {
+    throw std::exception("Not implemented yet");
+  }
 
-      ret = fgets(s,len,f);
-      s[strlen(s)-1] = 0;
-      linenumber++;
-    }
-  // Read compute-statement
-  ret = fgets(s,len,f);
-  s[strlen(s)-1] = 0;
-  if (ret == NULL || strcmp (s, "B+"))
-    {
-      cerr << "B+ expected, line " << linenumber << endl;
-      return 1;
-    }
-  linenumber++;
-  count = fscanf(f,"%ld",&i);
-  linenumber++;
-  while (i)
-    {
-      if (count == EOF || i < 1)
-	{
-	  cerr << "B+ atom out of bounds, line " << linenumber << endl;
-	  return 1;
-	}
-      Atom *a = getAtom (i);
-      api->set_compute (a, true,true);
-      //api->add_clause_from_compute (a, true);
-	  count = fscanf(f,"%ld",&i);
-      linenumber++;
-    }
-  ret = fgets(s,len,f);
-  ret = fgets(s,len,f);
-  s[strlen(s)-1] = 0;
-  if (ret == NULL || strcmp (s, "B-"))
-    {
-      cerr << "B- expected, line " << linenumber << endl;
-      return 1;
-    }
-  linenumber++;
-  count = fscanf(f,"%ld",&i);
-  linenumber++;
-  while (i)
-    {
-      if (count == EOF || i < 1)
-	{
-	  cerr << "B- atom out of bounds, line " << linenumber << endl;
-	  return 1;
-	}
-      Atom *a = getFalseAtom (i);
-      api->set_compute (a, false,true);
-      //api->add_clause_from_compute (a, false);
-      count = fscanf(f,"%ld",&i);
-      linenumber++;
-    }
-  //f >> models;  // zero means all
-  count = fscanf(f,"%ld",&models);
-  if (count == EOF) 
-    {
-      cerr << "number of models expected, line " << linenumber << endl;
-      return 1;
-    }
+
   return 0;
+}
+
+int Read::read(string fileName)
+{
+  ifstream fileStream(fileName);
+
+  // TODO Error handling
+  string line;
+  while (std::getline(fileStream, line))
+  {
+    unique_ptr<istringstream> lineStream(new istringstream(line));
+
+    int statementType;
+    *lineStream >> statementType;
+
+    switch (statementType)
+    {
+      case END:
+        break;
+      case RULE:
+        readRule(*lineStream);
+      default:
+        // TODO error
+        break;
+    }
+  }
+
+  // Read rules.
+  // int type;
+  // bool stop = false;
+  // for (linenumber = 1; !stop; linenumber++) {
+
+
+	// // Rule Type
+	// fscanf(f,"%d",&type);
+	// switch (type)
+	//   {
+	//   case BASICRULE:
+	// 	if (addBasicRule (f))
+	// 	  return 1;
+	// 	break;
+	//   case CONSTRAINTRULE:
+	// 	if (addConstraintRule (f))
+	// 	  return 1;
+	// 	break;
+	//   case CHOICERULE:
+	// 	if (program->disjProgramLparse){
+	// 	  if (addDisjunctionRule (f))
+	// 		return 1;
+	// 	}else{
+
+	// 	  if (addChoiceRule (f))
+	// 		return 1;
+	// 	}
+	// 	break;
+	//   case DISJUNCTIONRULE:
+	// 	if (addDisjunctionRule (f)){
+	// 	  program->disj=true;
+	// 	  return 1;
+	// 	}
+	// 	break;
+	//   case GENERATERULE:
+	// 	if (addGenerateRule (f))
+	// 	  return 1;
+	// 	break;
+	//   case WEIGHTRULE:
+	// 	if (addWeightRule (f))
+	// 	  return 1;
+	// 	break;
+	//   case OPTIMIZERULE:
+	// 	if (addOptimizeRule (f))
+	// 	  return 1;
+	// 	break;
+	//   default:
+	// 	cout<< "Default "<<type<< endl;
+	// 	cout<< "Line number "<< linenumber<<endl;
+	// 	return 1;
+	//   }
+  // }
+
+  // Read atom names.
+  // const int len = 1024;
+  // char s[len]; char *ret;
+  // long i;
+  // int count;
+  // //f.getline (s, len);  // Get newline
+  // ret = fgets(s,len,f);
+
+  // if (ret == NULL)
+  //   {
+  //     cerr << "expected atom names to begin on new line, line "
+	// << linenumber << endl;
+  //     return 1;
+  //   }
+
+  // count = fscanf(f,"%ld",&i);
+
+  // ret = fgets(s,len,f);
+  // s[strlen(s)-1] = 0;
+  // linenumber++;
+  // while (i)
+  //   {
+  //     if (ret == NULL)
+	// {
+	//   cerr << "atom name too long or end of file, line "
+	//        << linenumber << endl;
+	//   return 1;
+	// }
+  //     Atom *a = getAtom (i);
+  //     if (*s)
+	// api->set_name (a, s+1);
+  //     else
+	// api->set_name (a, 0);
+  //     count = fscanf(f,"%ld",&i);
+
+  //     ret = fgets(s,len,f);
+  //     s[strlen(s)-1] = 0;
+  //     linenumber++;
+  //   }
+  // // Read compute-statement
+  // ret = fgets(s,len,f);
+  // s[strlen(s)-1] = 0;
+  // if (ret == NULL || strcmp (s, "B+"))
+  //   {
+  //     cerr << "B+ expected, line " << linenumber << endl;
+  //     return 1;
+  //   }
+  // linenumber++;
+  // count = fscanf(f,"%ld",&i);
+  // linenumber++;
+  // while (i)
+  //   {
+  //     if (count == EOF || i < 1)
+	// {
+	//   cerr << "B+ atom out of bounds, line " << linenumber << endl;
+	//   return 1;
+	// }
+  //     Atom *a = getAtom (i);
+  //     api->set_compute (a, true,true);
+  //     //api->add_clause_from_compute (a, true);
+	//   count = fscanf(f,"%ld",&i);
+  //     linenumber++;
+  //   }
+  // ret = fgets(s,len,f);
+  // ret = fgets(s,len,f);
+  // s[strlen(s)-1] = 0;
+  // if (ret == NULL || strcmp (s, "B-"))
+  //   {
+  //     cerr << "B- expected, line " << linenumber << endl;
+  //     return 1;
+  //   }
+  // linenumber++;
+  // count = fscanf(f,"%ld",&i);
+  // linenumber++;
+  // while (i)
+  //   {
+  //     if (count == EOF || i < 1)
+	// {
+	//   cerr << "B- atom out of bounds, line " << linenumber << endl;
+	//   return 1;
+	// }
+  //     Atom *a = getFalseAtom (i);
+  //     api->set_compute (a, false,true);
+  //     //api->add_clause_from_compute (a, false);
+  //     count = fscanf(f,"%ld",&i);
+  //     linenumber++;
+  //   }
+  // //f >> models;  // zero means all
+  // count = fscanf(f,"%ld",&models);
+  // if (count == EOF)
+  //   {
+  //     cerr << "number of models expected, line " << linenumber << endl;
+  //     return 1;
+  //   }
+  // return 0;
 }
 ;

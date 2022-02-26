@@ -123,7 +123,7 @@ public:
   Api api;
   Cmodels cmodels;
   //incremental (EZCSP) related
-  int read (FILE *f);
+  int read();
   void numberExpected(char* str);
   void setSolver(SolverType st);
   void usage(void);

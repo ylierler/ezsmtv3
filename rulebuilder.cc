@@ -40,7 +40,7 @@
 #include "program.h"
 #include "graphscc.h"
 #include "tree.h"
-#include "api.h"
+#include "rulebuilder.h"
 #include <stdio.h>
 #include <fstream>
 #include <cstdlib>
@@ -563,6 +563,59 @@ Api::headAtomInBody(){
 }
 
 
+Rule RuleBuilder::build()
+{
+
+
+
+  set_init ();
+  Rule *r = 0;
+  switch (type)
+  {
+    case BASICRULE:
+	  assert (size (head) == 1);
+      r = new BasicRule;
+      break;
+    case CONSTRAINTRULE:
+      assert (size (head) == 1);
+      r = new ConstraintRule;
+      break;
+    case DISJUNCTIONRULE:
+      assert (size (head) >= 1);
+      r = new DisjunctionRule;
+      program->disj=true;
+      break;
+    case WEIGHTRULE:
+      assert (size (head) == 1);
+      r = new WeightRule;
+      break;
+    default:
+      break;
+  }
+
+  if (r && type!=CHOICERULE)
+  {
+    program->rules.push_back (r);
+    program->number_of_rules++;
+    r->init (init);
+  }
+
+  if(type == CHOICERULE){
+    assert (size (head) >= 1);
+
+    for(int i=0; i<size (head);i++){
+      if(!pbody.find(init->head[i])){
+        r = new ChoiceRule;
+        program->rules.push_back (r);
+
+        program->number_of_rules++;
+        r->init (init,i);
+      }
+    }
+  }
+
+
+}
 
 void
 Api::end_rule ()
@@ -604,6 +657,7 @@ Api::end_rule ()
 	  if(!pbody.find(init->head[i])){
 		r = new ChoiceRule;
 		program->rules.push_back (r);
+
 		program->number_of_rules++;
 		r->init (init,i);
 	  }
@@ -651,6 +705,15 @@ Api::body_reset(){
   nnbody.reset();
 }
 
+void RuleBuilder::addHead(int literal)
+{
+  head.insert(literal);
+}
+
+void RuleBuilder::addBody(int literal)
+{
+  body.insert(literal);
+}
 
 void
 Api::add_head (Atom *a)

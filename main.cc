@@ -330,22 +330,23 @@ int main (int argc, char *argv[])
 
 
   //Check errors from grounding output
-   ostringstream outputFile2;
-   ss.clear();
-   ss.str("");
-   ss<<ctable.cmodels.param.file<<".grounded";
-   ifstream in_file2(ss.str().c_str());
-   outputFile2 <<in_file2.rdbuf();
-   string outputFilelStr2= outputFile2.str();
-   in_file2.close();
-   istringstream iss2(outputFilelStr);
-   while(getline(iss2,line)){
-   //if a error is read, output error message
-     	if(line.find("error: ")!=string::npos  || line.find("ERROR: (gringo): ")!=string::npos){
-   	     cout << " *** Error during grounding. See output file " <<ctable.cmodels.param.file<<".grounded ***"<< endl;
-   	     exit(1);
-       }
-   }
+  ostringstream outputFile2;
+  ss.clear();
+  ss.str("");
+  ss<<ctable.cmodels.param.file<<".grounded";
+  ifstream in_file2(ss.str().c_str());
+  outputFile2 <<in_file2.rdbuf();
+  string outputFilelStr2= outputFile2.str();
+  in_file2.close();
+  istringstream iss2(outputFilelStr);
+  while(getline(iss2,line)){
+    //if a error is read, output error message
+    if(line.find("error: ")!=string::npos  || line.find("ERROR: (gringo): ")!=string::npos){
+        cout << " *** Error during grounding. See output file " <<ctable.cmodels.param.file<<".grounded ***"<< endl;
+        exit(1);
+      }
+  }
+
 
 
   strcat(ctable.cmodels.param.file, ".grounded");
@@ -357,7 +358,9 @@ int main (int argc, char *argv[])
       freopen(ctable.cmodels.param.file,"r",stdin);
   }
 
-  int bad = ctable.read(stdin);  
+  // std::ifstream groundedFile(ctable.cmodels.param.file);
+
+  int bad = ctable.read();
   if(ctable.cmodels.output.asparagus==STANDARD)
 	cerr << "done"<<endl;       
   if (bad)

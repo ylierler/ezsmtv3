@@ -34,7 +34,7 @@ class Read
 public:
   Read (Program *p, Api *a);
   ~Read ();
-  int read (FILE *f);
+  int read (string fileName);
 
   long models; //number of models to compute
 
@@ -45,6 +45,7 @@ private:
   int readBody (FILE *f, long size, bool pos, RuleType type);
   int finishReading(FILE* f, long size);
 
+  int readRule(istringstream&);
   int addBasicRule (FILE *f);
   int addDisjunctionRule (FILE *f);
   int addConstraintRule (FILE *f);

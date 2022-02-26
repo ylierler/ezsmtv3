@@ -45,15 +45,12 @@ public:
   void print_atoms ();
   void print_atoms_wf ();
 
-
-
-  queue <Atom*>q; 
-  vector<Atom*>atoms; 
-
+  queue <Atom*>q;
+  vector<Atom*>atoms;
 
   list<Rule*> rules;
 
-  //Vector which will have all the complitions
+  //Vector which will have all the completions
   vector<Completion*> completions;
 
   //Vector which will have all the clauses

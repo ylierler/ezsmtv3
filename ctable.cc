@@ -47,14 +47,15 @@ Ctable::~Ctable ()
 }
 
 int
-Ctable::read (FILE *f)
+Ctable::read()
 { 
   
-  int r = reader.read (f);
+  int result = reader.read(cmodels.param.file);
+
   //the program has just been read; no modifications on the program were performed 
   //so we can safely set the value of program.original_number_of_atoms
   cmodels.program.original_number_of_atoms=cmodels.program.number_of_atoms;
-  return r;
+  return result;
 }
 void 
 Ctable::setSolver(SolverType st){  
