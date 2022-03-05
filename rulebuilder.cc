@@ -28,6 +28,7 @@
 // Patrik.Simons@hut.fi
 
 #include <iostream>
+#include <memory>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -565,54 +566,73 @@ Api::headAtomInBody(){
 
 Rule RuleBuilder::build()
 {
+  unique_ptr<Init> init(new Init());
+
+  // if(type==WEIGHTRULE)
+  //   checkRepretitions();
+  // sort(head);
+  // sort(nbody);
+  // sort(pbody);
+
+  // init->head = head.atoms;
+  // init->hsize = size (head);
+  // init->pbody = pbody.atoms;
+  // init->psize = size (pbody);
+  // init->pweight = pbody.weights;
+  // init->nbody = nbody.atoms;
+  // init->nweight = nbody.weights;
+  // init->nsize = size (nbody);
+  // init->atleast_weight = atleast_weight;
+  // init->atleast_body = atleast_body;
+  // init->atleast_head = atleast_head;
+  // // init->maximize = maximize;
 
 
+  // set_init ();
+  // Rule *r = 0;
+  // switch (type)
+  // {
+  //   case BASICRULE:
+	//   assert (size (head) == 1);
+  //     r = new BasicRule;
+  //     break;
+  //   case CONSTRAINTRULE:
+  //     assert (size (head) == 1);
+  //     r = new ConstraintRule;
+  //     break;
+  //   case DISJUNCTIONRULE:
+  //     assert (size (head) >= 1);
+  //     r = new DisjunctionRule;
+  //     program->disj=true;
+  //     break;
+  //   case WEIGHTRULE:
+  //     assert (size (head) == 1);
+  //     r = new WeightRule;
+  //     break;
+  //   default:
+  //     break;
+  // }
 
-  set_init ();
-  Rule *r = 0;
-  switch (type)
-  {
-    case BASICRULE:
-	  assert (size (head) == 1);
-      r = new BasicRule;
-      break;
-    case CONSTRAINTRULE:
-      assert (size (head) == 1);
-      r = new ConstraintRule;
-      break;
-    case DISJUNCTIONRULE:
-      assert (size (head) >= 1);
-      r = new DisjunctionRule;
-      program->disj=true;
-      break;
-    case WEIGHTRULE:
-      assert (size (head) == 1);
-      r = new WeightRule;
-      break;
-    default:
-      break;
-  }
+  // if (r && type!=CHOICERULE)
+  // {
+  //   program->rules.push_back (r);
+  //   program->number_of_rules++;
+  //   r->init (init);
+  // }
 
-  if (r && type!=CHOICERULE)
-  {
-    program->rules.push_back (r);
-    program->number_of_rules++;
-    r->init (init);
-  }
+  // if(type == CHOICERULE){
+  //   assert (size (head) >= 1);
 
-  if(type == CHOICERULE){
-    assert (size (head) >= 1);
+  //   for(int i=0; i<size (head);i++){
+  //     if(!pbody.find(init->head[i])){
+  //       r = new ChoiceRule;
+  //       program->rules.push_back (r);
 
-    for(int i=0; i<size (head);i++){
-      if(!pbody.find(init->head[i])){
-        r = new ChoiceRule;
-        program->rules.push_back (r);
-
-        program->number_of_rules++;
-        r->init (init,i);
-      }
-    }
-  }
+  //       program->number_of_rules++;
+  //       r->init (init,i);
+  //     }
+  //   }
+  // }
 
 
 }
@@ -680,6 +700,7 @@ Api::rule_reset(){
   head.reset ();
 
 }
+
 void
 Api::rule_reset_repetition(){
   pbody.reset_repetition ();

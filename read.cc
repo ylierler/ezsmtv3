@@ -29,12 +29,13 @@
 #include <float.h>
 #include <limits.h>
 #include <sstream>
+#include <stdexcept>
 #include <string.h>
 #include "atomrule.h"
 #include "program.h"
 #include "read.h"
 
-Read::Read (Program *p, RuleBuilder *a)
+Read::Read (Program *p, Api *a)
   : program (p), api (a)
 {
   // atoms = 0;
@@ -46,28 +47,28 @@ Read::Read (Program *p, RuleBuilder *a)
 //
 Read::~Read ()
 {
-  // delete[] atoms;
+  delete[] atoms;
 }
 
 //
 //in case if array of atoms is not big enough already it will grow
 //
-// void
-// Read::grow ()
-// {
-//   long sz = size*2;
-//   if (sz == 0)
-//     sz = 256;
-//   Atom **array = new Atom *[sz];
-//   long i;
-//   for (i = 0; i < size; i++)
-//     array[i] = atoms[i];
-//   size = sz;
-//   for (; i < size; i++)
-//     array[i] = 0;
-//   delete[] atoms;
-//   atoms = array;
-// }
+void
+Read::grow ()
+{
+  long sz = size*2;
+  if (sz == 0)
+    sz = 256;
+  Atom **array = new Atom *[sz];
+  long i;
+  for (i = 0; i < size; i++)
+    array[i] = atoms[i];
+  size = sz;
+  for (; i < size; i++)
+    array[i] = 0;
+  delete[] atoms;
+  atoms = array;
+}
 
 //
 //creates an instance of a new atom
@@ -82,6 +83,12 @@ Read::getAtom (long n)
     atoms[n] = api->new_atom (n);
   return atoms[n];
 }
+
+Atom* Read::getAtomFromLiteral(long n)
+{
+  return getAtom(abs(n));
+}
+
 Atom *
 Read::getFalseAtom (long n)
 {
@@ -114,9 +121,7 @@ Read::finishReading(FILE* f, long size){
   return 0;
 }
 
-//
-//
-//
+// gringo's output used to separate positive and negative portions of the body
 int
 Read::readBody (FILE *f, long size, bool pos, RuleType type)
 {
@@ -125,33 +130,35 @@ Read::readBody (FILE *f, long size, bool pos, RuleType type)
   for (long i = 0; i < size; i++)
     {
 	  count = fscanf(f,"%ld",&n);	  
-      if (count == EOF || n < 1)
-		{
-		  cerr << "atom out of bounds, line " << linenumber << endl;
-		  return 1;
-		}
+    //   if (count == EOF || n < 1)
+		// {
+		//   cerr << "atom out of bounds, line " << linenumber << endl;
+		//   return 1;
+		// }
       Atom *a = getAtom (n);
-      if(!pos)
-		a->scopeNegAsFail = true;
+      // if(!pos)
+      //   a->scopeNegAsFail = true;
+
 	  //if atom is not added 
 	  //it meens that it is repeated again in the rule
 	  //and since it is a weight rule we might loose information
 	  if(type==WEIGHTRULE||type==CONSTRAINTRULE){
-		a->pbInd.clear();
-		a->nbInd.clear();
-		api->add_body (a, pos);
+      a->pbInd.clear();
+      a->nbInd.clear();
+      api->add_body (a, pos);
 	  }
 	  else
 		if(!api->add_body_repetition (a, pos, type)){		  
 		  for (i=i+1; i < size; i++)
 			{
-			  count = fscanf(f,"%ld",&n);	  
-			  if (count == EOF || n < 1)
-				{
-				  cerr << "atom out of bounds, line " << linenumber << endl;
-				  return 1;
-				}
+			  count = fscanf(f,"%ld",&n);
+			  // if (count == EOF || n < 1)
+				// {
+				//   cerr << "atom out of bounds, line " << linenumber << endl;
+				//   return 1;
+				// }
 			}
+      // TODO revisit
 		  api->rule_reset_repetition();
 		  return -1; //there is no point going this rule father
 		  // as we can thru this rule away due to same atom in
@@ -531,9 +538,12 @@ WEIGHT_BODY = 1
 
 // enum HeadType
 
-int Read::readRule(istringstream& line)
+void Read::readRuleLine(istringstream& line)
 {
-  RuleBuilder builder();
+  // cout << "Reading: " << line << endl;
+
+  // RuleBuilder builder();
+  api->begin_rule(BASICRULE);
 
   int headType, headLength;
   line >> headType >> headLength;
@@ -542,15 +552,19 @@ int Read::readRule(istringstream& line)
   {
     for (int i = 0; i < headLength; i++)
     {
-      int literal;
+      long literal;
       line >> literal;
 
-      builder.addHead(literal);
+      Atom* a = getAtomFromLiteral(literal);
+      // builder.addHead(literal);
+      // api->add_head(getAtom(literal));
+      api->add_head_repetition(a);
+
     }
   }
   else if (headType == CHOICE)
   {
-    throw std::exception("Not implemented yet");
+    throw std::runtime_error("Not implemented yet");
   }
 
   int bodyType, bodyLength;
@@ -563,16 +577,34 @@ int Read::readRule(istringstream& line)
       long literal;
       line >> literal;
 
-      builder.addBody(literal);
+      Atom* a = getAtomFromLiteral(literal);
+
+      // builder.addBody(literal);
+      // api->add_body(getAtom(std::abs(literal)), literal > 0);
+      api->add_body_repetition(a, literal > 0, BASICRULE);
     }
   }
   else
   {
-    throw std::exception("Not implemented yet");
+    throw std::runtime_error("Not implemented yet");
   }
 
+  api->end_rule();
+}
 
-  return 0;
+void Read::readOutputLine(istringstream& line)
+{
+  int _;
+  int fixme; // FIXME I'm not sure what 1 and 0 represent
+  string atomName;
+  long atomId;
+  line >> _ >> atomName >> fixme >> atomId;
+
+  if (fixme == 1)
+  {
+    Atom* a = getAtom(atomId);
+    api->set_name(a, atomName.c_str());
+  }
 }
 
 int Read::read(string fileName)
@@ -593,12 +625,18 @@ int Read::read(string fileName)
       case END:
         break;
       case RULE:
-        readRule(*lineStream);
+        readRuleLine(*lineStream);
+        break;
+      case OUTPUT:
+        readOutputLine(*lineStream);
+        break;
       default:
         // TODO error
         break;
     }
   }
+
+  return 0;
 
   // Read rules.
   // int type;

@@ -41,7 +41,7 @@ public:
   void init ();
   void print ();
   void print_completion ();   
-  void print_clauses ();
+  void print_clauses (bool useAtomNames = false);
   void print_atoms ();
   void print_atoms_wf ();
 

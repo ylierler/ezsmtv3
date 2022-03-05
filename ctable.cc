@@ -39,7 +39,6 @@ Ctable::Ctable ()
     reader (&cmodels.program, &api)
 {
   cmodels.api=&api;
-  
 }
 
 Ctable::~Ctable ()

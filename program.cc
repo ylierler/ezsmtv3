@@ -105,13 +105,13 @@ Program::print_completion(){
 }
 
 void
-Program::print_clauses(){
+Program::print_clauses(bool useAtomNames){
   cout <<"CLAUSES OF A PROGRAM"<<endl;
   long size=0;
   for (vector<Clause*>::iterator itrCl =  clauses.begin();
 	   itrCl !=  clauses.end(); itrCl++){
 	size++;
-	(*itrCl)->print();
+	(*itrCl)->print(useAtomNames);
   }
   
 }

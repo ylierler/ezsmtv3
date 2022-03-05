@@ -223,8 +223,6 @@ int main (int argc, char *argv[])
   bool error = false;
  
 
-
-
   strcpy(ctable.cmodels.param.cmodelsname, &argv[0][0]);
 
   strcpy(ctable.cmodels.param.config, "CONFIG");
@@ -321,10 +319,15 @@ int main (int argc, char *argv[])
   }
 
 
+  ss.str("");
+  cout << "Preparse results:" << endl;
+  system((string("cat ") + ctable.cmodels.param.file).c_str());
+  cout << endl;
+
   //grounding
   ss.clear();
   ss.str("");
-  ss<<"$EZSMTPLUS/tools/gringo "<<ctable.cmodels.param.file<<".preparsed"<<" > "<<ctable.cmodels.param.file<<".grounded";
+  ss<<"$EZSMTPLUS/tools/gringo-5.5.1 "<<ctable.cmodels.param.file<<".preparsed"<<" > "<<ctable.cmodels.param.file<<".grounded";
   cerr<<"Running grounding command: "<<ss.str().c_str()<<endl;;
   system(ss.str().c_str());
 
@@ -350,6 +353,10 @@ int main (int argc, char *argv[])
 
 
   strcat(ctable.cmodels.param.file, ".grounded");
+
+  cout << "Grounded program" << endl;
+  system((string("cat ") + ctable.cmodels.param.file).c_str());
+  cout << endl;
 
   ctable.cmodels.output.timerAll.start();
 

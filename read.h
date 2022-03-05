@@ -25,7 +25,7 @@
 #ifndef READ_H
 #define READ_H
 
-#include "api.h"
+#include "rulebuilder.h"
 #include <stdio.h>
 
 
@@ -40,12 +40,15 @@ public:
 
 private:
   void grow ();
-  Atom *getAtom (long n);
-  Atom *getFalseAtom (long n);
+  Atom* getAtom (long n);
+  Atom* getAtomFromLiteral(long n);
+  Atom* getFalseAtom (long n);
   int readBody (FILE *f, long size, bool pos, RuleType type);
   int finishReading(FILE* f, long size);
 
-  int readRule(istringstream&);
+  void readRuleLine(istringstream&);
+  void readOutputLine(istringstream& line);
+
   int addBasicRule (FILE *f);
   int addDisjunctionRule (FILE *f);
   int addConstraintRule (FILE *f);

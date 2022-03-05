@@ -39,7 +39,7 @@ endif
 
 HEADERS = Solver.h SimpSolver.h SolverTypes.h Vec.h Queue.h Alg.h BasicHeap.h BoxedVec.h Map.h Heap.h Sort.h \
 stack.h  atomrule.h read.h graphscc.h\
- timer.h  program.h api.h ctable.h \
+ timer.h  program.h rulebuilder.h ctable.h \
 tree.h  cmodels.h interpret.h param.h 
 
 SOLVER_SRCS = main.cc 
@@ -47,7 +47,7 @@ SOLVER_OBJS = $(SOLVER_SRCS:.cc=.o)
 
 LIB_SRCS =  SimpSolver.cc Solver.cc \
 	stack.cc  atomrule.cc read.cc \
-timer.cc  program.cc api.cc ctable.cc \
+timer.cc  program.cc rulebuilder.cc ctable.cc \
 tree.cc  graphscc.cc cmodels.cc interpret.cc 
 
 LIB_OBJS = $(LIB_SRCS:.cc=.o)

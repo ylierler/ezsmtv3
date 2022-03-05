@@ -35,7 +35,6 @@ using namespace std;
 /* if you want some statistics during the solving, uncomment following line */
 //    SAT_AddHookFun(mng,output_status, 5000);
 Cmodels::Cmodels() {
-
 	output.program = &program;
 	output.param = &param;
 
@@ -162,11 +161,11 @@ Result Cmodels::preprocessing(bool& emptyprogram) {
 	output.numRules = program.number_of_rules;
 	sortRules();
 
-	cout<<"Number of Sorted Rules "<<program.number_of_rules<<endl;
 
 	initRuleLists4WF();
 	cout<<"Final Program "<<endl;
 	program.print();
+	cout << endl;
 
 	// exit(0);
 	bool conflict = false;
@@ -211,6 +210,7 @@ Result Cmodels::preprocessing(bool& emptyprogram) {
 
 	//Report an error if the program is disjunctive.
 	if (program.disj) {
+		// FIXME What does disjunctive mean?
 		cerr << "Error: disjunctive programs are not supported." << endl;
 		exit(-1);
 	}
@@ -3470,6 +3470,8 @@ inline void Cmodels::print_clauses() {
 bool Cmodels::print_output_for_sat() {
 	// TODO output SMT-lib format
 
+	program.print_clauses(true);
+
 	switch (param.sys) {
 	// case ZCHAFF:  //creates ZCHAFF manager with clauses
 	// 	loadClausesToZchaffManager();
@@ -3485,6 +3487,7 @@ bool Cmodels::print_output_for_sat() {
 
 void Cmodels::print_DIMACS() {
 	cout << "printing dimacs format" << endl;
+	cout << param.sys << endl;
 	//creates cnf standard file for all sat solvers
 	unlink(param.dimacsFileName);
 	FILE* file = fopen(param.dimacsFileName, "w");

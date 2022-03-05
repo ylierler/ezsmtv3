@@ -48,7 +48,7 @@ typedef enum {
 } InRule;
 typedef enum {
   ENDRULE,
-  BASICRULE,
+  BASICRULE, // Ex: x :- y, not z.
   CONSTRAINTRULE,
   CHOICERULE,
   //
@@ -56,7 +56,7 @@ typedef enum {
   WEIGHTRULE,
   OPTIMIZERULE,
   SOMETHING,
-  DISJUNCTIONRULE,
+  DISJUNCTIONRULE, // Not to  be confused with gringo5's disjunctionrule head type
   NESTED
   } RuleType;
 typedef enum {

@@ -23,3 +23,4 @@ duration(T,200*T) :- task(T).
 &diff { end(T) - start(T) } <= D :- duration(T,D).
 &sum { end(T) : task(T); -start(T) : task(T) } <= m.
 &show { start/1; end/1 }.
+

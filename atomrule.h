@@ -30,6 +30,7 @@
 #include "defines.h"
 #include <iostream>
 #include <list>
+#include <unordered_set>
 #include <vector>
 //#include "api.h"
 
@@ -187,7 +188,7 @@ public:
   bool inMminus;
   int inLoopId;
   bool cons; 
-  bool scopeNegAsFail;
+  // bool scopeNegAsFail;
 
   
   int inLoop;
@@ -627,7 +628,7 @@ public:
 class Clause
 {
  public:
-  void print ();  
+  void print (bool useAtomNames = false);
   void printcnf (FILE* file);
   void printsmtcnf (FILE* file);
   void printBCircuit( FILE* file,char* gateName);

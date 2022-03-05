@@ -32,7 +32,7 @@
 #endif
 #include "atomrule.h"
 #include "program.h"
-#include "api.h"
+#include "rulebuilder.h"
 #include "defines.h"
 
 
@@ -46,7 +46,7 @@ Atom::Atom (Program * p0)
   //  change=false;
   //conflict=false;
   //  headActive=0;
-  scopeNegAsFail=false;
+  // scopeNegAsFail=false;
   inLoop=-1;
   inRule=UNDEF;
   choiceruleSpecified= false;
@@ -2537,27 +2537,50 @@ Clause::~Clause ()
 }
 
 void
-Clause::print ()
+Clause::print(bool useAtomNames)
 {
   Atom **a;
   bool comma = false;
   for (a = pbody; a != pend; a++)
+  {
+    if (comma)
     {
-      if (comma)
-		cout << " v ";
-	  (*a)->print();
-      comma = true;
+      cout << " v ";
     }
+
+    if (useAtomNames)
+    {
+      cout << (*a)->atom_name();
+    }
+    else
+    {
+      (*a)->print();
+    }
+
+    comma = true;
+  }
+
   for (a = nbody; a != nend; a++)
     {
       if (comma)
-		cout << " v ";
-      cout << "- ";// << (*a)->atom_name ();
-	  (*a)->print();
+      {
+        cout << " v ";
+      }
+      cout << "- ";
+      if (useAtomNames)
+      {
+        cout << (*a)->atom_name();
+      }
+      else
+      {
+        (*a)->print();
+      }
+
       comma = true;
     }
   cout << '.' << endl;
 }
+
 void
 Clause::printcnf (FILE* file)
 {

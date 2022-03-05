@@ -21,7 +21,7 @@
 #include "program.h"
 #include "graphscc.h"
 //#include "wf.h"
-#include "api.h"
+#include "rulebuilder.h"
 #include "interpret.h"
 #include <vector>
 
