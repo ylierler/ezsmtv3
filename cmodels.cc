@@ -3470,7 +3470,7 @@ inline void Cmodels::print_clauses() {
 bool Cmodels::print_output_for_sat() {
 	// TODO output SMT-lib format
 
-	program.print_clauses(true);
+	program.print_clauses(false);
 
 	switch (param.sys) {
 	// case ZCHAFF:  //creates ZCHAFF manager with clauses

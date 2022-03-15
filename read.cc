@@ -292,30 +292,31 @@ Read::addChoiceRule (FILE *f)
   api->begin_rule (CHOICERULE);
   // Heads
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 1)
-    {
-      cerr << "head size less that one, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 1)
+  //   {
+  //     cerr << "head size less that one, line " << linenumber << endl;
+  //     return 1;
+  //   }
   long heads = n;
   for (long i = 0; i < heads; i++)
-    {
-	  count = fscanf(f,"%ld",&n);
-      if (count == EOF || n < 1)
-	{
-	  cerr << "atom out of bounds, line " << linenumber << endl;
-	  return 1;
-	}
-      Atom *a = getAtom (n);
-      api->add_head_repetition (a);
-    }
+  {
+    count = fscanf(f,"%ld",&n);
+    // if (count == EOF || n < 1)
+    // {
+    //   cerr << "atom out of bounds, line " << linenumber << endl;
+    //   return 1;
+    // }
+    Atom *a = getAtom (n);
+    api->add_head_repetition (a);
+  }
+
   // Body
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 0)
-    {
-      cerr << "total body size, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 0)
+  //   {
+  //     cerr << "total body size, line " << linenumber << endl;
+  //     return 1;
+  //   }
   long body = n;
   // Negative body
   count = fscanf(f,"%ld",&n);
@@ -543,28 +544,39 @@ void Read::readRuleLine(istringstream& line)
   // cout << "Reading: " << line << endl;
 
   // RuleBuilder builder();
-  api->begin_rule(BASICRULE);
 
   int headType, headLength;
   line >> headType >> headLength;
 
   if (headType == DISJUNCTION)
   {
-    for (int i = 0; i < headLength; i++)
-    {
-      long literal;
-      line >> literal;
-
-      Atom* a = getAtomFromLiteral(literal);
-      // builder.addHead(literal);
-      // api->add_head(getAtom(literal));
-      api->add_head_repetition(a);
-
-    }
+    api->begin_rule(BASICRULE);
   }
   else if (headType == CHOICE)
   {
-    throw std::runtime_error("Not implemented yet");
+    api->begin_rule(CHOICERULE);
+  }
+
+  for (int i = 0; i < headLength; i++)
+  {
+    long literal;
+    line >> literal;
+
+    Atom* a = getAtomFromLiteral(literal);
+    // builder.addHead(literal);
+    // api->add_head(getAtom(literal));
+    api->add_head_repetition(a);
+
+  }
+
+  if (headLength == 0)
+  {
+    // FIXME It seems like the gringo 4 reader expects
+    // an empty head placeholder like this
+    // I'm not sure if this is the correct one though.
+    Atom* neverAtom = getAtom(-1);
+    neverAtom->name = "never";
+    api->add_head_repetition(neverAtom);
   }
 
   int bodyType, bodyLength;
@@ -657,7 +669,7 @@ int Read::read(string fileName)
 	// 	  return 1;
 	// 	break;
 	//   case CHOICERULE:
-	// 	if (program->disjProgramLparse){
+	// 	if (program->disjProgramLparse){ // false by default
 	// 	  if (addDisjunctionRule (f))
 	// 		return 1;
 	// 	}else{
