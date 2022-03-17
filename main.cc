@@ -285,7 +285,9 @@ int main (int argc, char *argv[])
   stringstream ss;
   ss.clear();
   ss.str("");
-  ss<<"$EZSMTPLUS/tools/pre-parser ";
+  // FIXME
+  // ss<<"$EZSMTPLUS/tools/pre-parser ";
+  ss << "cat ";
   for( int a = 0; a< ctable.cmodels.param.numOfFiles ; a++){
 	  if ( access( ctable.cmodels.param.files[a], F_OK ) == -1 ){
 		  cerr <<" *** Error: file "<<ctable.cmodels.param.files[a]<<" does not exist. ***"<<endl;
@@ -321,7 +323,7 @@ int main (int argc, char *argv[])
 
   ss.str("");
   cout << "Preparse results:" << endl;
-  system((string("cat ") + ctable.cmodels.param.file).c_str());
+  system((string("cat ") + ctable.cmodels.param.file + ".preparsed").c_str());
   cout << endl;
 
   //grounding

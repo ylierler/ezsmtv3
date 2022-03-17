@@ -28,9 +28,11 @@
 #include <iostream>
 #include <float.h>
 #include <limits.h>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string.h>
+#include <string>
 #include "atomrule.h"
 #include "program.h"
 #include "read.h"
@@ -74,6 +76,7 @@ Read::grow ()
 //creates an instance of a new atom
 //
 // FIXME Why do we use Atoms here? This seems like a leak of domain boundaries
+// FIXME Why doesn't the API do this check instead?
 Atom *
 Read::getAtom (long n)
 {
@@ -619,9 +622,38 @@ void Read::readOutputLine(istringstream& line)
   }
 }
 
+
+enum TheoryLineType
+{
+NUMERIC_TERMS = 0,
+SYMBOLIC_TERMS = 1,
+COMPOUND_TERMS = 2,
+ATOM_ELEMENTS = 4,
+DIRECTIVE = 5,
+STATEMENT = 6
+};
+
+void Read::readTheoryLine(istringstream& line)
+{
+  int lineType;
+  line >> lineType;
+
+  if (lineType == STATEMENT)
+  {
+    int atomId;
+    line >> atomId;
+    Atom* atom = getAtom(atomId);
+    atom->name = "<theory>";
+
+  }
+
+}
+
 int Read::read(string fileName)
 {
   ifstream fileStream(fileName);
+
+
 
   // TODO Error handling
   string line;
@@ -641,6 +673,9 @@ int Read::read(string fileName)
         break;
       case OUTPUT:
         readOutputLine(*lineStream);
+        break;
+      case THEORY:
+        readTheoryLine(*lineStream);
         break;
       default:
         // TODO error

@@ -48,6 +48,7 @@ private:
 
   void readRuleLine(istringstream&);
   void readOutputLine(istringstream& line);
+  void readTheoryLine(istringstream& line);
 
   int addBasicRule (FILE *f);
   int addDisjunctionRule (FILE *f);
