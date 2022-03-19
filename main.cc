@@ -371,7 +371,6 @@ int main (int argc, char *argv[])
 
   int bad = ctable.read();
   if(ctable.cmodels.output.asparagus==STANDARD)
-	cerr << "done"<<endl;       
   if (bad)
     {
       cerr << "Error in input" << endl;

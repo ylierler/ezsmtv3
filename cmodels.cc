@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -377,22 +378,86 @@ void Cmodels::populate_answerset_lits_wfm(int* answerset_lits, int& num_atoms) {
 
 }
 
+string convertCNFTermToSmtTerm(string term)
+{
+	if (term.find("-") == std::string::npos)
+	{
+		return term;
+	}
+	else
+	{
+		return term.replace(term.find("-"), 1, "(not ") + ")";
+	}
+}
+
+string convertCNFLineToSMTAssertion(string line)
+{
+	istringstream input(line);
+	ostringstream output;
+
+	output << "(assert (or";
+
+	string term;
+	input >> term;
+
+	while (term != "0")
+	{
+		cout << term << endl;
+		output << " " + convertCNFTermToSmtTerm(term);
+
+		input >> term;
+	}
+	output << "))";
+
+	return output.str();
+}
+
 // convert clauses to SMT format
-void Cmodels::convertClausesToSMT(string fileName) {
+void Cmodels::convertClausesToSMT(string dimacsFileName, string outputFileName) {
 	stringstream ss;
 	ss.clear();
 	ss.str("");
 
-	cout << param.dimacsFileName << endl;
+	cout << dimacsFileName << endl;
+	system((string("cat ") + dimacsFileName).c_str());
 
-	ss << "python $EZSMTPLUS/tools/ezcsp-dimacs-to-smt.py "
-			<< param.dimacsFileName;
-	if (param.NLLogic)
-		ss << " nonlinear ";
-	ss << " > SMT" << fileName.substr(17, fileName.size() - 21);
-	cout << "SMT" << fileName.substr(17, fileName.size() - 21)
-			<< " file is produced" << endl;
-	system(ss.str().c_str());
+	ifstream inputFileStream(dimacsFileName);
+	ofstream outputFileStream;
+	outputFileStream.open(outputFileName);
+
+	outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
+	outputFileStream << "(set-option :produce-models true)" << endl;
+
+	// Atom a = program.atoms.begin()
+
+	for (Atom* a : program.atoms)
+	{
+		outputFileStream << "(declare-const " << a->atom_name() << " Bool)" << endl;
+	}
+
+	string line;
+	while (std::getline(inputFileStream, line))
+	{
+		if (line.find("smt") == std::string::npos)
+		{
+			string assertion = convertCNFLineToSMTAssertion(line);
+			outputFileStream << assertion << endl;
+		}
+	}
+
+	outputFileStream << "(assert (not never))" << endl;
+	outputFileStream << "(check-sat)" << endl;
+
+	outputFileStream << "(get-value (";
+	for (Atom* a : program.atoms)
+	{
+		outputFileStream << a->atom_name() << " ";
+	}
+	outputFileStream << "))" << endl;
+
+	outputFileStream.close();
+
+	system(string("cat " + outputFileName).c_str());
 }
 
 // call SMT solver to compute one model
@@ -801,9 +866,10 @@ void Cmodels::callSMTSolver() {
 		solverCommand = "$EZSMTPLUS/tools/yices-smt2 ";
 	stringstream ss;
 
+	string smtFileName = "SMT" + fileName.substr(17);
 
 	// convert clauses to SMT format
-	convertClausesToSMT(fileName);
+	convertClausesToSMT(fileName, smtFileName);
 
 
 	//If the domain is over reals or mixed integers and reals,

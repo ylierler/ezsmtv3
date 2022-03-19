@@ -50,8 +50,7 @@ typedef enum {
   ENDRULE,
   BASICRULE, // Ex: x :- y, not z.
   CONSTRAINTRULE,
-  CHOICERULE,
-  //
+  CHOICERULE, // Ex: { x } :- y.
   GENERATERULE,
   WEIGHTRULE,
   OPTIMIZERULE,

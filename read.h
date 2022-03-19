@@ -39,7 +39,6 @@ public:
   long models; //number of models to compute
 
 private:
-  void grow ();
   Atom* getAtom (long n);
   Atom* getAtomFromLiteral(long n);
   Atom* getFalseAtom (long n);
@@ -58,7 +57,7 @@ private:
   int addWeightRule (FILE *f);
   int addOptimizeRule (FILE *f);
 
-  Atom **atoms;
+  map<long, Atom*> atoms;
   long size;
   long linenumber;
   Program * const program;

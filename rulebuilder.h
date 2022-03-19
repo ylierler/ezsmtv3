@@ -122,8 +122,8 @@ public:
 
   void add_Cbody (Atom *, bool pos);         // Add atom to body of completion with auxilary atoms 
 
-  void add_body (Atom *, bool pos, Weight); // Add atom with weight to body
   void add_body (Atom *, Weight, bool pos); // Add atom with weight and positivness to body
+  void add_body (Atom *, bool pos, Weight w); // Add atom with weight to body
   void pop_body (bool pos); // pop last added atom in nbody or pbody 
 
   void change_body (long i, bool pos, Weight); // Change weight in body

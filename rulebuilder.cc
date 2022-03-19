@@ -763,8 +763,8 @@ Api::add_head_repetition (Atom *a)
 {
   assert (a);
   if(a->inRule!=HEAD){
-	a->inRule=HEAD;
-	head.push (a);
+    a->inRule=HEAD;
+    head.push (a);
   }
 }
 
@@ -778,24 +778,24 @@ Api::add_body_repetition (Atom *a, bool pos, RuleType type)
   assert (a);
 
   if (pos){
-	if(a->inRule==HEAD&&type!=CHOICERULE&&type!=CONSTRAINTRULE){
-	  rule_reset_repetition(); //we reset a rule here since it will not be added
-	  return false;
-	}
-	if(a->inRule==POSB || (a->inRule==HEAD&&type==CONSTRAINTRULE))
-	  return true;
-	a->inRule=POSB;
-	pbody.push (a);
+    if(a->inRule==HEAD&&type!=CHOICERULE&&type!=CONSTRAINTRULE){
+      rule_reset_repetition(); //we reset a rule here since it will not be added
+      return false;
+    }
+    if(a->inRule==POSB || (a->inRule==HEAD&&type==CONSTRAINTRULE))
+      return true;
+    a->inRule=POSB;
+    pbody.push (a);
   }
   else{
-	if(a->inRule==POSB&&type!=CONSTRAINTRULE){
-	  rule_reset_repetition(); //we reset a rule here since it will not be added
-	  return false;
-	}
-	if(a->inRule==NEGB)
-	  return true;
-	a->inRule=NEGB;
-	nbody.push (a);
+    if(a->inRule==POSB&&type!=CONSTRAINTRULE){
+      rule_reset_repetition(); //we reset a rule here since it will not be added
+      return false;
+    }
+    if(a->inRule==NEGB)
+      return true;
+    a->inRule=NEGB;
+    nbody.push (a);
   }
   
   return true;
@@ -842,6 +842,7 @@ Api::add_body (Atom *a, bool pos, Weight w)
 
 void
 Api::add_body (Atom *a, Weight w, bool pos)
+// FIXME Why does this exist?
 {
 #ifdef USEDOUBLE
   assert (w >= 0);

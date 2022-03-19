@@ -68,7 +68,7 @@ public:
 
   void cmodels(); //runs translation invokation and so on
   void callSMTSolver(); // call EZSMT and SMT solver
-  void convertClausesToSMT(string fileName);
+  void convertClausesToSMT(string dimacsFileName, string outputFileName);
   void printSMTAnswerSets(int fileCount, string fileName); // parse SMT solvers' results and print answer sets
   void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
   void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets

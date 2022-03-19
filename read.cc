@@ -45,31 +45,9 @@ Read::Read (Program *p, Api *a)
   models = 1;
 }
 
-//distractor
-//
 Read::~Read ()
 {
-  delete[] atoms;
-}
-
-//
-//in case if array of atoms is not big enough already it will grow
-//
-void
-Read::grow ()
-{
-  long sz = size*2;
-  if (sz == 0)
-    sz = 256;
-  Atom **array = new Atom *[sz];
-  long i;
-  for (i = 0; i < size; i++)
-    array[i] = atoms[i];
-  size = sz;
-  for (; i < size; i++)
-    array[i] = 0;
-  delete[] atoms;
-  atoms = array;
+  // delete[] atoms;
 }
 
 //
@@ -80,8 +58,6 @@ Read::grow ()
 Atom *
 Read::getAtom (long n)
 {
-  while (n >= size)
-    grow ();
   if (atoms[n] == 0)
     atoms[n] = api->new_atom (n);
   return atoms[n];
@@ -95,8 +71,6 @@ Atom* Read::getAtomFromLiteral(long n)
 Atom *
 Read::getFalseAtom (long n)
 {
-  while (n >= size)
-    grow ();
   if (atoms[n] == 0)
     atoms[n] = api->new_atom (n);
   if(n==1 && strcmp("#noname#",atoms[n]->atom_name ())==0){
@@ -245,11 +219,11 @@ Read::addConstraintRule (FILE *f)
   count = fscanf(f,"%ld",&n);
   if (count == EOF)
     return 1;
-  if (count == EOF || n < 1)
-    {
-      cerr << "head atom out of bounds, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 1)
+  //   {
+  //     cerr << "head atom out of bounds, line " << linenumber << endl;
+  //     return 1;
+  //   }
   Atom *a = getAtom (n);
   api->add_head(a);
   // Body
@@ -429,11 +403,11 @@ Read::addWeightRule (FILE *f)
   api->begin_rule (WEIGHTRULE);
   // Rule head
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 1)
-   {
-      cerr << "head atom out of bounds, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 1)
+  //  {
+  //     cerr << "head atom out of bounds, line " << linenumber << endl;
+  //     return 1;
+  //   }
   Atom *a = getAtom (n);
   api->add_head (a);
   Weight w;
@@ -451,20 +425,20 @@ Read::addWeightRule (FILE *f)
   api->set_atleast_weight (w);
   // Body 
   count = fscanf(f,"%ld",&n);
-  if (count == EOF || n < 0)
-    {
-      cerr << "Weight rule, total body size, line " << linenumber << endl;
-      return 1;
-    }  
+  // if (count == EOF || n < 0)
+  //   {
+  //     cerr << "Weight rule, total body size, line " << linenumber << endl;
+  //     return 1;
+  //   }
   long body = n;
   // Negative body 
   count = fscanf(f,"%ld",&n);
 
-  if (count == EOF || n < 0 || n > body)
-    {
-      cerr << "Weight rule, negative body size, line " << linenumber << endl;
-      return 1;
-    }
+  // if (count == EOF || n < 0 || n > body)
+  //   {
+  //     cerr << "Weight rule, negative body size, line " << linenumber << endl;
+  //     return 1;
+  //   }
   long nbody = n;
   if (readBody (f, nbody, false,WEIGHTRULE))
     return 1;
@@ -544,7 +518,7 @@ WEIGHT_BODY = 1
 
 void Read::readRuleLine(istringstream& line)
 {
-  // cout << "Reading: " << line << endl;
+  cout << "Reading: " << line.str() << endl;
 
   // RuleBuilder builder();
 
@@ -582,11 +556,13 @@ void Read::readRuleLine(istringstream& line)
     api->add_head_repetition(neverAtom);
   }
 
-  int bodyType, bodyLength;
-  line >> bodyType >> bodyLength;
+  int bodyType;
+  line >> bodyType;
 
   if (bodyType == NORMAL_BODY)
   {
+    int bodyLength;
+    line >> bodyLength;
     for (int i = 0; i < bodyLength; i++)
     {
       long literal;
@@ -594,17 +570,41 @@ void Read::readRuleLine(istringstream& line)
 
       Atom* a = getAtomFromLiteral(literal);
 
-      // builder.addBody(literal);
-      // api->add_body(getAtom(std::abs(literal)), literal > 0);
-      api->add_body_repetition(a, literal > 0, BASICRULE);
+      // api->add_body_repetition(a, literal > 0, BASICRULE);
+
+      // FIXME How important is the repetition variant?
+      api->add_body(a, literal > 0);
+    }
+  }
+  else if (bodyType == WEIGHT_BODY)
+  {
+    Weight lowerBound;
+    int numOfLiterals;
+    line >> lowerBound >> numOfLiterals;
+
+    // FIXME
+    api->type = WEIGHTRULE;
+
+    api->set_atleast_weight(lowerBound);
+
+    for (int i = 0; i < numOfLiterals; i++)
+    {
+      long literal;
+      Weight weight;
+      line >> literal >> weight;
+
+      Atom* a = getAtomFromLiteral(literal);
+      // FIXME this may be wrong. Should I use add_body_repetition instead?
+      api->add_body(a, literal > 0, weight);
     }
   }
   else
   {
-    throw std::runtime_error("Not implemented yet");
+    throw std::runtime_error("Not implemented yet. Line: " + line.str());
   }
 
   api->end_rule();
+  cout << "end rule" << endl;
 }
 
 void Read::readOutputLine(istringstream& line)
@@ -651,39 +651,47 @@ void Read::readTheoryLine(istringstream& line)
 
 int Read::read(string fileName)
 {
-  ifstream fileStream(fileName);
+  int lineNumber = 0;
+  try {
+    ifstream fileStream(fileName);
 
 
-
-  // TODO Error handling
-  string line;
-  while (std::getline(fileStream, line))
-  {
-    unique_ptr<istringstream> lineStream(new istringstream(line));
-
-    int statementType;
-    *lineStream >> statementType;
-
-    switch (statementType)
+    // TODO Error handling
+    string line;
+    while (std::getline(fileStream, line))
     {
-      case END:
-        break;
-      case RULE:
-        readRuleLine(*lineStream);
-        break;
-      case OUTPUT:
-        readOutputLine(*lineStream);
-        break;
-      case THEORY:
-        readTheoryLine(*lineStream);
-        break;
-      default:
-        // TODO error
-        break;
-    }
-  }
+      lineNumber++;
+      unique_ptr<istringstream> lineStream(new istringstream(line));
 
-  return 0;
+      int statementType;
+      *lineStream >> statementType;
+
+      switch (statementType)
+      {
+        case END:
+          break;
+        case RULE:
+          readRuleLine(*lineStream);
+          break;
+        case OUTPUT:
+          readOutputLine(*lineStream);
+          break;
+        case THEORY:
+          readTheoryLine(*lineStream);
+          break;
+        default:
+          // TODO error
+          break;
+      }
+    }
+
+    return 0;
+  } catch (exception e) {
+    cout << "Failed parsing grounded logic program." << endl;
+    cout << fileName + ", line " << lineNumber;
+    cout << e.what() << endl;
+    throw e;
+  }
 
   // Read rules.
   // int type;
