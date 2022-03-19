@@ -841,7 +841,7 @@ Api::add_body (Atom *a, bool pos, Weight w)
 }
 
 void
-Api::add_body (Atom *a, Weight w, bool pos)
+Api::add_body_LEGACY (Atom *a, Weight w, bool pos)
 // FIXME Why does this exist?
 {
 #ifdef USEDOUBLE

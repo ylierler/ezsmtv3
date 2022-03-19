@@ -1674,14 +1674,14 @@ void Cmodels::walk_body_weightrule_to_add_body(WeightRule *r) {
 				Weight weight = r->aux[a - r->body].weight;
 				r->atleast -= weight;
 			} else
-				api->add_body((*a), r->aux[a - r->body].weight, false);
+				api->add_body_LEGACY((*a), r->aux[a - r->body].weight, false);
 		} else { //this is pbody part
 			if ((*a)->Bneg) {
 				;
 			} else if ((*a)->Bpos) {
-				api->add_body((*a), r->aux[a - r->body].weight, true);
+				api->add_body_LEGACY((*a), r->aux[a - r->body].weight, true);
 			} else {
-				api->add_body((*a), r->aux[a - r->body].weight, true);
+				api->add_body_LEGACY((*a), r->aux[a - r->body].weight, true);
 			}
 		}
 	}
