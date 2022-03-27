@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 //#include <regex>
+#include <sstream>
 #include <string>
 #include <limits.h>
 #ifdef USEDOUBLE
@@ -196,7 +197,7 @@ Atom::printNestedRules(){
   cout<<"\n";
 }
 
-//
+// TODO delete
 // This is no longer there only for debugging purporses
 // So do not change: I use it to output to casp-dimacs form
 void
@@ -207,6 +208,19 @@ Atom::printClean(FILE * file){
     fprintf(file, "%d",id);
 
 }
+
+string Atom::getSmtName()
+{
+  if (name)
+  {
+    return "|" + string(name) + "|";
+  }
+  else
+  {
+    return "|" + std::to_string(id) + "|";
+  }
+}
+
 void
 Atom::print(){
   if(strcmp("#noname#",atom_name()))
@@ -2581,6 +2595,7 @@ Clause::print(bool useAtomNames)
   cout << '.' << endl;
 }
 
+// TODO delete
 void
 Clause::printcnf (FILE* file)
 {
@@ -2605,6 +2620,7 @@ Clause::printcnf (FILE* file)
   fprintf(file, " 0\n");
 }
 
+// TODO delete
 void
 Clause::printsmtcnf (FILE* file)
 {
@@ -2629,6 +2645,31 @@ Clause::printsmtcnf (FILE* file)
   fprintf(file, " 0\n");
 }
 
+string Clause::toSmtLibString()
+{
+  ostringstream expression;
+  Atom **a;
+
+  expression << "(or";
+
+  for (a = nbody; a != nend; a++)
+  {
+    string atomName = (*a)->getSmtName();
+    expression << " (not " << atomName << ")";
+
+  }
+  for (a = pbody; a != pend; a++)
+  {
+    string atomName = (*a)->getSmtName();
+    expression << " " << atomName;
+  }
+
+  expression << ")";
+
+  return expression.str();
+}
+
+// TODO delete
 void
 Atom::printsmt(FILE* file)
 {

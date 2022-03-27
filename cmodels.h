@@ -68,7 +68,6 @@ public:
 
   void cmodels(); //runs translation invokation and so on
   void callSMTSolver(); // call EZSMT and SMT solver
-  void convertClausesToSMT(string dimacsFileName, string outputFileName);
   void printSMTAnswerSets(int fileCount, string fileName); // parse SMT solvers' results and print answer sets
   void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
   void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets
@@ -100,6 +99,7 @@ protected:
   void printM();
   void printWFM();
   void printMminus();
+
   //if consdisj passed then mminus marked by consdisj assgnments
   //if it is not passed then mminus is diffence between inM and Cons
   void findMminus(bool* = 0);
@@ -132,17 +132,6 @@ protected:
   // like createFalseHeadClauses(Atom* a) does
 
 
-
-  bool print_output_for_sat();// populates Clause databases of different solvers
-                              // or calls to create dimacsxxx.out file standard for various solvers
-
-  void print_DIMACS(); //creates dimacsxxx.out file standard for various solvers
-                       //      or smt-dimacs.out for smt-connection
-
-
-
-  void print_output_for_BCircuit();//creates cmodels.out which is circuit description
-
   void print_completion();
   void print_clauses();
 
@@ -160,6 +149,7 @@ protected:
   void print_time();
 
 
+  void writeToSmtLibFile(string outputFileName);
 
   
 

@@ -314,21 +314,6 @@ Result Cmodels::preprocessing(bool& emptyprogram) {
 
 	setupFilenames();
 
-	
-	//minisat detects at loading clauses the basic conflicts
-	//and in such case print_output return false
-	//creates file cmodels.out or loads clauses
-	//into zchaff, minisat
-	if (!print_output_for_sat()) {
-		// releaseSolvers();
-		return UNSAT;
-	}
-	//which is processesd by mchaff
-	//  cout<<"done"<<endl;
-	// if (param.verifyMethod == MIN) {
-	// 	createModelVerificationManager();
-	// }
-
 	return (Result) UNKNOWN;
 }
 
@@ -410,54 +395,6 @@ string convertCNFLineToSMTAssertion(string line)
 	output << "))";
 
 	return output.str();
-}
-
-// convert clauses to SMT format
-void Cmodels::convertClausesToSMT(string dimacsFileName, string outputFileName) {
-	stringstream ss;
-	ss.clear();
-	ss.str("");
-
-	cout << dimacsFileName << endl;
-	system((string("cat ") + dimacsFileName).c_str());
-
-	ifstream inputFileStream(dimacsFileName);
-	ofstream outputFileStream;
-	outputFileStream.open(outputFileName);
-
-	outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
-	outputFileStream << "(set-option :produce-models true)" << endl;
-
-	// Atom a = program.atoms.begin()
-
-	for (Atom* a : program.atoms)
-	{
-		outputFileStream << "(declare-const " << a->atom_name() << " Bool)" << endl;
-	}
-
-	string line;
-	while (std::getline(inputFileStream, line))
-	{
-		if (line.find("smt") == std::string::npos)
-		{
-			string assertion = convertCNFLineToSMTAssertion(line);
-			outputFileStream << assertion << endl;
-		}
-	}
-
-	outputFileStream << "(assert (not never))" << endl;
-	outputFileStream << "(check-sat)" << endl;
-
-	outputFileStream << "(get-value (";
-	for (Atom* a : program.atoms)
-	{
-		outputFileStream << a->atom_name() << " ";
-	}
-	outputFileStream << "))" << endl;
-
-	outputFileStream.close();
-
-	system(string("cat " + outputFileName).c_str());
 }
 
 // call SMT solver to compute one model
@@ -867,39 +804,36 @@ void Cmodels::callSMTSolver() {
 	stringstream ss;
 
 	string smtFileName = "SMT" + fileName.substr(17);
+	writeToSmtLibFile(smtFileName);
 
-	// convert clauses to SMT format
-	convertClausesToSMT(fileName, smtFileName);
+	// //If the domain is over reals or mixed integers and reals,
+	// //computing multiple extended answer sets is not allowed
+	// if (param.extmany != 1) {
+	// 	stringstream ss2;
+	// 	ostringstream outputFile2;
+	// 	ss2.clear();
+	// 	ss2.str("");
+	// 	string line2;
+	// 	ss2 << "SMT" << fileName.substr(17, fileName.size() - 21);
+	// 	ifstream in_file2(ss2.str().c_str());
+	// 	outputFile2 << in_file2.rdbuf();
+	// 	string outputFilelStr2 = outputFile2.str();
+	// 	in_file2.close();
+	// 	istringstream iss2(outputFilelStr2);
+	// 	while (getline(iss2, line2)) {
+	// 		//if a domain is read and the domain is LRA, NRA, or AUFLIRA
+	// 		if (line2.find("(set-logic ") != string::npos
+	// 				&& (line2.find("QF_LRA") != string::npos
+	// 						|| line2.find("QF_NRA") != string::npos
+	// 						|| line2.find("AUFLIRA") != string::npos)) {
 
-
-	//If the domain is over reals or mixed integers and reals,
-	//computing multiple extended answer sets is not allowed
-	if (param.extmany != 1) {
-		stringstream ss2;
-		ostringstream outputFile2;
-		ss2.clear();
-		ss2.str("");
-		string line2;
-		ss2 << "SMT" << fileName.substr(17, fileName.size() - 21);
-		ifstream in_file2(ss2.str().c_str());
-		outputFile2 << in_file2.rdbuf();
-		string outputFilelStr2 = outputFile2.str();
-		in_file2.close();
-		istringstream iss2(outputFilelStr2);
-		while (getline(iss2, line2)) {
-			//if a domain is read and the domain is LRA, NRA, or AUFLIRA
-			if (line2.find("(set-logic ") != string::npos
-					&& (line2.find("QF_LRA") != string::npos
-							|| line2.find("QF_NRA") != string::npos
-							|| line2.find("AUFLIRA") != string::npos)) {
-
-				cout
-						<< " *** Warning: computing multiple extended answer sets is disabled "
-						<< "for real domain or mixed domain ***" << endl;
-				param.extmany = 1;
-			}
-		}
-	}
+	// 			cout
+	// 					<< " *** Warning: computing multiple extended answer sets is disabled "
+	// 					<< "for real domain or mixed domain ***" << endl;
+	// 			param.extmany = 1;
+	// 		}
+	// 	}
+	// }
 
 	// computing models
 	int fileCount = 0;
@@ -908,213 +842,213 @@ void Cmodels::callSMTSolver() {
 		ss.str("");
 
 		// call SMT solver to compute one model
-		computeOneSMTModel(fileName, solverCommand, fileCount);
+		computeOneSMTModel(smtFileName, solverCommand, fileCount);
 
-		//read the previous model
-		ostringstream model;
-		ss.clear();
-		ss.str("");
-		if (fileCount == 0)
-			ss << "Model" << fileName.substr(17, fileName.size() - 21);
-		else
-			ss << "Model" << fileName.substr(17, fileName.size() - 21)
-					<< "_" << fileCount;
-		ifstream in_file(ss.str().c_str());
-		model << in_file.rdbuf();
-		string ModelStr = model.str();
-		in_file.close();
-		istringstream iss(ModelStr);
-		string line;
-		getline(iss, line);
-		// read the previous SMT file.
-		ostringstream SMT;
-		ss.clear();
-		ss.str("");
-		if (fileCount == 0)
-			ss << "SMT" << fileName.substr(17, fileName.size() - 21);
-		else
-			ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
-					<< fileCount;
-		ifstream in_file_SMT(ss.str().c_str());
+		// //read the previous model
+		// ostringstream model;
+		// ss.clear();
+		// ss.str("");
+		// if (fileCount == 0)
+		// 	ss << "Model" << fileName.substr(17, fileName.size() - 21);
+		// else
+		// 	ss << "Model" << fileName.substr(17, fileName.size() - 21)
+		// 			<< "_" << fileCount;
+		// ifstream in_file(ss.str().c_str());
+		// model << in_file.rdbuf();
+		// string ModelStr = model.str();
+		// in_file.close();
+		// istringstream iss(ModelStr);
+		// string line;
+		// getline(iss, line);
+		// // read the previous SMT file.
+		// ostringstream SMT;
+		// ss.clear();
+		// ss.str("");
+		// if (fileCount == 0)
+		// 	ss << "SMT" << fileName.substr(17, fileName.size() - 21);
+		// else
+		// 	ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
+		// 			<< fileCount;
+		// ifstream in_file_SMT(ss.str().c_str());
 
-		SMT << in_file_SMT.rdbuf();
-		string SMTStr = SMT.str();
-		in_file_SMT.close();
+		// SMT << in_file_SMT.rdbuf();
+		// string SMTStr = SMT.str();
+		// in_file_SMT.close();
 
-		if ((line == "unsupported" || line == "supported")
-				&& param.SMTsolver == YICES)  	         //case: yices
-			getline(iss, line);
+		// if ((line == "unsupported" || line == "supported")
+		// 		&& param.SMTsolver == YICES)  	         //case: yices
+		// 	getline(iss, line);
 
 
-		
-		//if the previous model is satisfiable, then enumerate extended answer sets
-		if (line == "sat") {
-			if (param.extmany > 1 || param.extmany == 0) {
-				enumerateExtendedAnswerSets(fileName, solverCommand, fileCount, SMTStr, &iss);
-			}
-		} else {
-			//Report errors from SMT solvers
-			cout << "-------------------------" << endl;
-			if (line.find("(error ") != string::npos
-					|| line.find("unknown") != string::npos || line == "") {
-				cerr << " *** Error reported by SMT solver. See output "
-						<< "Model"
-						<< fileName.substr(17, fileName.size() - 21);
-				if (fileCount != 0)
-					cerr << "_" << fileCount;
-				cerr << ", and input file SMT"
-						<< fileName.substr(17, fileName.size() - 21);
-				if (fileCount != 0)
-					cerr << "_" << fileCount;
-				cerr << " ***" << endl;
-				exit(1);
 
-			}
-		}
+		// //if the previous model is satisfiable, then enumerate extended answer sets
+		// if (line == "sat") {
+		// 	if (param.extmany > 1 || param.extmany == 0) {
+		// 		enumerateExtendedAnswerSets(fileName, solverCommand, fileCount, SMTStr, &iss);
+		// 	}
+		// } else {
+		// 	//Report errors from SMT solvers
+		// 	cout << "-------------------------" << endl;
+		// 	if (line.find("(error ") != string::npos
+		// 			|| line.find("unknown") != string::npos || line == "") {
+		// 		cerr << " *** Error reported by SMT solver. See output "
+		// 				<< "Model"
+		// 				<< fileName.substr(17, fileName.size() - 21);
+		// 		if (fileCount != 0)
+		// 			cerr << "_" << fileCount;
+		// 		cerr << ", and input file SMT"
+		// 				<< fileName.substr(17, fileName.size() - 21);
+		// 		if (fileCount != 0)
+		// 			cerr << "_" << fileCount;
+		// 		cerr << " ***" << endl;
+		// 		exit(1);
+
+		// 	}
+		// }
 		
 	
 	
-		// if the previous model is satisfiable, then add assertions so that new answer set to the
-		// modified problem is different from previous solutions.
-		iss.clear();
-		iss.seekg(0);
-		ss.clear();
-		ss.str("");
-		if (fileCount == 0)
-			ss << "SMT" << fileName.substr(17, fileName.size() - 21);
-		else
-			ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
-					<< fileCount;
-		ifstream in_file_SMT2(ss.str().c_str());
-		SMT.clear();
-		SMT.str("");
-		SMT << in_file_SMT2.rdbuf();
-		SMTStr = SMT.str();
-		in_file_SMT2.close();
-		getline(iss, line);
-		if ((line == "unsupported" || line == "supported")
-				&& param.SMTsolver == YICES)  	         //case: yices
-			getline(iss, line);
-		if (line == "sat") {
-			string str_search = "; Check satisfiability";
-			ss.clear(); //store the denial of the model in ss
-			ss.str("");
-			ss << "(assert (or ";
-			string CurVar = "";
-			while (getline(iss, line)) {
+		// // if the previous model is satisfiable, then add assertions so that new answer set to the
+		// // modified problem is different from previous solutions.
+		// iss.clear();
+		// iss.seekg(0);
+		// ss.clear();
+		// ss.str("");
+		// if (fileCount == 0)
+		// 	ss << "SMT" << fileName.substr(17, fileName.size() - 21);
+		// else
+		// 	ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
+		// 			<< fileCount;
+		// ifstream in_file_SMT2(ss.str().c_str());
+		// SMT.clear();
+		// SMT.str("");
+		// SMT << in_file_SMT2.rdbuf();
+		// SMTStr = SMT.str();
+		// in_file_SMT2.close();
+		// getline(iss, line);
+		// if ((line == "unsupported" || line == "supported")
+		// 		&& param.SMTsolver == YICES)  	         //case: yices
+		// 	getline(iss, line);
+		// if (line == "sat") {
+		// 	string str_search = "; Check satisfiability";
+		// 	ss.clear(); //store the denial of the model in ss
+		// 	ss.str("");
+		// 	ss << "(assert (or ";
+		// 	string CurVar = "";
+		// 	while (getline(iss, line)) {
 
-				//if a variable name is read, store it in curVar.
-				if ((param.SMTsolver == CVC4 || param.SMTsolver == Z3)
-						&& line.find("(define-fun ") != string::npos) {
-					int StartPos = line.find("(define-fun ");
-					int EndPos = line.find(" () ");
-					CurVar = line.substr(StartPos + 12,
-							EndPos - StartPos - 12);
-				} else if (param.SMTsolver == YICES
-						&& line.find("(= ") != string::npos) {
+		// 		//if a variable name is read, store it in curVar.
+		// 		if ((param.SMTsolver == CVC4 || param.SMTsolver == Z3)
+		// 				&& line.find("(define-fun ") != string::npos) {
+		// 			int StartPos = line.find("(define-fun ");
+		// 			int EndPos = line.find(" () ");
+		// 			CurVar = line.substr(StartPos + 12,
+		// 					EndPos - StartPos - 12);
+		// 		} else if (param.SMTsolver == YICES
+		// 				&& line.find("(= ") != string::npos) {
 
-					int StartPos = line.find("(= ");
-					if (line.find(" true)") != string::npos) {
-						int EndPos = line.find(" true)");
-						CurVar = line.substr(StartPos + 3,
-								EndPos - StartPos - 3);
-					} else if (line.find(" false)") != string::npos) {
-						int EndPos = line.find(" false)");
-						CurVar = line.substr(StartPos + 3,
-								EndPos - StartPos - 3);
-					} else {
-						//It's not a regular atom, or "false)" and "true)" is pushed into the next line
-						//reset curVar
-						CurVar = "cspdomain";
-						continue;
-					}
+		// 			int StartPos = line.find("(= ");
+		// 			if (line.find(" true)") != string::npos) {
+		// 				int EndPos = line.find(" true)");
+		// 				CurVar = line.substr(StartPos + 3,
+		// 						EndPos - StartPos - 3);
+		// 			} else if (line.find(" false)") != string::npos) {
+		// 				int EndPos = line.find(" false)");
+		// 				CurVar = line.substr(StartPos + 3,
+		// 						EndPos - StartPos - 3);
+		// 			} else {
+		// 				//It's not a regular atom, or "false)" and "true)" is pushed into the next line
+		// 				//reset curVar
+		// 				CurVar = "cspdomain";
+		// 				continue;
+		// 			}
 
-				} else if (param.SMTsolver == YICES
-						&& line.find("(=") != string::npos) {
-					//if a variable's name is too long, it will be on the next line in output
-					getline(iss, line);
-					CurVar = line;
-					getline(iss, line);
-				}
+		// 		} else if (param.SMTsolver == YICES
+		// 				&& line.find("(=") != string::npos) {
+		// 			//if a variable's name is too long, it will be on the next line in output
+		// 			getline(iss, line);
+		// 			CurVar = line;
+		// 			getline(iss, line);
+		// 		}
 
-				//if the variable is not level ranking variable
-				if (CurVar.find("required(") == string::npos
-						&& CurVar.find("cspvar") == string::npos
-						&& CurVar.find("cspdomain") == string::npos) {
-					// if the variable is asserted to be true
-					if (line.find(" true)") != string::npos) {
-						if (CurVar.substr(0, 1) == "|") {
-							if (!isdigit(CurVar[1]))
-								ss << "(not " << CurVar << ") ";
-						} else {
-							if (!isdigit(CurVar[0]))
-								ss << "(not |" << CurVar << "|) ";
-						}
-					}
-					// if the variable is asserted to be false
-					else if (line.find(" false)") != string::npos) {
-						if (CurVar.substr(0, 1) == "|") {
-							if (!isdigit(CurVar[1]))
-								ss << CurVar << " ";
-						} else {
-							if (!isdigit(CurVar[0]))
-								ss << "|" << CurVar << "| ";
-						}
-					}
+		// 		//if the variable is not level ranking variable
+		// 		if (CurVar.find("required(") == string::npos
+		// 				&& CurVar.find("cspvar") == string::npos
+		// 				&& CurVar.find("cspdomain") == string::npos) {
+		// 			// if the variable is asserted to be true
+		// 			if (line.find(" true)") != string::npos) {
+		// 				if (CurVar.substr(0, 1) == "|") {
+		// 					if (!isdigit(CurVar[1]))
+		// 						ss << "(not " << CurVar << ") ";
+		// 				} else {
+		// 					if (!isdigit(CurVar[0]))
+		// 						ss << "(not |" << CurVar << "|) ";
+		// 				}
+		// 			}
+		// 			// if the variable is asserted to be false
+		// 			else if (line.find(" false)") != string::npos) {
+		// 				if (CurVar.substr(0, 1) == "|") {
+		// 					if (!isdigit(CurVar[1]))
+		// 						ss << CurVar << " ";
+		// 				} else {
+		// 					if (!isdigit(CurVar[0]))
+		// 						ss << "|" << CurVar << "| ";
+		// 				}
+		// 			}
 
-				}
-			}
+		// 		}
+		// 	}
 
-			//If there is no atoms that could possibly have a different truth value,
-			//then stop enumeration.
-			if (ss.str() == "(assert (or ") {
-				cout << "No more answer sets available." << endl;
-				fileCount++;
-				break;
-			}
+		// 	//If there is no atoms that could possibly have a different truth value,
+		// 	//then stop enumeration.
+		// 	if (ss.str() == "(assert (or ") {
+		// 		cout << "No more answer sets available." << endl;
+		// 		fileCount++;
+		// 		break;
+		// 	}
 
-			ss << "))\n; Check satisfiability";
-			string str_replace = ss.str();
-			size_t assertionPos = SMTStr.find(str_search);
-			SMTStr.replace(assertionPos, string(str_search).length(),
-					str_replace);
-			fileCount++;
-			ss.clear();
-			ss.str("");
-			ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
-					<< fileCount;
-			ofstream out_file(ss.str().c_str());
-			cerr << "writing SMT file: " << ss.str().c_str() << endl;
-			out_file << SMTStr;
-		}
+		// 	ss << "))\n; Check satisfiability";
+		// 	string str_replace = ss.str();
+		// 	size_t assertionPos = SMTStr.find(str_search);
+		// 	SMTStr.replace(assertionPos, string(str_search).length(),
+		// 			str_replace);
+		// 	fileCount++;
+		// 	ss.clear();
+		// 	ss.str("");
+		// 	ss << "SMT" << fileName.substr(17, fileName.size() - 21) << "_"
+		// 			<< fileCount;
+		// 	ofstream out_file(ss.str().c_str());
+		// 	cerr << "writing SMT file: " << ss.str().c_str() << endl;
+		// 	out_file << SMTStr;
+		// }
 
-		//if the previous model is unsatisfiable, then break.
-		else {
+		// //if the previous model is unsatisfiable, then break.
+		// else {
 
-			if (line != "unsat") {
-				cout << "No more answer sets available." << endl;
-				break;
-			}
+		// 	if (line != "unsat") {
+		// 		cout << "No more answer sets available." << endl;
+		// 		break;
+		// 	}
 
-			if (line.find("(error ") != string::npos
-					|| line.find("unknown") != string::npos) {
-				cout << "-------------------------" << endl;
-				cerr << " *** Error reported by SMT solver. See output "
-						<< "Model"
-						<< fileName.substr(17, fileName.size() - 21);
-				if (fileCount != 0)
-					cerr << "_" << fileCount;
-				cerr << ", and input file SMT"
-						<< fileName.substr(17, fileName.size() - 21);
-				if (fileCount != 0)
-					cerr << "_" << fileCount;
-				cerr << " ***" << endl;
-				exit(1);
+		// 	if (line.find("(error ") != string::npos
+		// 			|| line.find("unknown") != string::npos) {
+		// 		cout << "-------------------------" << endl;
+		// 		cerr << " *** Error reported by SMT solver. See output "
+		// 				<< "Model"
+		// 				<< fileName.substr(17, fileName.size() - 21);
+		// 		if (fileCount != 0)
+		// 			cerr << "_" << fileCount;
+		// 		cerr << ", and input file SMT"
+		// 				<< fileName.substr(17, fileName.size() - 21);
+		// 		if (fileCount != 0)
+		// 			cerr << "_" << fileCount;
+		// 		cerr << " ***" << endl;
+		// 		exit(1);
 
-			}
+		// 	}
 
-			break;
-		}
+		// 	break;
+		// }
 	} while (param.many == 0 || fileCount < param.many);
 
 	// print results
@@ -3527,65 +3461,47 @@ inline void Cmodels::print_clauses() {
 }
 
 
-//
-// changed it to bool, due to the fact that
-// when clauses are added to minisat
-// it is possible that the system detects a
-// conflict and returns false, that means that clauses are UNSAT
-//
-bool Cmodels::print_output_for_sat() {
-	// TODO output SMT-lib format
+void Cmodels::writeToSmtLibFile(string outputFileName)
+{
+	ofstream outputFileStream;
+	outputFileStream.open(outputFileName);
 
-	program.print_clauses(false);
+	outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
+	outputFileStream << "(set-option :produce-models true)" << endl;
+	outputFileStream << "(set-option :produce-assignments true)" << endl;
+	outputFileStream << "(set-logic QF_LIA)" << endl;
 
-	switch (param.sys) {
-	// case ZCHAFF:  //creates ZCHAFF manager with clauses
-	// 	loadClausesToZchaffManager();
-	// 	break;
-	// case MINISAT:
-	// case MINISAT1:  //creates MINISAT manager with clauses
-	// 	return loadClausesToMinisat();
-	default:
-		print_DIMACS();
+	// Atom a = program.atoms.begin()
+
+	for (Atom* a : program.atoms)
+	{
+		// FIXME Should this declare a const or fun?
+		outputFileStream << "(declare-fun " << a->getSmtName() << " () Bool)" << endl;
 	}
-	return true;
-}
 
-void Cmodels::print_DIMACS() {
-	cout << "printing dimacs format" << endl;
-	cout << param.sys << endl;
-	//creates cnf standard file for all sat solvers
-	unlink(param.dimacsFileName);
-	FILE* file = fopen(param.dimacsFileName, "w");
+	for (Clause* c : program.clauses)
+	{
+		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
+	}
 
-	if (file) {
-		switch (param.sys) {
-		case CASP_DIMACS_PRODUCE:
-		case SCC_LEVEL_RANKING:
-		case LEVEL_RANKING:
-		case LEVEL_RANKING_STRONG:
-		case SCC_LEVEL_RANKING_STRONG:
-			fprintf(file, "smt cnf %d %d\n", program.number_of_atoms,
-					program.number_of_clauses);
-			for (long indA = 0; indA < program.clauses.size(); indA++) {
-				program.clauses[indA]->printsmtcnf(file);
-			}
-			cout << "---------" << endl;
-			//  for(long indA=0; indA<program.atoms.size(); indA++){
-			//	program.atoms[indA]->printsmt(file);
-			//}
-			break;
-		default:
-			fprintf(file, "p cnf %d %d\n", program.number_of_atoms,
-					program.number_of_clauses);
-			for (long indA = 0; indA < program.clauses.size(); indA++) {
-				program.clauses[indA]->printcnf(file);
-			}
+	outputFileStream << "(assert (not |never|))" << endl;
+	outputFileStream << "(check-sat)" << endl;
+
+	outputFileStream << "(get-value (";
+	for (Atom* a : program.atoms)
+	{
+		if (a->name)
+		{
+			outputFileStream << a->getSmtName() << " ";
 		}
-	} else {
-		cerr << "Cmodels: Error while opening file " << param.dimacsFileName;
-		exit(20);
 	}
+	outputFileStream << "))" << endl;
+
+	outputFileStream.close();
+
+	system(string("cat " + outputFileName).c_str());
+
+	// FIXME Carry over from print_DIMACS
 	//clean memory from clauses that will no longer be of use
 	if (param.sys == CASP_DIMACS_PRODUCE || param.sys == DIMACS_PRODUCE
 			|| param.sys == SCC_LEVEL_RANKING || param.sys == LEVEL_RANKING

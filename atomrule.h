@@ -113,6 +113,8 @@ public:
 
   }
 
+  string getSmtName();
+
   
 		      // (allocated in head)
   bool Bpos : 1;          // True if the atom is in B+
@@ -632,6 +634,8 @@ class Clause
   void printcnf (FILE* file);
   void printsmtcnf (FILE* file);
   void printBCircuit( FILE* file,char* gateName);
+
+  string toSmtLibString();
 
   void translateToZchaffClause (int* clause, int &size);
   void translateToMinisatClause (int* clause, int &size);
