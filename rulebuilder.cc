@@ -653,10 +653,7 @@ Api::end_rule ()
       r = new ConstraintRule;
       break;
     case DISJUNCTIONRULE:
-      assert (size (head) >= 1);
-      r = new DisjunctionRule;
-      program->disj=true;
-      break;
+      throw std::runtime_error("Disjunction rules with multiple head atoms are not supported.");
     case WEIGHTRULE:
       assert (size (head) == 1);
       r = new WeightRule;
