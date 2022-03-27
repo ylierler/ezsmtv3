@@ -683,12 +683,7 @@ Api::end_rule ()
     }
   }
 
-  if(type==WEIGHTRULE||type==CONSTRAINTRULE){
-	rule_reset();
-  }
-  else{
-	rule_reset_repetition();
-  }
+  rule_reset_repetition();
 }
 
 void
