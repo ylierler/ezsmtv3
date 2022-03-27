@@ -3469,7 +3469,7 @@ void Cmodels::writeToSmtLibFile(string outputFileName)
 	outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
 	outputFileStream << "(set-option :produce-models true)" << endl;
 	outputFileStream << "(set-option :produce-assignments true)" << endl;
-	outputFileStream << "(set-logic QF_LIA)" << endl;
+	outputFileStream << "(set-logic ALL)" << endl;
 
 	// Atom a = program.atoms.begin()
 
@@ -3515,29 +3515,9 @@ void Cmodels::writeToSmtLibFile(string outputFileName)
 		}
 		program.clauses.clear();
 	}
-
-	fclose(file);
-
 }
 
-void Cmodels::print_output_for_BCircuit() {
-
-	char gateName[256];
-
-	unlink(param.dimacsFileName);
-	FILE* file = fopen(param.dimacsFileName, "w");
-
-	if (file) {
-		fprintf(file, "BC1.0\n");
-		for (long indA = 0; indA < program.atoms.size(); indA++) {
-			sprintf(gateName, "_atomcomp%ld\0", indA);
-			program.atoms[indA]->printCompletionBCircuit(file, gateName);
-		}
-	}
-	fclose(file);
-}
-
-//At this point  rulesOfLoopsHeads[inLoop] must contain 
+//At this point  rulesOfLoopsHeads[inLoop] must contain
 //all the rules neseccery to build loop formula
 
 void Cmodels::loopRulesInit(const int& numSCC, vector<Atom*>* atomsSCC,

@@ -502,11 +502,12 @@ void
 Api::set_compute (Atom *a, bool pos, bool read)
 {
   assert (a);
+  // FIXME What is the difference between the 0 and non-0 version?
   if (pos){
-	if(read)
-	  a->setComputeTrue0();
-	else
-	  a->setComputeTrue();
+    if(read)
+      a->setComputeTrue0();
+    else
+      a->setComputeTrue();
   }
   else
     a->setComputeFalse();

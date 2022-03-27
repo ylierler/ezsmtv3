@@ -34,6 +34,7 @@
 #include <string.h>
 #include <string>
 #include "atomrule.h"
+#include "defines.h"
 #include "program.h"
 #include "read.h"
 
@@ -66,19 +67,6 @@ Read::getAtom (long n)
 Atom* Read::getAtomFromLiteral(long n)
 {
   return getAtom(abs(n));
-}
-
-Atom *
-Read::getFalseAtom (long n)
-{
-  if (atoms[n] == 0)
-    atoms[n] = api->new_atom (n);
-  if(n==1 && strcmp("#noname#",atoms[n]->atom_name ())==0){
-	//    atoms[n]->Bneg=true;
-	//   api->set_name (atoms[n], 0);   
-    program->false_atom=atoms[n];
-  }
-  return atoms[n];
 }
 
 int
@@ -514,6 +502,9 @@ NORMAL_BODY = 0,
 WEIGHT_BODY = 1
 };
 
+// TODO will cmodels support choice head with weight body?
+//
+
 // enum HeadType
 
 void Read::readRuleLine(istringstream& line)
@@ -540,20 +531,29 @@ void Read::readRuleLine(istringstream& line)
     line >> literal;
 
     Atom* a = getAtomFromLiteral(literal);
-    // builder.addHead(literal);
-    // api->add_head(getAtom(literal));
     api->add_head_repetition(a);
 
   }
 
   if (headLength == 0)
   {
-    // FIXME It seems like the gringo 4 reader expects
-    // an empty head placeholder like this
-    // I'm not sure if this is the correct one though.
-    Atom* neverAtom = getAtom(-1);
+    Atom* neverAtom = getAtom(0);
     neverAtom->name = "never";
+    api->set_compute(neverAtom, false);
+
+    program->false_atom = neverAtom;
+
     api->add_head_repetition(neverAtom);
+
+    // Atom *a = getFalseAtom(0);
+    // a->name = "never";
+    // api->set_compute(a, false, true);
+    // // api->add_clause_from_compute (a, false);
+    // api->add_head_repetition(a);
+
+
+    // FIXME setting type to constraint rule seems to break things
+    // api->type = CONSTRAINTRULE;
   }
 
   int bodyType;
@@ -570,10 +570,10 @@ void Read::readRuleLine(istringstream& line)
 
       Atom* a = getAtomFromLiteral(literal);
 
-      // api->add_body_repetition(a, literal > 0, BASICRULE);
-
       // FIXME How important is the repetition variant?
+      // Shouldn't gringo handle this?
       api->add_body(a, literal > 0);
+      // api->add_body_repetition(a, literal > 0, api->type);
     }
   }
   else if (bodyType == WEIGHT_BODY)
@@ -594,7 +594,6 @@ void Read::readRuleLine(istringstream& line)
       line >> literal >> weight;
 
       Atom* a = getAtomFromLiteral(literal);
-      // FIXME this may be wrong. Should I use add_body_repetition instead?
       api->add_body(a, literal > 0, weight);
     }
   }
@@ -604,7 +603,6 @@ void Read::readRuleLine(istringstream& line)
   }
 
   api->end_rule();
-  cout << "end rule" << endl;
 }
 
 void Read::readOutputLine(istringstream& line)
