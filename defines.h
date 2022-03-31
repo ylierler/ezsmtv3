@@ -52,11 +52,12 @@ typedef enum {
   CONSTRAINTRULE,
   CHOICERULE, // Ex: { x } :- y.
   GENERATERULE,
-  WEIGHTRULE,
-  OPTIMIZERULE,
+  WEIGHTRULE, // Ex:
+  OPTIMIZERULE, // not supported
   SOMETHING,
-  DISJUNCTIONRULE, // Not to  be confused with gringo5's disjunctionrule head type
-  NESTED
+  //
+  DISJUNCTIONRULE, // Same as aspif disjunction, but with head > 1
+  NESTED // internal to cmodels
   } RuleType;
 typedef enum {
   AND,

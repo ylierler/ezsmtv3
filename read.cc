@@ -479,21 +479,23 @@ enum StatementType
 {
 END = 0,
 RULE = 1,
-MINIMIZE = 2,
-PROJECT = 3,
-OUTPUT = 4,
-EXTERNAL = 5,
-ASSUMPTION = 6,
-HEURISTIC = 7,
-EDGE = 8,
+MINIMIZE = 2, // not supported
+PROJECT = 3, // TODO support later on
+OUTPUT = 4, // TODO support later on
+EXTERNAL = 5, // TODO look into later
+ASSUMPTION = 6, // TODO look into later
+HEURISTIC = 7, // TODO look into later
+EDGE = 8, // TODO look into later
 THEORY = 9,
 COMMENT = 10
 };
 
 enum HeadType
 {
-DISJUNCTION = 0,
-CHOICE = 1
+// x :- y.
+// x|y :- z.
+DISJUNCTION = 0, // TODO Only support head size 1
+CHOICE = 1 // { x } :- y.
 };
 
 enum BodyType

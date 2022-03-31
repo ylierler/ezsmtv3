@@ -406,10 +406,9 @@ void Cmodels::computeOneSMTModel(string fileName, string solverCommand, int file
 			<< endl;
 	
 	if (fileCount == 0)
-		ss << solverCommand << "SMT"
-				<< fileName.substr(17, fileName.size() - 21)
-				<< " > Model"
-				<< fileName.substr(17, fileName.size() - 21);
+		ss << solverCommand << fileName;
+				// << " > Model" // TODO
+				// << fileName.substr(17, fileName.size() - 21);
 	else
 		ss << solverCommand << "SMT"
 				<< fileName.substr(17, fileName.size() - 21) << "_"
