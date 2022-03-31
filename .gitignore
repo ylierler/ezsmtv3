@@ -42,3 +42,4 @@ tmp/
 *.grounded
 *.preparsed
 ezsmtPlus
+build/

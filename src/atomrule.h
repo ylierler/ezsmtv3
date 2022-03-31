@@ -103,13 +103,13 @@ public:
   
   bool found();
   static void setChangeFalse (){
-	Atom::change=false;
+    Atom::change=false;
   }
   static void setChangeTrue (){
-	Atom::change=true;
+    Atom::change=true;
   }
   static void setConflictTrue (){
-	Atom::conflict=true;
+    Atom::conflict=true;
 
   }
 

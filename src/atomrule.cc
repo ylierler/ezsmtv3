@@ -39,6 +39,8 @@
 
 
 
+bool Atom::change = false;
+bool Atom::conflict = false;
 
 static Auxiliary pos_aux(true);
 Atom::Atom (Program * p0)
