@@ -7,8 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/tests)
 
 add_executable(ezsmtPlus "")
 add_subdirectory(src)
 
-# target_include_directories("${PROJECT_BINARY_DIR}")
+
+add_executable(test "")
+add_subdirectory(tests)

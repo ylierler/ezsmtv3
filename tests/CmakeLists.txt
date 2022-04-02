@@ -1,0 +1,13 @@
+target_sources(test
+  PUBLIC
+    example.cc
+    readtests.cc
+)
+
+# add_subdirectory(../src)
+# add_library(ezsmtPlus_lib)
+# include_directories(../src)
+# include_directories(..)
+
+add_subdirectory(include/Catch2)
+target_link_libraries(test PRIVATE Catch2::Catch2WithMain ezsmtPlus_lib)
