@@ -4,10 +4,9 @@ target_sources(test
     readtests.cc
 )
 
-# add_subdirectory(../src)
-# add_library(ezsmtPlus_lib)
-# include_directories(../src)
-# include_directories(..)
-
+# TODO Restrict to only test exe
 add_subdirectory(include/Catch2)
-target_link_libraries(test PRIVATE Catch2::Catch2WithMain ezsmtPlus_lib)
+
+target_link_libraries(test PRIVATE Catch2::Catch2WithMain)
+
+target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/include)

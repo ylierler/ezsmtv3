@@ -1,5 +1,3 @@
-add_library(ezsmtPlus_lib "")
-
 target_sources(ezsmtPlus
   PUBLIC
     ctable.cc
@@ -15,7 +13,7 @@ target_sources(ezsmtPlus
     main.cc
 )
 
-target_sources(ezsmtPlus_lib
+target_sources(test
   PUBLIC
     ctable.cc
     rulebuilder.cc
