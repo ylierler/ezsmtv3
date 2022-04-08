@@ -842,6 +842,7 @@ void Cmodels::callSMTSolver() {
 
 		// call SMT solver to compute one model
 		computeOneSMTModel(smtFileName, solverCommand, fileCount);
+		break;
 
 		// //read the previous model
 		// ostringstream model;

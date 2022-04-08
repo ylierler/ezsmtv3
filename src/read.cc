@@ -653,8 +653,8 @@ int Read::read(string fileName)
 {
   int lineNumber = 0;
   try {
+    cout << "Opening file: " << fileName << endl;
     ifstream fileStream(fileName);
-
 
     // TODO Error handling
     string line;
@@ -668,6 +668,7 @@ int Read::read(string fileName)
 
       switch (statementType)
       {
+        case COMMENT:
         case END:
           break;
         case RULE:
@@ -680,11 +681,13 @@ int Read::read(string fileName)
           readTheoryLine(*lineStream);
           break;
         default:
+          cout << "Encountered unknown statement type: " << statementType << endl;
           // TODO error
           break;
       }
     }
 
+    cout << "Done reading" << endl;
     return 0;
   } catch (exception e) {
     cout << "Failed parsing grounded logic program." << endl;
@@ -841,5 +844,4 @@ int Read::read(string fileName)
   //     return 1;
   //   }
   // return 0;
-}
-;
+};
