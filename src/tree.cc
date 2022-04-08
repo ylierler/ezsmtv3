@@ -65,45 +65,45 @@ Tree::splay (const char *key, Node *root)
   Node *r = &n;
   Node *t;
   for (;;)
+  {
+    int c = compare (key, root->key);
+    if (c < 0)
     {
-      int c = compare (key, root->key);
-      if (c < 0)
-	{
-	  if (root->left == 0)
-	    break;
-	  if (compare (key, root->left->key) < 0)
-	    {
-	      t = root->left;
-	      root->left = t->right;
-	      t->right = root;
-	      root = t;
-	      if (root->left == 0)
-		break;
-	    }
-	  r->left = root;
-	  r = root;
-	  root = root->left;
-        }
-      else if (c > 0)
-	{
-	  if (root->right == 0)
-	    break;
-	  if (compare (key, root->right->key) > 0)
-	    {
-	      t = root->right;
-	      root->right = t->left;
-	      t->left = root;
-	      root = t;
-	      if (root->right == 0)
-		break;
-	    }
-	  l->right = root;
-	  l = root;
-	  root = root->right;
-        }
-      else
-	break;
+      if (root->left == 0)
+        break;
+      if (compare (key, root->left->key) < 0)
+      {
+        t = root->left;
+        root->left = t->right;
+        t->right = root;
+        root = t;
+        if (root->left == 0)
+          break;
+      }
+      r->left = root;
+      r = root;
+      root = root->left;
     }
+    else if (c > 0)
+    {
+      if (root->right == 0)
+        break;
+      if (compare (key, root->right->key) > 0)
+      {
+        t = root->right;
+        root->right = t->left;
+        t->left = root;
+        root = t;
+        if (root->right == 0)
+          break;
+      }
+      l->right = root;
+      l = root;
+      root = root->right;
+    }
+    else
+      break;
+  }
   l->right = root->left;
   r->left = root->right;
   root->left = n.right;
@@ -115,18 +115,18 @@ Atom *
 Tree::find (const char *key)
 {
   if (root)
-    {
-      root = splay (key, root);
-      if (compare (key, root->key) == 0)
-	return root->key;
-    }
+  {
+    root = splay (key, root);
+    if (compare (key, root->key) == 0)
+      return root->key;
+  }
   return 0;
 }
 
 void
 Tree::insert (Atom *key)
 {
-  if (root == 0)
+  if (root == NULL)
     {
       root = new Node (key);
       return;
@@ -154,16 +154,16 @@ Tree::remove (Atom *key)
     return;
   Node *t = splay (key->name, root);
   if (compare (key->name, t->key) == 0)
+  {
+    if (t->left == 0)
+      root = t->right;
+    else
     {
-      if (t->left == 0)
-	root = t->right;
-      else
-	{
-	  root = splay (key->name, t->left);
-	  root->right = t->right;
-	}
       delete t;
+      root = splay (key->name, t->left);
+      root->right = t->right;
     }
+  }
   else
     root = t;
 }
@@ -182,13 +182,13 @@ Tree::check_consistency (Node *n)
   if (n->left && compare (n->left->key->name, n->key) > 0)
     {
       cerr << "error: key " << n->key << " smaller than key "
-	   << n->left->key << endl;
+        << n->left->key << endl;
       return;
     }
   if (n->right && compare (n->right->key->name, n->key) < 0)
     {
       cerr << "error: key " << n->key << " larger than key "
-	   << n->right->key << endl;
+        << n->right->key << endl;
       return;
     }
   check_consistency (n->left);

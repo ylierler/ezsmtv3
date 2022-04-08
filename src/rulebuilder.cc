@@ -522,11 +522,11 @@ Api::set_name (Atom *a, const char *s)
     tree->remove (a);
     delete[] a->name;
   if (s)
-    {
-      a->name = strcpy (new char[strlen (s)+1], s);
-      if (tree)
-	tree->insert (a);
-    }
+  {
+    a->name = strcpy (new char[strlen (s)+1], s);
+    if (tree)
+      tree->insert (a);
+  }
   else
     a->name = 0;
 }
