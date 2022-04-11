@@ -607,16 +607,26 @@ void Read::readRuleLine(istringstream& line)
 void Read::readOutputLine(istringstream& line)
 {
   int _;
-  int fixme; // FIXME I'm not sure what 1 and 0 represent
+  int numOfLiterals;
   string atomName;
   long atomId;
-  line >> _ >> atomName >> fixme >> atomId;
+  line >> _ >> atomName >> numOfLiterals >> atomId;
 
-  if (fixme == 1)
+  // FIXME Include zero numOfLiterals atoms in output
+  if (numOfLiterals == 0)
   {
-    Atom* a = getAtom(atomId);
+    auto atom = api->new_atom();
+    api->set_name(atom, atomName.c_str());
+    api->set_compute(atom, true);
+  }
+  else if (numOfLiterals == 1)
+  {
     Atom* a = getOrCreateAtom(atomId);
     api->set_name(a, atomName.c_str());
+  }
+  else if (numOfLiterals > 1)
+  {
+    throw std::runtime_error("Output line with multiple literals not implemented yet. Line: " + line.str());
   }
 }
 
