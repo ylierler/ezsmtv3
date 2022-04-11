@@ -403,9 +403,6 @@ public:
   Atom **nend;       // Sentinel of the nbody array
   Atom **pend;       // Sentinel of the pbody array
   Atom **end;        // The end of the body array
-
-
-  bool active;
 };
 
 class ConstraintRule : public HeadRule
@@ -449,8 +446,6 @@ public:
 
   long atleastCount;
   long lower;
-  bool active;
-
 };
 
 class ChoiceRule : public HeadRule
@@ -491,11 +486,8 @@ public:
   Atom **nend;       // Sentinel of the nbody array
   Atom **pend;       // Sentinel of the pbody array
   Atom **end;        // The end of the body array
-
-
-  bool active;
-
 };
+
 class DisjunctionRule : public Rule
 {
 public:
@@ -535,8 +527,6 @@ public:
 
   //for WFM
   int negHeadCount;
-  bool active;
-
 };
 
 //
@@ -590,8 +580,6 @@ public:
   //for WFM
   Weight atleastCount;
   Weight maxweightCount;
-  bool active;
-
 };
 
 
