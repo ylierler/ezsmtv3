@@ -673,14 +673,15 @@ Api::end_rule ()
 
   if(type == CHOICERULE)
   {
+    // NOTE: Split choices into separate rules
     assert (size (head) >= 1);
     for(int i=0; i<size (head);i++){
       if(!pbody.find(init->head[i])){
-      r = new ChoiceRule;
-      program->rules.push_back (r);
+        r = new ChoiceRule;
+        program->rules.push_back (r);
 
-      program->number_of_rules++;
-      r->init (init,i);
+        program->number_of_rules++;
+        r->init (init,i);
       }
     }
   }

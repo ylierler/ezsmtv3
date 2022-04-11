@@ -2036,23 +2036,23 @@ WeightRule::print ()
   int comma = 0;
   for (Atom **a = body; a != bend; a++)
     if (aux[a-body].positive)
-      {
-	if (comma)
-	  cout << ", ";
-	(*a)->print();
-	cout << " = " << aux[a-body].weight;
-	comma = 1;
-      }
+    {
+      if (comma)
+        cout << ", ";
+      (*a)->print();
+      cout << " = " << aux[a-body].weight;
+      comma = 1;
+    }
     else
-      {
-	if (comma)
-	  cout << ", ";
-	cout << "not ";
-	(*a)->print();
-	cout << " = "
-	     << aux[a-body].weight;
-	comma = 1;
-      }
+    {
+      if (comma)
+        cout << ", ";
+      cout << "not ";
+      (*a)->print();
+      cout << " = "
+          << aux[a-body].weight;
+      comma = 1;
+    }
   cout << "} >=" << atleast << '.' << endl;
 }
 Completion::Completion ()
