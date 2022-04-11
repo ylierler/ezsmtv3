@@ -144,7 +144,7 @@ public:
   Atom *get_atom (const char *); // get_atom only works for the
                                  // set_name calls that have
                                  // been remembered
-  void checkRepretitions();
+  // void checkRepretitions();
 
   Program * const program;
   bool headAtomInBody();

@@ -107,8 +107,8 @@ Read::readBody (FILE *f, long size, bool pos, RuleType type)
 	  //it meens that it is repeated again in the rule
 	  //and since it is a weight rule we might loose information
 	  if(type==WEIGHTRULE||type==CONSTRAINTRULE){
-      a->pbInd.clear();
-      a->nbInd.clear();
+      // a->pbInd.clear();
+      // a->nbInd.clear();
       api->add_body (a, pos);
 	  }
 	  else

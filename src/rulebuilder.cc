@@ -334,81 +334,82 @@ Api::~Api ()
 //weightrule by summing up the weights
 //
 // FIXME This is wrong. I should rewrite it.
-void
-Api::checkRepretitions(){
-  assert(type==WEIGHTRULE);
-  int i;
-  //repetition
-  bool rep=false;
-  //negBody
-  for(i=0; i< size(nbody); i++){
-	if(nbody.atoms[i]->nbInd.size()>1){//repetition 
-	  //if first time repetition we add it to cbody
-	  rep=true;
-	  if(i==nbody.atoms[i]->nbInd[0]){
-		add_Cbody (nbody.atoms[i], false);
-		int last= size(compNbody);
-		compNbody.weights[last-1]=0;
-		for (int j=nbody.atoms[i]->nbInd[0]; j<nbody.atoms[i]->nbInd.size();j++){ 
-		  compNbody.weights[last-1] += nbody.weights[j];
-		}
-	  }
-	}
-	else{//there is no repetition
-	  add_Cbody (nbody.atoms[i], false);
-	  int last= size(compNbody);
-	  compNbody.weights[last-1] = nbody.weights[i];
-	}
-  }
+// void
+// Api::checkRepretitions(){
+//   assert(type==WEIGHTRULE);
+//   int i;
+//   //repetition
+//   bool rep=false;
+//   //negBody
+//   for(i=0; i< size(nbody); i++){
+// 	if(nbody.atoms[i]->nbInd.size()>1){//repetition
+// 	  //if first time repetition we add it to cbody
+// 	  rep=true;
+// 	  if(i==nbody.atoms[i]->nbInd[0]){
+// 		add_Cbody (nbody.atoms[i], false);
+// 		int last= size(compNbody);
+// 		compNbody.weights[last-1]=0;
+// 		for (int j=nbody.atoms[i]->nbInd[0]; j<nbody.atoms[i]->nbInd.size();j++){
+// 		  compNbody.weights[last-1] += nbody.weights[j];
+// 		}
+// 	  }
+// 	}
+// 	else{//there is no repetition
+// 	  add_Cbody (nbody.atoms[i], false);
+// 	  int last= size(compNbody);
+// 	  compNbody.weights[last-1] = nbody.weights[i];
+// 	}
+//   }
 
-  //posBody
-  for(i=0; i< size(pbody); i++){
-	if(pbody.atoms[i]->pbInd.size()>1){//repetition 
-	  //if first time repetition we add it to cbody
-	  rep=true;
-	  if(i==pbody.atoms[i]->pbInd[0]){
-		add_Cbody (pbody.atoms[i], true);
-		int last= size(compPbody);
-		compPbody.weights[last-1]=0;
-		if(type==WEIGHTRULE){
-		  for (int j=pbody.atoms[i]->pbInd[0]; j<pbody.atoms[i]->pbInd.size();j++){ 
-			if(type==WEIGHTRULE)
-			  compPbody.weights[last-1] += pbody.weights[j];
-			//	if(type==CONSTRAINTRULE)
-			//compPbody.weights[last-1] +=1;
-		  }
-		}
-	  }
-	} 
-	else{//there is no repetition
-	  add_Cbody (pbody.atoms[i], true);
-	  int last= size(compPbody);
-	  if(type==WEIGHTRULE)
-		compPbody.weights[last-1] = pbody.weights[i];
+//   //posBody
+//   for(i=0; i< size(pbody); i++){
+// 	if(pbody.atoms[i]->pbInd.size()>1){//repetition
+// 	  //if first time repetition we add it to cbody
+// 	  rep=true;
+// 	  if(i==pbody.atoms[i]->pbInd[0]){
+// 		add_Cbody (pbody.atoms[i], true);
+// 		int last= size(compPbody);
+// 		compPbody.weights[last-1]=0;
+// 		if(type==WEIGHTRULE){
+// 		  for (int j=pbody.atoms[i]->pbInd[0]; j<pbody.atoms[i]->pbInd.size();j++){
+// 			if(type==WEIGHTRULE)
+// 			  compPbody.weights[last-1] += pbody.weights[j];
+// 			//	if(type==CONSTRAINTRULE)
+// 			//compPbody.weights[last-1] +=1;
+// 		  }
+// 		}
+// 	  }
+// 	}
+// 	else{//there is no repetition
+// 	  add_Cbody (pbody.atoms[i], true);
+// 	  int last= size(compPbody);
+// 	  if(type==WEIGHTRULE)
+// 		compPbody.weights[last-1] = pbody.weights[i];
 
-	}
-  }  
-  if(!rep){
-	comp_reset();
+// 	}
+//   }
+//   if(!rep){
+// 	comp_reset();
 
-	return;
-  }
+// 	return;
+//   }
 
-  if(type==WEIGHTRULE)
-	type=WEIGHTRULE;
-  pbody.reset();
-  nbody.reset();
-  for(i=0; i< size(compPbody); i++){
-	add_body(compPbody.atoms[i],true);
-	pbody.weights[i]=compPbody.weights[i]; 
-  }
-  for(i=0; i< size(compNbody); i++){
-	add_body(compNbody.atoms[i],false);
-	nbody.weights[i]=compNbody.weights[i]; 
-  }
-  comp_reset();
-  return;
-}
+//   if(type==WEIGHTRULE)
+// 	type=WEIGHTRULE;
+//   pbody.reset();
+//   nbody.reset();
+//   for(i=0; i< size(compPbody); i++){
+// 	add_body(compPbody.atoms[i],true);
+// 	pbody.weights[i]=compPbody.weights[i];
+//   }
+//   for(i=0; i< size(compNbody); i++){
+// 	add_body(compNbody.atoms[i],false);
+// 	nbody.weights[i]=compNbody.weights[i];
+//   }
+//   comp_reset();
+//   return;
+// }
+
 //
 //returns true if init is set
 //returns false if either weight or cardinality constraints had repetitions
@@ -744,13 +745,13 @@ void
 Api::add_body (Atom *a, bool pos)
 {
   assert (a);
-  if (pos){
-	a->pbInd.push_back(size(pbody));
-    pbody.push (a);
+  if (pos)
+  {
+    pbody.push(a);
   }
-  else{
-	a->nbInd.push_back(size(nbody));
-    nbody.push (a);
+  else
+  {
+    nbody.push(a);
   }
 }
 void
