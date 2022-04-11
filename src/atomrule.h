@@ -185,6 +185,8 @@ public:
   //to this atom by gringo or lparse
   
   char *name;             // The name of the atom
+
+  // FIXME Remove. This is a circular dependency
   Program * const p;  // The program in which the atom appears
 
   bool choiceruleSpecified;// when we create graph for checcking tightness

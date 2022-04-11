@@ -46,6 +46,7 @@ public:
   void print_atoms_wf ();
 
   queue <Atom*>q;
+  // TODO: Change to Map
   vector<Atom*>atoms;
 
   list<Rule*> rules;

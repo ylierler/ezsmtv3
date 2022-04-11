@@ -515,7 +515,7 @@ Api::set_compute (Atom *a, bool pos, bool read)
     a->setComputeFalse();
 }
 
-
+// TODO Why is the tree needed here?
 void
 Api::set_name (Atom *a, const char *s)
 {
