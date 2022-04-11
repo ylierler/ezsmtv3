@@ -795,7 +795,7 @@ void Cmodels::callSMTSolver() {
 	string fileName(param.dimacsFileName);
 	string solverCommand = "";
 	if (param.SMTsolver == CVC4)
-		solverCommand = "$EZSMTPLUS/tools/cvc4 --lang smt ";
+		solverCommand = "$EZSMTPLUS/tools/cvc4 --lang smt --output-lang smtlib2.6 ";
 	else if (param.SMTsolver == Z3)
 		solverCommand = "$EZSMTPLUS/tools/z3 -smt2 ";
 	else if (param.SMTsolver == YICES)
@@ -833,16 +833,17 @@ void Cmodels::callSMTSolver() {
 	// 		}
 	// 	}
 	// }
+	computeOneSMTModel(smtFileName, solverCommand, 0);
 
 	// computing models
-	int fileCount = 0;
-	do {
-		ss.clear();
-		ss.str("");
+	// int fileCount = 0;
+	// do {
+	// 	ss.clear();
+	// 	ss.str("");
 
-		// call SMT solver to compute one model
-		computeOneSMTModel(smtFileName, solverCommand, fileCount);
-		break;
+	// 	// call SMT solver to compute one model
+	// 	computeOneSMTModel(smtFileName, solverCommand, fileCount);
+	// 	break;
 
 		// //read the previous model
 		// ostringstream model;
@@ -1049,10 +1050,10 @@ void Cmodels::callSMTSolver() {
 
 		// 	break;
 		// }
-	} while (param.many == 0 || fileCount < param.many);
+	// } while (param.many == 0 || fileCount < param.many);
 
 	// print results
-	printSMTAnswerSets(fileCount, fileName);
+	printSMTAnswerSets(0, fileName);
 
 	return;
 }
@@ -3471,8 +3472,6 @@ void Cmodels::writeToSmtLibFile(string outputFileName)
 	outputFileStream << "(set-option :produce-assignments true)" << endl;
 	outputFileStream << "(set-logic ALL)" << endl;
 
-	// Atom a = program.atoms.begin()
-
 	for (Atom* a : program.atoms)
 	{
 		// FIXME Should this declare a const or fun?
@@ -3484,7 +3483,6 @@ void Cmodels::writeToSmtLibFile(string outputFileName)
 		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
 	}
 
-	outputFileStream << "(assert (not |never|))" << endl;
 	outputFileStream << "(check-sat)" << endl;
 
 	outputFileStream << "(get-value (";
