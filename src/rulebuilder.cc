@@ -333,6 +333,7 @@ Api::~Api ()
 //if there are repertitions it rewrites a rule into Respective 
 //weightrule by summing up the weights
 //
+// FIXME This is wrong. I should rewrite it.
 void
 Api::checkRepretitions(){
   assert(type==WEIGHTRULE);
@@ -417,8 +418,8 @@ void
 Api::set_init ()
 { 
 
-  if(type==WEIGHTRULE)
-	checkRepretitions();
+  // if(type==WEIGHTRULE)
+  //   checkRepretitions();
   sort(head);
   sort(nbody);  
   sort(pbody);

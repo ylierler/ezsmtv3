@@ -43,6 +43,7 @@ class Atom;
 class Program;
 using namespace std;
 
+// TODO rename
 struct Auxiliary
 {
   Auxiliary (bool p = false) { positive = p; in_loop = p; };
@@ -142,28 +143,31 @@ public:
   void printBCircuit(FILE* file);
   void printCompletionBCircuit(FILE* file, char*  gatename);
 
+  // TODO Remove. This is mixing state across several layers of the app.
   list<NestedRule*> nestedRules; //list which contains pointers to the rules
                                  //in which this atom is in the head
                                  //within this list we push disjunctive rules
                                  //upfront while nondisjunctive rules 
                                  //go to the end of the list 
-  //for which this atom is a head 
+
+  // TODO Remove. This is mixing state across several layers of the app.
+  //for which this atom is a head
   //made for making completion faster
   list<NestedRule*> pBodyRules; //list which contains pointers to the rules
                                  //in which this atom is in the B+
 
+  // TODO Remove. This is mixing state across several layers of the app.
   list<Rule*> posBodyRules; //list which contains pointers to the (Nonnested) rules
                             //in which this atom is in the Body+
+
+  // TODO Remove. This is mixing state across several layers of the app.
   list<Rule*> negBodyRules; //list which contains pointers to the (Nonested) rules
                             //in which this atom is in the Body-
 
+  // TODO Remove. This is mixing state across several layers of the app.
   vector<Rule*> headRules; //list which contains pointers to the 
                             //Disjuntionrules
                             //in which this atom is in the Head
-
-  vector<int> pbInd;
-  vector<int> nbInd; //lists for weight constraint rules repetitions
-
 
   //takes care of headOf counters + adds the rule to a list
   void addToRuleList(NestedRule* rule); 
