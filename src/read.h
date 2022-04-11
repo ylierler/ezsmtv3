@@ -39,7 +39,7 @@ public:
   long models; //number of models to compute
 
 private:
-  Atom* getAtom (long n);
+  Atom* getOrCreateAtom(long n);
   Atom* getAtomFromLiteral(long n);
   Atom* getFalseAtom (long n);
   int readBody (FILE *f, long size, bool pos, RuleType type);

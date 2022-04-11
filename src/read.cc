@@ -56,8 +56,7 @@ Read::~Read ()
 //
 // FIXME Why do we use Atoms here? This seems like a leak of domain boundaries
 // FIXME Why doesn't the API do this check instead?
-Atom *
-Read::getAtom (long n)
+Atom * Read::getOrCreateAtom (long n)
 {
   if (atoms[n] == 0)
     atoms[n] = api->new_atom (n);
@@ -66,7 +65,7 @@ Read::getAtom (long n)
 
 Atom* Read::getAtomFromLiteral(long n)
 {
-  return getAtom(abs(n));
+  return getOrCreateAtom(abs(n));
 }
 
 int
@@ -100,7 +99,7 @@ Read::readBody (FILE *f, long size, bool pos, RuleType type)
 		//   cerr << "atom out of bounds, line " << linenumber << endl;
 		//   return 1;
 		// }
-      Atom *a = getAtom (n);
+      Atom *a = getOrCreateAtom (n);
       // if(!pos)
       //   a->scopeNegAsFail = true;
 
@@ -147,7 +146,7 @@ Read::addBasicRule (FILE *f)
   //     cerr << "head atom out of bounds, line " << linenumber << endl;
   //     return 1;
   //   }
-  Atom *a = getAtom (n);
+  Atom *a = getOrCreateAtom (n);
   api->add_head_repetition (a);
   // Body
   count = fscanf(f,"%ld",&n);
@@ -212,7 +211,7 @@ Read::addConstraintRule (FILE *f)
   //     cerr << "head atom out of bounds, line " << linenumber << endl;
   //     return 1;
   //   }
-  Atom *a = getAtom (n);
+  Atom *a = getOrCreateAtom (n);
   api->add_head(a);
   // Body
   count = fscanf(f,"%ld",&n);
@@ -271,7 +270,7 @@ Read::addChoiceRule (FILE *f)
     //   cerr << "atom out of bounds, line " << linenumber << endl;
     //   return 1;
     // }
-    Atom *a = getAtom (n);
+    Atom *a = getOrCreateAtom (n);
     api->add_head_repetition (a);
   }
 
@@ -337,7 +336,7 @@ Read::addDisjunctionRule (FILE *f)
 	  cerr << "atom out of bounds, line " << linenumber << endl;
 	  return 1;
 	}
-      Atom *a = getAtom (n);
+      Atom *a = getOrCreateAtom (n);
       api->add_head_repetition (a);
     }
   // Body
@@ -396,7 +395,7 @@ Read::addWeightRule (FILE *f)
   //     cerr << "head atom out of bounds, line " << linenumber << endl;
   //     return 1;
   //   }
-  Atom *a = getAtom (n);
+  Atom *a = getOrCreateAtom (n);
   api->add_head (a);
   Weight w;
 # ifdef USEDOUBLE
@@ -505,13 +504,11 @@ WEIGHT_BODY = 1
 };
 
 // TODO will cmodels support choice head with weight body?
-//
 
 // enum HeadType
 
 void Read::readRuleLine(istringstream& line)
 {
-  cout << "Reading: " << line.str() << endl;
 
   // RuleBuilder builder();
 
@@ -539,7 +536,7 @@ void Read::readRuleLine(istringstream& line)
 
   if (headLength == 0)
   {
-    Atom* neverAtom = getAtom(0);
+    Atom* neverAtom = getOrCreateAtom(0);
     neverAtom->name = "never";
     api->set_compute(neverAtom, false);
 
@@ -618,6 +615,7 @@ void Read::readOutputLine(istringstream& line)
   if (fixme == 1)
   {
     Atom* a = getAtom(atomId);
+    Atom* a = getOrCreateAtom(atomId);
     api->set_name(a, atomName.c_str());
   }
 }
@@ -642,7 +640,7 @@ void Read::readTheoryLine(istringstream& line)
   {
     int atomId;
     line >> atomId;
-    Atom* atom = getAtom(atomId);
+    Atom* atom = getOrCreateAtom(atomId);
     atom->name = "<theory>";
 
   }
