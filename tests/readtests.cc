@@ -65,7 +65,7 @@ TEST_CASE("read correctly parses aspif format", "[read]")
         }
     }
 
-    SECTION("parsing a single disjunctive rule")
+    SECTION("parsing a disjunctive rule")
     {
         string grounded =
             "asp 1 0 0\n"
@@ -94,7 +94,7 @@ TEST_CASE("read correctly parses aspif format", "[read]")
         }
     }
 
-    SECTION("parsing a single disjunctive rule with output lines")
+    SECTION("parsing a disjunctive rule with output lines")
     {
         string grounded =
             "asp 1 0 0\n"
@@ -113,6 +113,19 @@ TEST_CASE("read correctly parses aspif format", "[read]")
             CHECK(string(atoms[1]->name) == "x");
         }
     }
+
+    // SECTION("should not allow disjunctive rules with multiple head atoms")
+    // {
+    //     string grounded =
+    //         "asp 1 0 0\n"
+    //         "1 0 2 1 2 0 1 3\n"
+    //         "4 1 y 1 1\n"
+    //         "4 1 x 1 2\n"
+    //         "4 1 z 1 3\n"
+    //         "0";
+    //     // TODO Make more specific
+    //     REQUIRE_THROWS(read.read(writeTempFile(grounded)));
+    // }
 
     SECTION("parsing a choice rule with no body")
     {
@@ -168,6 +181,75 @@ TEST_CASE("read correctly parses aspif format", "[read]")
 
     SECTION("parsing a constraint rule")
     {
+        string grounded =
+            "asp 1 0 0\n"
+            "1 0 0 0 1 1\n"
+            "4 1 y 1 1\n"
+            "0";
+        read.read(writeTempFile(grounded));
 
+        SECTION("should populate false_atom")
+        {
+            auto false_atom = program->atoms[0];
+            CHECK(false_atom->original_id == 0);
+            CHECK(string(false_atom->name) == "never");
+            CHECK(false_atom->computeFalse == true);
+
+            // TODO There shouldn't be a separate computeTrue and computeFalse
+            CHECK(false_atom->computeTrue == false);
+            CHECK(false_atom->computeTrue0 == false);
+
+            CHECK(program->false_atom == program->atoms[0]);
+        }
+
+        SECTION("should create a basic rule with false_atom as head")
+        {
+            auto rule = (BasicRule*) program->rules.front();
+            CHECK(rule->head == program->false_atom);
+            CHECK(rule->type == BASICRULE);
+            CHECK(rule->negBodyCount == 0);
+            CHECK(rule->posBodyCount == 1);
+            CHECK(program->atoms[1]->original_id == 1);
+            CHECK(rule->posbody()[0] == program->atoms[1]);
+        }
+    }
+
+    SECTION("parsing a weight rule")
+    {
+        string grounded =
+            "asp 1 0 0\n"
+            // z :- { x=1, y=1} >= 1
+            "1 0 1 3 1 1 2 1 1 2 4\n"
+            "4 1 x 1 1\n"
+            "4 1 y 1 2\n"
+            "4 1 z 1 3\n"
+            "0";
+        read.read(writeTempFile(grounded));
+
+        auto rule = (WeightRule*)program->rules.front();
+
+        auto zAtom = program->atoms[0];
+        auto xAtom = program->atoms[1];
+        auto yAtom = program->atoms[2];
+        CHECK(xAtom->original_id == 1);
+        CHECK(yAtom->original_id == 2);
+        CHECK(zAtom->original_id == 3);
+
+        SECTION("should set head")
+        {
+            CHECK(rule->head == zAtom);
+        }
+
+        SECTION("should set body with weights")
+        {
+            CHECK(rule->posBodyCount == 2);
+            CHECK(rule->negBodyCount == 0);
+
+            CHECK(rule->body[0] == xAtom);
+            CHECK(rule->aux[0].weight == 1);
+
+            CHECK(rule->body[1] == yAtom);
+            CHECK(rule->aux[1].weight == 4);
+        }
     }
 }
