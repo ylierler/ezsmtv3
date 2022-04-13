@@ -668,6 +668,7 @@ int Read::read(string fileName)
     string line;
     while (std::getline(fileStream, line))
     {
+      cout << "Reading: " << line << endl;
       lineNumber++;
       unique_ptr<istringstream> lineStream(new istringstream(line));
 
