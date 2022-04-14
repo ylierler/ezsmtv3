@@ -1,4 +1,5 @@
 #include <iostream>
+#include <regex>
 #include <string.h>
 #include <string>
 #include <sys/types.h>
@@ -787,7 +788,41 @@ void Cmodels::enumerateExtendedAnswerSets(string fileName, string solverCommand,
 	} while (param.extmany == 0 || extfileCount < param.extmany);
 }
 
+bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
+{
+	resultAnswerSet.clear();
+	ifstream inputStream(resultsFileName);
 
+	string satResult;
+	std::getline(inputStream, satResult);
+
+	if (satResult == "unsat")
+	{
+		return false;
+	}
+
+	// TODO support multi-line output
+	string atomsList;
+	std::getline(inputStream, atomsList);
+
+	regex r ("\\(([^ ]*) true\\)");
+	smatch match;
+	string::const_iterator searchStart(atomsList.cbegin());
+	while (regex_search(searchStart, atomsList.cend(), match, r))
+	{
+		searchStart = match.suffix().first;
+		cout << "Found true atom: " << match[1] << endl;
+		resultAnswerSet.insert(match[1].str());
+	}
+	// else
+	// {
+	// 	// TODO throw exception
+	// }
+
+	return true;
+}
+
+// TODO Move all SMT solver interfacing out of cmodels
 // call EZSMT and SMT solver
 void Cmodels::callSMTSolver() {
 	if (param.extmany != 1)
@@ -805,35 +840,27 @@ void Cmodels::callSMTSolver() {
 	string smtFileName = "SMT" + fileName.substr(17);
 	writeToSmtLibFile(smtFileName);
 
-	// //If the domain is over reals or mixed integers and reals,
-	// //computing multiple extended answer sets is not allowed
-	// if (param.extmany != 1) {
-	// 	stringstream ss2;
-	// 	ostringstream outputFile2;
-	// 	ss2.clear();
-	// 	ss2.str("");
-	// 	string line2;
-	// 	ss2 << "SMT" << fileName.substr(17, fileName.size() - 21);
-	// 	ifstream in_file2(ss2.str().c_str());
-	// 	outputFile2 << in_file2.rdbuf();
-	// 	string outputFilelStr2 = outputFile2.str();
-	// 	in_file2.close();
-	// 	istringstream iss2(outputFilelStr2);
-	// 	while (getline(iss2, line2)) {
-	// 		//if a domain is read and the domain is LRA, NRA, or AUFLIRA
-	// 		if (line2.find("(set-logic ") != string::npos
-	// 				&& (line2.find("QF_LRA") != string::npos
-	// 						|| line2.find("QF_NRA") != string::npos
-	// 						|| line2.find("AUFLIRA") != string::npos)) {
+	// computeOneSMTModel(smtFileName, solverCommand, 0);
 
-	// 			cout
-	// 					<< " *** Warning: computing multiple extended answer sets is disabled "
-	// 					<< "for real domain or mixed domain ***" << endl;
-	// 			param.extmany = 1;
-	// 		}
-	// 	}
-	// }
-	computeOneSMTModel(smtFileName, solverCommand, 0);
+	vector<string> resultAnswerSets;
+	int i = 1;
+	do {
+		system((solverCommand + " " + smtFileName + " > temp.smtlib").c_str());
+		system("cat temp.smtlib");
+		bool isSatisfiable = parseSolverResults("temp.smtlib", resultAnswerSets);
+		if (!isSatisfiable)
+		{
+			break;
+		}
+
+
+		for (auto smtAtom: resultAnswerSets)
+		{
+			// TODO continue
+		}
+
+		i++;
+	} while (i == 1);
 
 	// computing models
 	// int fileCount = 0;
@@ -3482,6 +3509,16 @@ void Cmodels::writeToSmtLibFile(string outputFileName)
 	{
 		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
 	}
+
+	// TODO output computeTrue atoms
+	// outputFileStream <<
+	// for (Atom* a : program.atoms)
+	// {
+	// 	if (a->computeTrue)
+	// 	{
+	// 		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
+	// 	}
+	// }
 
 	outputFileStream << "(check-sat)" << endl;
 
