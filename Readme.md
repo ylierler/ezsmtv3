@@ -17,4 +17,10 @@ Build the project:
 cmake --build .
 ```
 
+## Build For Release
+
+```
+
+```
+
 

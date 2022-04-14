@@ -505,13 +505,8 @@ WEIGHT_BODY = 1
 
 // TODO will cmodels support choice head with weight body?
 
-// enum HeadType
-
 void Read::readRuleLine(istringstream& line)
 {
-
-  // RuleBuilder builder();
-
   int headType, headLength;
   line >> headType >> headLength;
 
@@ -544,13 +539,6 @@ void Read::readRuleLine(istringstream& line)
 
     api->add_head_repetition(neverAtom);
 
-    // Atom *a = getFalseAtom(0);
-    // a->name = "never";
-    // api->set_compute(a, false, true);
-    // // api->add_clause_from_compute (a, false);
-    // api->add_head_repetition(a);
-
-
     // FIXME setting type to constraint rule seems to break things
     // api->type = CONSTRAINTRULE;
   }
@@ -581,9 +569,7 @@ void Read::readRuleLine(istringstream& line)
     int numOfLiterals;
     line >> lowerBound >> numOfLiterals;
 
-    // FIXME
     api->type = WEIGHTRULE;
-
     api->set_atleast_weight(lowerBound);
 
     for (int i = 0; i < numOfLiterals; i++)
