@@ -44,3 +44,4 @@ tmp/
 ezsmtPlus
 *build*/
 .cache
+.dir-locals.el
