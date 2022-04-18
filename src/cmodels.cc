@@ -812,7 +812,7 @@ bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
 	{
 		searchStart = match.suffix().first;
 		cout << "Found true atom: " << match[1] << endl;
-		resultAnswerSet.insert(match[1].str());
+		// resultAnswerSet.insert(match[1].str());
 	}
 	// else
 	// {

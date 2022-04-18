@@ -37,6 +37,7 @@
 #include "defines.h"
 #include "program.h"
 #include "read.h"
+#include <glog/logging.h>
 
 Read::Read (Program *p, Api *a)
   : program (p), api (a)
@@ -584,7 +585,7 @@ void Read::readRuleLine(istringstream& line)
   }
   else
   {
-    throw std::runtime_error("Not implemented yet. Line: " + line.str());
+    throw std::runtime_error("Unsupported body type. Line: " + line.str());
   }
 
   api->end_rule();
@@ -647,14 +648,13 @@ int Read::read(string fileName)
 {
   int lineNumber = 0;
   try {
-    cout << "Opening file: " << fileName << endl;
+    LOG(INFO) << "Opening file: " << fileName;
     ifstream fileStream(fileName);
 
-    // TODO Error handling
     string line;
     while (std::getline(fileStream, line))
     {
-      cout << "Reading: " << line << endl;
+      VLOG(1) << "Reading line: " << line;
       lineNumber++;
       unique_ptr<istringstream> lineStream(new istringstream(line));
 
@@ -676,167 +676,17 @@ int Read::read(string fileName)
           readTheoryLine(*lineStream);
           break;
         default:
-          cout << "Encountered unknown statement type: " << statementType << endl;
-          // TODO error
+          LOG(WARNING) << "Encountered unknown statement type: " << statementType << ", skipping.";
           break;
       }
     }
 
-    cout << "Done reading" << endl;
+    VLOG(1) << "Done reading";
     return 0;
   } catch (exception e) {
-    cout << "Failed parsing grounded logic program." << endl;
-    cout << fileName + ", line " << lineNumber;
-    cout << e.what() << endl;
-    throw e;
+    LOG(FATAL)
+      << "Failed to parse grounded logic program."
+      << " Stopped at " << fileName << ":" << lineNumber
+      << " Got exception message: " << e.what();
   }
-
-  // Read rules.
-  // int type;
-  // bool stop = false;
-  // for (linenumber = 1; !stop; linenumber++) {
-
-
-	// // Rule Type
-	// fscanf(f,"%d",&type);
-	// switch (type)
-	//   {
-	//   case BASICRULE:
-	// 	if (addBasicRule (f))
-	// 	  return 1;
-	// 	break;
-	//   case CONSTRAINTRULE:
-	// 	if (addConstraintRule (f))
-	// 	  return 1;
-	// 	break;
-	//   case CHOICERULE:
-	// 	if (program->disjProgramLparse){ // false by default
-	// 	  if (addDisjunctionRule (f))
-	// 		return 1;
-	// 	}else{
-
-	// 	  if (addChoiceRule (f))
-	// 		return 1;
-	// 	}
-	// 	break;
-	//   case DISJUNCTIONRULE:
-	// 	if (addDisjunctionRule (f)){
-	// 	  program->disj=true;
-	// 	  return 1;
-	// 	}
-	// 	break;
-	//   case GENERATERULE:
-	// 	if (addGenerateRule (f))
-	// 	  return 1;
-	// 	break;
-	//   case WEIGHTRULE:
-	// 	if (addWeightRule (f))
-	// 	  return 1;
-	// 	break;
-	//   case OPTIMIZERULE:
-	// 	if (addOptimizeRule (f))
-	// 	  return 1;
-	// 	break;
-	//   default:
-	// 	cout<< "Default "<<type<< endl;
-	// 	cout<< "Line number "<< linenumber<<endl;
-	// 	return 1;
-	//   }
-  // }
-
-  // Read atom names.
-  // const int len = 1024;
-  // char s[len]; char *ret;
-  // long i;
-  // int count;
-  // //f.getline (s, len);  // Get newline
-  // ret = fgets(s,len,f);
-
-  // if (ret == NULL)
-  //   {
-  //     cerr << "expected atom names to begin on new line, line "
-	// << linenumber << endl;
-  //     return 1;
-  //   }
-
-  // count = fscanf(f,"%ld",&i);
-
-  // ret = fgets(s,len,f);
-  // s[strlen(s)-1] = 0;
-  // linenumber++;
-  // while (i)
-  //   {
-  //     if (ret == NULL)
-	// {
-	//   cerr << "atom name too long or end of file, line "
-	//        << linenumber << endl;
-	//   return 1;
-	// }
-  //     Atom *a = getAtom (i);
-  //     if (*s)
-	// api->set_name (a, s+1);
-  //     else
-	// api->set_name (a, 0);
-  //     count = fscanf(f,"%ld",&i);
-
-  //     ret = fgets(s,len,f);
-  //     s[strlen(s)-1] = 0;
-  //     linenumber++;
-  //   }
-  // // Read compute-statement
-  // ret = fgets(s,len,f);
-  // s[strlen(s)-1] = 0;
-  // if (ret == NULL || strcmp (s, "B+"))
-  //   {
-  //     cerr << "B+ expected, line " << linenumber << endl;
-  //     return 1;
-  //   }
-  // linenumber++;
-  // count = fscanf(f,"%ld",&i);
-  // linenumber++;
-  // while (i)
-  //   {
-  //     if (count == EOF || i < 1)
-	// {
-	//   cerr << "B+ atom out of bounds, line " << linenumber << endl;
-	//   return 1;
-	// }
-  //     Atom *a = getAtom (i);
-  //     api->set_compute (a, true,true);
-  //     //api->add_clause_from_compute (a, true);
-	//   count = fscanf(f,"%ld",&i);
-  //     linenumber++;
-  //   }
-  // ret = fgets(s,len,f);
-  // ret = fgets(s,len,f);
-  // s[strlen(s)-1] = 0;
-  // if (ret == NULL || strcmp (s, "B-"))
-  //   {
-  //     cerr << "B- expected, line " << linenumber << endl;
-  //     return 1;
-  //   }
-  // linenumber++;
-  // count = fscanf(f,"%ld",&i);
-  // linenumber++;
-  // while (i)
-  //   {
-  //     if (count == EOF || i < 1)
-	// {
-	//   cerr << "B- atom out of bounds, line " << linenumber << endl;
-	//   return 1;
-	// }
-  //     Atom *a = getFalseAtom (i);
-  //     api->set_compute (a, false,true);
-  //     //api->add_clause_from_compute (a, false);
-  //     count = fscanf(f,"%ld",&i);
-  //     linenumber++;
-  //   }
-  // //f >> models;  // zero means all
-  // count = fscanf(f,"%ld",&models);
-  // if (count == EOF)
-  //   {
-  //     cerr << "number of models expected, line " << linenumber << endl;
-  //     return 1;
-  //   }
-  // return 0;
 };

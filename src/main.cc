@@ -179,6 +179,7 @@
 #include <sstream>
 #include <ctype.h>
 #include <fstream>
+#include <glog/logging.h>
 
 using namespace std;
 
@@ -209,10 +210,21 @@ static void timeOutHandler(int sig)
   exit (22);
 }
 
+void LogPrefixFormatter(std::ostream &s, const google::LogMessageInfo &l, void*)
+{
+
+}
+
+void SetupLogging(char * executableName)
+{
+  FLAGS_logtostderr = 1;
+  FLAGS_colorlogtostderr = 1;
+  google::InitGoogleLogging(executableName, &LogPrefixFormatter);
+}
 
 int main (int argc, char *argv[])
 {
-
+  SetupLogging(argv[0]);
 
   Timer mainTimer;
   

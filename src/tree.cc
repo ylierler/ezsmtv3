@@ -54,12 +54,13 @@ Tree::flush (Node *n)
     return;
   flush (n->left);
   flush (n->right);
-  delete n;
+  // delete n;
 }
 
 Tree::Node *
 Tree::splay (const char *key, Node *root)
 {
+  cout << "Splay key=" << key << endl;
   Node n;
   Node *l = &n;
   Node *r = &n;
@@ -159,10 +160,10 @@ Tree::remove (Atom *key)
       root = t->right;
     else
     {
-      delete t;
       root = splay (key->name, t->left);
       root->right = t->right;
     }
+    // delete t;
   }
   else
     root = t;
