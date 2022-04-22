@@ -53,26 +53,13 @@ public:
   void * satMngMinimality;
   void * zchaffMng;
 
-
-
-
- 
-
-
-
   //we need these in case if sat solver is called from outside
   char command[512];
 
-
-
-
   void cmodels(); //runs translation invokation and so on
-  void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
-  void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets
   bool assertDifferentAnserSet(string fileName, int fileCount, string SMTStr, istringstream* iss); // add assertions so that new solution to the modified problem is different from previous solutions.
   bool addDenial(int* constraint_lits, int num_lits);
   void init(int* answerset_lits, int& num_atoms, const char **&symbolTable, int &symbolTableEntries);
-
 
 protected:
   Atom*** rec_buf_atoms; //recuired for the translation of card. constraints in polynomial time
