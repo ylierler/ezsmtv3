@@ -36,7 +36,9 @@ using namespace std;
 
 /* if you want some statistics during the solving, uncomment following line */
 //    SAT_AddHookFun(mng,output_status, 5000);
-Cmodels::Cmodels() {
+Cmodels::Cmodels(SMTSolver &solverService)
+	: solver(solverService)
+{
 	output.program = &program;
 	output.param = &param;
 
@@ -824,49 +826,6 @@ bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
 	return true;
 }
 
-// TODO Move all SMT solver interfacing out of cmodels
-// call EZSMT and SMT solver
-void Cmodels::callSMTSolver() {
-	if (param.extmany != 1)
-		param.PrintExtAS = true;
-	string fileName(param.dimacsFileName);
-	string solverCommand = "";
-	if (param.SMTsolver == CVC4)
-		solverCommand = "$EZSMTPLUS/tools/cvc4 --lang smt --output-lang smtlib2.6 ";
-	else if (param.SMTsolver == Z3)
-		solverCommand = "$EZSMTPLUS/tools/z3 -smt2 ";
-	else if (param.SMTsolver == YICES)
-		solverCommand = "$EZSMTPLUS/tools/yices-smt2 ";
-	stringstream ss;
-
-	string smtFileName = "SMT" + fileName.substr(17);
-	writeToSmtLibFile(smtFileName);
-
-	cout << solverCommand << endl;
-
-	vector<string> resultAnswerSets;
-	int i = 1;
-	do {
-		system((solverCommand + " " + smtFileName + " > temp.smtlib").c_str());
-		system("cat temp.smtlib");
-		bool isSatisfiable = parseSolverResults("temp.smtlib", resultAnswerSets);
-
-		if (!isSatisfiable)
-		{
-			break;
-		}
-
-		cout << "Answer set " << i << ": ";
-		for (auto smtAtom: resultAnswerSets)
-		{
-			cout << smtAtom << " ";
-		}
-		cout << endl;
-
-		i++;
-	} while (i == 1);
-}
-
 void Cmodels::cmodels() {
 
 	Result ret = (Result) UNKNOWN;
@@ -900,7 +859,7 @@ void Cmodels::cmodels() {
 			|| param.sys == SCC_LEVEL_RANKING
 			|| param.sys == SCC_LEVEL_RANKING_STRONG) {
 
-		callSMTSolver();
+		solver.callSMTSolver(param.SMTsolver, program);
 	} else {
 		cerr << "Please specify the type of level rankings.";
 		cerr << "Available options: -levelRanking -levelRankingStrong -SCClevelRanking -SCClevelRankingStrong" << endl;
@@ -2936,78 +2895,6 @@ inline void Cmodels::add_clause_from_compute(Atom *a, bool pos) {
 	cl->finishClause();
 	program.clauses.push_back(cl);
 
-}
-
-inline void Cmodels::print_completion() {
-	program.print_completion();
-}
-
-inline void Cmodels::print_clauses() {
-	program.print_clauses();
-}
-
-
-void Cmodels::writeToSmtLibFile(string outputFileName)
-{
-	ofstream outputFileStream;
-	outputFileStream.open(outputFileName);
-
-	outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
-	outputFileStream << "(set-option :produce-models true)" << endl;
-	outputFileStream << "(set-option :produce-assignments true)" << endl;
-	outputFileStream << "(set-logic ALL)" << endl;
-
-	for (Atom* a : program.atoms)
-	{
-		// FIXME Should this declare a const or fun?
-		outputFileStream << "(declare-fun " << a->getSmtName() << " () Bool)" << endl;
-	}
-
-	for (Clause* c : program.clauses)
-	{
-		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
-	}
-
-	// TODO output computeTrue atoms
-	// outputFileStream <<
-	// for (Atom* a : program.atoms)
-	// {
-	// 	if (a->computeTrue)
-	// 	{
-	// 		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
-	// 	}
-	// }
-
-	outputFileStream << "(check-sat)" << endl;
-
-	outputFileStream << "(get-value (";
-	for (Atom* a : program.atoms)
-	{
-		if (a->name)
-		{
-			outputFileStream << a->getSmtName() << " ";
-		}
-	}
-	outputFileStream << "))" << endl;
-
-	outputFileStream.close();
-
-	system(string("cat " + outputFileName).c_str());
-
-	// FIXME Carry over from print_DIMACS
-	//clean memory from clauses that will no longer be of use
-	if (param.sys == CASP_DIMACS_PRODUCE || param.sys == DIMACS_PRODUCE
-			|| param.sys == SCC_LEVEL_RANKING || param.sys == LEVEL_RANKING
-			|| param.sys == SCC_LEVEL_RANKING_STRONG
-			|| param.sys == LEVEL_RANKING_STRONG
-			|| (program.tight
-					&& (param.sys == RELSAT || param.sys == ASSAT_ZCHAFF))
-			|| param.sys == SIMO) {
-		for (long indA = 0; indA < program.clauses.size(); indA++) {
-			delete program.clauses[indA];
-		}
-		program.clauses.clear();
-	}
 }
 
 //At this point  rulesOfLoopsHeads[inLoop] must contain

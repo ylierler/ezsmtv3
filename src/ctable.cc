@@ -35,7 +35,8 @@
 #include "time.h" 
  
 Ctable::Ctable ()
-  : api (&cmodels.program),
+  : cmodels(smtSolver),
+    api (&cmodels.program),
     reader (&cmodels.program, &api)
 {
   cmodels.api=&api;

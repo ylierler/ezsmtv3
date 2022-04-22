@@ -31,7 +31,7 @@ class Param{
   SolverType sys; 
   bool rdcComp;
   bool mnmBd;
-  SMTSolver SMTsolver;
+  SMTSolverCommand SMTsolver;
   LogicType SMTLogic;
   bool PrintExtAS;
   bool wf;

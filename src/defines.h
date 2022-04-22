@@ -87,7 +87,7 @@ typedef enum {
 	CVC4,
 	Z3,
 	YICES
-} SMTSolver;
+} SMTSolverCommand;
 
 typedef enum {
 	FD,

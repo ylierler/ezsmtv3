@@ -23,6 +23,7 @@
 //#include "wf.h"
 #include "rulebuilder.h"
 #include "interpret.h"
+#include "smtsolver.h"
 #include <vector>
 
 
@@ -33,17 +34,16 @@ class Atom;
 class Cmodels
 {
 public:
-  Cmodels ();
+  Cmodels (SMTSolver &solver);
   virtual ~Cmodels ();
   Program program;
   Output output;
   Param param; //contains all the fields with parameters
                //that may be initialized at command line
 
-
+  SMTSolver &solver;
   Api *api;
-  
-  
+
   Atom* false_atom; //atom that is false (used in constraints or later)
   Atom* true_atom;  //atom that is true introduced by cmodels 
   
@@ -67,7 +67,6 @@ public:
 
 
   void cmodels(); //runs translation invokation and so on
-  void callSMTSolver(); // call EZSMT and SMT solver
   void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
   void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets
   bool assertDifferentAnserSet(string fileName, int fileCount, string SMTStr, istringstream* iss); // add assertions so that new solution to the modified problem is different from previous solutions.

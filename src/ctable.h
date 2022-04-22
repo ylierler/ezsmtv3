@@ -113,6 +113,7 @@
 #include "cmodels.h"
 #include "read.h"
 // #include "api.h"
+#include "smtsolver.h"
 #include "timer.h"
 #include "defines.h"
 
@@ -121,6 +122,7 @@ class Ctable
 public:
   Read reader;
   Api api;
+  SMTSolver smtSolver;
   Cmodels cmodels;
   //incremental (EZCSP) related
   int read();
