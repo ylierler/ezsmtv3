@@ -801,18 +801,20 @@ bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
 		return false;
 	}
 
-	// TODO support multi-line output
-	string atomsList;
-	std::getline(inputStream, atomsList);
+	stringstream atomsListStream;
+	string line;
+	while(std::getline(inputStream, line)) {
+		atomsListStream << line;
+	}
+	string atomsList = atomsListStream.str();
 
-	regex r ("\\(([^ ]*) true\\)");
+	regex r ("\\((\\|[^ ]*\\|) true\\)");
 	smatch match;
 	string::const_iterator searchStart(atomsList.cbegin());
 	while (regex_search(searchStart, atomsList.cend(), match, r))
 	{
 		searchStart = match.suffix().first;
-		cout << "Found true atom: " << match[1] << endl;
-		// resultAnswerSet.insert(match[1].str());
+		resultAnswerSet.push_back(match[1].str());
 	}
 	// else
 	// {
@@ -840,7 +842,7 @@ void Cmodels::callSMTSolver() {
 	string smtFileName = "SMT" + fileName.substr(17);
 	writeToSmtLibFile(smtFileName);
 
-	// computeOneSMTModel(smtFileName, solverCommand, 0);
+	cout << solverCommand << endl;
 
 	vector<string> resultAnswerSets;
 	int i = 1;
@@ -848,16 +850,18 @@ void Cmodels::callSMTSolver() {
 		system((solverCommand + " " + smtFileName + " > temp.smtlib").c_str());
 		system("cat temp.smtlib");
 		bool isSatisfiable = parseSolverResults("temp.smtlib", resultAnswerSets);
+
 		if (!isSatisfiable)
 		{
 			break;
 		}
 
-
+		cout << "Answer set " << i << ": ";
 		for (auto smtAtom: resultAnswerSets)
 		{
-			// TODO continue
+			cout << smtAtom << " ";
 		}
+		cout << endl;
 
 		i++;
 	} while (i == 1);
