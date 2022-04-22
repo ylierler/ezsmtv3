@@ -68,7 +68,6 @@ public:
 
   void cmodels(); //runs translation invokation and so on
   void callSMTSolver(); // call EZSMT and SMT solver
-  void printSMTAnswerSets(int fileCount, string fileName); // parse SMT solvers' results and print answer sets
   void computeOneSMTModel(string fileName, string solverCommand, int fileCount); // call SMT solver to compute one model
   void enumerateExtendedAnswerSets(string fileName, string solverCommand, int fileCount, string SMTStr, istringstream* iss); // enumerate extended answer sets
   bool assertDifferentAnserSet(string fileName, int fileCount, string SMTStr, istringstream* iss); // add assertions so that new solution to the modified problem is different from previous solutions.
