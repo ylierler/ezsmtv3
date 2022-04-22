@@ -183,7 +183,6 @@
 
 using namespace std;
 
-Ctable ctable;
 void a_new_handler ()
 {
   cerr << "operator new failed: out of memory" << endl;
@@ -191,21 +190,23 @@ void a_new_handler ()
 }
 static void timeOutHandler(int sig)
 {
-  switch (sig) {
+    // ctable.cmodels.output.PrintStats();
+  // switch (sig) {
 
-#ifndef _WIN32	// marcy
-  case SIGXCPU:
-#ifndef SHORT_OUT
-    ctable.cmodels.output.PrintStats();
-#else
-    ctable.cmodels.output.PrintStats();
-#endif
-    break;
-#endif
-  default:
-    fprintf(stderr, "Unknown event\n");
-    break;
-  }
+  //   ctable.cmodels.output.PrintStats();
+// #ifndef _WIN32	// marcy
+//   case SIGXCPU:
+// #ifndef SHORT_OUT
+//     ctable.cmodels.output.PrintStats();
+// #else
+//     ctable.cmodels.output.PrintStats();
+// #endif
+//     break;
+// #endif
+  // default:
+  //   fprintf(stderr, "Unknown event\n");
+  //   break;
+  // }
 
   exit (22);
 }
@@ -227,11 +228,15 @@ int main (int argc, char *argv[])
   SetupLogging(argv[0]);
 
   Timer mainTimer;
-  
 
   set_new_handler (&a_new_handler);
   bool error = false;
- 
+
+  SMTSolver smtSolver;
+  Cmodels cmodels(smtSolver);
+  Api api(&cmodels.program);
+  Read reader(&cmodels.program, &api);
+  Ctable ctable(cmodels, api, reader);
 
   strcpy(ctable.cmodels.param.cmodelsname, &argv[0][0]);
 

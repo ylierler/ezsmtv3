@@ -120,10 +120,16 @@
 class Ctable
 {
 public:
-  Read reader;
-  Api api;
-  SMTSolver smtSolver;
-  Cmodels cmodels;
+  Read &reader;
+  Api &api;
+  Cmodels &cmodels;
+
+  Ctable (Cmodels &, Api &, Read &);
+  virtual ~Ctable ();
+
+  void calculate();
+  bool solved;
+
   //incremental (EZCSP) related
   int read();
   void numberExpected(char* str);
@@ -146,10 +152,6 @@ public:
   void print_lits(int* answerset_lits, int num_lits, bool denial);
   //end of incremental (EZCSP) related
 
-  Ctable ();
-  virtual ~Ctable ();  
-  void calculate();
-  bool solved;
 };
 
 #endif

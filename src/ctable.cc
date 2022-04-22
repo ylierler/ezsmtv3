@@ -34,10 +34,10 @@
 #include "ctable.h"
 #include "time.h" 
  
-Ctable::Ctable ()
-  : cmodels(smtSolver),
-    api (&cmodels.program),
-    reader (&cmodels.program, &api)
+Ctable::Ctable (Cmodels &cmodels, Api &api, Read &reader)
+  : cmodels(cmodels),
+    api (api),
+    reader (reader)
 {
   cmodels.api=&api;
 }
