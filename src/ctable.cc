@@ -396,6 +396,10 @@ Ctable::calculate()
 {
   cmodels.cmodels();
 }
+
+// TODO: Add support for arbitrary SMT solver command
+// TODO: Redo man/help page
+
 void 
 Ctable::usage ()
 {
