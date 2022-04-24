@@ -17,6 +17,13 @@ Build the project:
 cmake --build .
 ```
 
+Feedback loop: Build, test, run:
+
+``` sh
+# In <project_root>/build
+cmake --build . && ./test && ./ezsmtPlus -file <some_file>
+```
+
 ## Build For Release
 
 ```
