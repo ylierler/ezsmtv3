@@ -141,9 +141,6 @@ public:
   void head_reset(); //resets list pbody, head, nbody
   void body_reset(); //resets list pbody, head, nbody
   void comp_reset(); //resets list compNbody compPbody
-  Atom *get_atom (const char *); // get_atom only works for the
-                                 // set_name calls that have
-                                 // been remembered
   // void checkRepretitions();
 
   Program * const program;
@@ -240,8 +237,6 @@ public:
   long atleast_body;
   long atleast_head;
   bool maximize;
-  Tree *tree;
-  Tree *pointer_to_tree;
   Init * init;
 
   void set_init();

@@ -40,7 +40,6 @@
 #include "atomrule.h"
 #include "program.h"
 #include "graphscc.h"
-#include "tree.h"
 #include "rulebuilder.h"
 #include <stdio.h>
 #include <fstream>
@@ -324,9 +323,8 @@ Api::Api (Program *p)
 }
 
 Api::~Api ()
-{ delete init;
-  delete pointer_to_tree;
-
+{
+  delete init;
 }
 
 //
@@ -515,34 +513,18 @@ Api::set_compute (Atom *a, bool pos, bool read)
     a->setComputeFalse();
 }
 
-// TODO Why is the tree needed here?
 void
 Api::set_name (Atom *a, const char *s)
 {
   assert (a);
-  if (a->name && tree)
-    tree->remove (a);
+  if (a->name)
     delete[] a->name;
   if (s)
   {
     a->name = strcpy (new char[strlen (s)+1], s);
-    if (tree)
-      tree->insert (a);
   }
   else
     a->name = 0;
-}
-
-
-
-
-Atom *
-Api::get_atom (const char *name)
-{
-  if (pointer_to_tree)
-    return pointer_to_tree->find (name);
-  else
-    return 0;
 }
 
 void

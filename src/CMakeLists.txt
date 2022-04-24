@@ -8,7 +8,6 @@ target_sources(ezsmtPlus
     rulebuilder.cc
     atomrule.cc
     read.cc
-    tree.cc
     timer.cc
     cmodels.cc
     program.cc
@@ -24,7 +23,6 @@ target_sources(test
     rulebuilder.cc
     atomrule.cc
     read.cc
-    tree.cc
     timer.cc
     cmodels.cc
     program.cc
