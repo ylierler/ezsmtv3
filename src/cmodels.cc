@@ -19,6 +19,8 @@
 #include <list>
 #include <algorithm>
 
+#include "glog/logging.h"
+#include "glog/vlog_is_on.h"
 #include "print.h"
 #include "interpret.h"
 #include "atomrule.h"
@@ -167,9 +169,11 @@ Result Cmodels::preprocessing(bool& emptyprogram) {
 
 
 	initRuleLists4WF();
-	cout<<"Final Program "<<endl;
-	program.print();
-	cout << endl;
+
+	if (VLOG_IS_ON(1))
+	{
+		program.print();
+	}
 
 	// exit(0);
 	bool conflict = false;

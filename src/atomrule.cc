@@ -2647,6 +2647,7 @@ Clause::printsmtcnf (FILE* file)
   fprintf(file, " 0\n");
 }
 
+// TODO move to smtsolver
 string Clause::toSmtLibString()
 {
   ostringstream expression;

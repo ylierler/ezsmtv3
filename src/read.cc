@@ -648,13 +648,13 @@ int Read::read(string fileName)
 {
   int lineNumber = 0;
   try {
-    LOG(INFO) << "Opening file: " << fileName;
+    VLOG(1) << "Opening file: " << fileName;
     ifstream fileStream(fileName);
 
     string line;
     while (std::getline(fileStream, line))
     {
-      VLOG(1) << "Reading line: " << line;
+      VLOG(2) << "Reading line: " << line;
       lineNumber++;
       unique_ptr<istringstream> lineStream(new istringstream(line));
 

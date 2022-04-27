@@ -211,16 +211,13 @@ static void timeOutHandler(int sig)
   exit (22);
 }
 
-void LogPrefixFormatter(std::ostream &s, const google::LogMessageInfo &l, void*)
-{
-
-}
-
 void SetupLogging(char * executableName)
 {
   FLAGS_logtostderr = 1;
   FLAGS_colorlogtostderr = 1;
-  google::InitGoogleLogging(executableName, &LogPrefixFormatter);
+  FLAGS_log_prefix = false;
+  FLAGS_v = 0;
+  google::InitGoogleLogging(executableName);
 }
 
 int main (int argc, char *argv[])
@@ -300,7 +297,7 @@ int main (int argc, char *argv[])
   stringstream ss;
   ss.clear();
   ss.str("");
-  // FIXME
+  // FIXME remove preparser code
   // ss<<"$EZSMTPLUS/tools/pre-parser ";
   ss << "cat ";
   for( int a = 0; a< ctable.cmodels.param.numOfFiles ; a++){
@@ -313,7 +310,6 @@ int main (int argc, char *argv[])
   }
   ss<<" > "<<ctable.cmodels.param.file<<".preparsed";
 
-  cerr<<endl<<"Running pre-parsing command: "<<ss.str().c_str()<<endl;;
   system(ss.str().c_str());
 
   //Check errors from preparsing output
@@ -328,24 +324,28 @@ int main (int argc, char *argv[])
   istringstream iss(outputFilelStr);
   string line;
   while(getline(iss,line)){
-  //if a error is read, output error message
-    	if(line.find("SYNTAX ERROR")!=string::npos){
-    	     cout << " *** Error during preparsing. See output file " <<ctable.cmodels.param.file<<".preparsed ***"<< endl;
-    	     exit(1);
-    	}
+    //if a error is read, output error message
+    if(line.find("SYNTAX ERROR")!=string::npos){
+        cout << " *** Error during preparsing. See output file " <<ctable.cmodels.param.file<<".preparsed ***"<< endl;
+        exit(1);
+    }
   }
 
 
-  ss.str("");
-  cout << "Preparse results:" << endl;
-  system((string("cat ") + ctable.cmodels.param.file + ".preparsed").c_str());
-  cout << endl;
+  VLOG(2) << "Preparse results:";
+  if (VLOG_IS_ON(2))
+  {
+    system((string("cat ") + ctable.cmodels.param.file + ".preparsed").c_str());
+    cout << endl;
+  }
 
   //grounding
   ss.clear();
   ss.str("");
   ss<<"$EZSMTPLUS/tools/gringo-5.5.1 "<<ctable.cmodels.param.file<<".preparsed"<<" > "<<ctable.cmodels.param.file<<".grounded";
-  cerr<<"Running grounding command: "<<ss.str().c_str()<<endl;;
+
+  VLOG(1) << "Running grounding command: " << ss.str();
+
   system(ss.str().c_str());
 
 
@@ -371,9 +371,12 @@ int main (int argc, char *argv[])
 
   strcat(ctable.cmodels.param.file, ".grounded");
 
-  cout << "Grounded program" << endl;
-  system((string("cat ") + ctable.cmodels.param.file).c_str());
-  cout << endl;
+  VLOG(2) << "Grounded program:";
+  if (VLOG_IS_ON(2))
+  {
+    system((string("cat ") + ctable.cmodels.param.file).c_str());
+    cout << endl;
+  }
 
   ctable.cmodels.output.timerAll.start();
 

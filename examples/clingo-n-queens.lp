@@ -1,4 +1,4 @@
-#const n = 4.
+#const n = 7.
 
 % n-Queens encoding
 
