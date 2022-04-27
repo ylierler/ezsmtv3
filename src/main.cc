@@ -293,80 +293,28 @@ int main (int argc, char *argv[])
   	  exit(1);
   }
 
-  //preparsing
-  stringstream ss;
-  ss.clear();
-  ss.str("");
-  // FIXME remove preparser code
-  // ss<<"$EZSMTPLUS/tools/pre-parser ";
-  ss << "cat ";
-  for( int a = 0; a< ctable.cmodels.param.numOfFiles ; a++){
-	  if ( access( ctable.cmodels.param.files[a], F_OK ) == -1 ){
-		  cerr <<" *** Error: file "<<ctable.cmodels.param.files[a]<<" does not exist. ***"<<endl;
-		  exit(1);
-	  }
+  string groundingCommand = string("$EZSMTPLUS/tools/gringo-5.5.1 ")
+    + ctable.cmodels.param.file
+    + " > " + ctable.cmodels.param.file + ".grounded";
 
-	  ss<<ctable.cmodels.param.files[a]<<" ";
-  }
-  ss<<" > "<<ctable.cmodels.param.file<<".preparsed";
+  VLOG(1) << "Running grounding command: " << groundingCommand;
+  system(groundingCommand.c_str());
 
-  system(ss.str().c_str());
-
-  //Check errors from preparsing output
-  ostringstream outputFile;
-  ss.clear();
-  ss.str("");
-  ss<<ctable.cmodels.param.file<<".preparsed";
-  ifstream in_file(ss.str().c_str());
-  outputFile <<in_file.rdbuf();
-  string outputFilelStr= outputFile.str();
-  in_file.close();
-  istringstream iss(outputFilelStr);
-  string line;
-  while(getline(iss,line)){
-    //if a error is read, output error message
-    if(line.find("SYNTAX ERROR")!=string::npos){
-        cout << " *** Error during preparsing. See output file " <<ctable.cmodels.param.file<<".preparsed ***"<< endl;
-        exit(1);
-    }
-  }
-
-
-  VLOG(2) << "Preparse results:";
-  if (VLOG_IS_ON(2))
-  {
-    system((string("cat ") + ctable.cmodels.param.file + ".preparsed").c_str());
-    cout << endl;
-  }
-
-  //grounding
-  ss.clear();
-  ss.str("");
-  ss<<"$EZSMTPLUS/tools/gringo-5.5.1 "<<ctable.cmodels.param.file<<".preparsed"<<" > "<<ctable.cmodels.param.file<<".grounded";
-
-  VLOG(1) << "Running grounding command: " << ss.str();
-
-  system(ss.str().c_str());
-
-
+  // TODO Do I want to keep this?
   //Check errors from grounding output
-  ostringstream outputFile2;
-  ss.clear();
-  ss.str("");
-  ss<<ctable.cmodels.param.file<<".grounded";
-  ifstream in_file2(ss.str().c_str());
-  outputFile2 <<in_file2.rdbuf();
-  string outputFilelStr2= outputFile2.str();
-  in_file2.close();
-  istringstream iss2(outputFilelStr);
-  while(getline(iss2,line)){
-    //if a error is read, output error message
-    if(line.find("error: ")!=string::npos  || line.find("ERROR: (gringo): ")!=string::npos){
-        cout << " *** Error during grounding. See output file " <<ctable.cmodels.param.file<<".grounded ***"<< endl;
-        exit(1);
-      }
-  }
-
+  // ostringstream outputFile2;
+  // ifstream in_file2(groundingCommand);
+  // outputFile2 <<in_file2.rdbuf();
+  // string outputFilelStr2= outputFile2.str();
+  // in_file2.close();
+  // istringstream iss2(outputFilelStr);
+  // while(getline(iss2,line)){
+  //   //if a error is read, output error message
+  //   if(line.find("error: ")!=string::npos  || line.find("ERROR: (gringo): ")!=string::npos){
+  //       cout << " *** Error during grounding. See output file " <<ctable.cmodels.param.file<<".grounded ***"<< endl;
+  //       exit(1);
+  //     }
+  // }
 
 
   strcat(ctable.cmodels.param.file, ".grounded");
