@@ -1,9 +1,77 @@
 #include "smtsolver.h"
+#include <cstring>
 #include <fstream>
+#include <ostream>
 #include <sstream>
 #include <iostream>
 #include <regex>
+#include <iostream>
+#include <unistd.h>
+#include <glog/logging.h>
 
+// class ProcessCommunicator
+// {
+// public:
+//     void ExecuteProcess(string executablePath)
+//     {
+//         int pipeP2C[2], pipeC2P[2];
+//         // (names: short for pipe for X (writing) to Y with P == parent, C == child)
+
+//         if(pipe(pipeP2C) != 0 || pipe(pipeC2P) != 0)
+//         {
+//             // error
+//             // TODO: appropriate handling
+//         }
+//         else
+//         {
+//             int pid = fork();
+//             if(pid < 0)
+//             {
+//                 // error
+//                 // TODO: appropriate handling
+//             }
+//             else if(pid > 0)
+//             {
+//                 cout << "Parent started" << endl;
+//                 // parent
+//                 // close unused ends:
+//                 close(pipeP2C[0]); // read end
+//                 close(pipeC2P[1]); // write end
+
+//                 // use pipes to communicate with child...
+//                 cout << "made it to here" << endl;
+//                 cout << pipeC2P[0]
+
+//                 int status;
+//                 waitpid(pid, &status, 0);
+
+//                 // cleanup or do whatever you want to do afterwards...
+//             }
+//             else
+//             {
+//                 cout << "Child started" << endl;
+//                 // child
+//                 close(pipeP2C[1]); // write end
+//                 close(pipeC2P[0]); // read end
+//                 dup2(pipeP2C[0], STDIN_FILENO);
+//                 dup2(pipeC2P[1], STDOUT_FILENO);
+//                 // you should be able now to close the two remaining
+//                 // pipe file desciptors as well as you dup'ed them already
+//                 // (confirmed that it is working)
+//                 close(pipeP2C[0]);
+//                 close(pipeC2P[1]);
+
+//                 char * environment[0];
+//                 char * const p = new char[executablePath.length()];
+//                 strcpy(p,executablePath.c_str());
+//                 char * const command[] = {p};
+
+//                 execve(executablePath.c_str(), command, environment); // won't return - but you should now be able to
+//                                 // use stdin/stdout to communicate with parent
+//             }
+//         }
+//     }
+// };
 
 // call EZSMT and SMT solver
 void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
@@ -18,15 +86,18 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
     stringstream ss;
 
     string smtFileName = "output.smt";
-    writeToSmtLibFile(program, smtFileName);
 
-    cout << solverCommand << endl;
+    string programBody = getProgramBodyString(program);
+    string programCheckSatFooter = getCheckSatString(program);
 
-    vector<string> resultAnswerSets;
     int i = 1;
-    do {
+    while (true) {
+        string completeProgram = programBody + programCheckSatFooter;
+        writeToFile(completeProgram, smtFileName);
+
         system((solverCommand + " " + smtFileName + " > temp.smtlib").c_str());
-        system("cat temp.smtlib");
+
+        vector<string> resultAnswerSets;
         bool isSatisfiable = parseSolverResults("temp.smtlib", resultAnswerSets);
 
         if (!isSatisfiable)
@@ -41,8 +112,20 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
         }
         cout << endl;
 
+        programBody += getAnswerSetNegationString(resultAnswerSets);
+
         i++;
-    } while (i == 1);
+    }
+}
+
+void SMTSolver::writeToFile(string input, string outputFileName)
+{
+    ofstream outputStream;
+    outputStream.open(outputFileName);
+    outputStream << input;
+    outputStream.close();
+
+    VLOG(2) << "Wrote SMT-LIB file:" << endl << input << endl;
 }
 
 bool SMTSolver::parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
@@ -77,65 +160,77 @@ bool SMTSolver::parseSolverResults(string resultsFileName, vector<string>& resul
     return true;
 }
 
-void SMTSolver::writeToSmtLibFile(Program& program, string outputFileName)
+string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
 {
-    ofstream outputFileStream;
-    outputFileStream.open(outputFileName);
+    // TODO Should I include negatives (false)?
 
-    outputFileStream << "(set-info :smt-lib-version 2.6)" << endl;
-    outputFileStream << "(set-option :produce-models true)" << endl;
-    outputFileStream << "(set-option :produce-assignments true)" << endl;
-    outputFileStream << "(set-logic ALL)" << endl;
-
-    for (Atom* a : program.atoms)
+    ostringstream output;
+    output << "(assert (not (and";
+    for (string smtAtom : answerSet)
     {
-        // FIXME Should this declare a const or fun?
-        outputFileStream << "(declare-fun " << a->getSmtName() << " () Bool)" << endl;
+        output << " " << smtAtom;
     }
+    output << ")))" << endl;
 
-    for (Clause* c : program.clauses)
-    {
-        outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
-    }
+    VLOG(2) << "Generated answer set negation:" << endl << output.str();
+    return output.str();
+}
 
-    // TODO output computeTrue atoms
-    // outputFileStream <<
-    // for (Atom* a : program.atoms)
-    // {
-    // 	if (a->computeTrue)
-    // 	{
-    // 		outputFileStream << "(assert " << c->toSmtLibString() << ")" << endl;
-    // 	}
-    // }
+string SMTSolver::getCheckSatString(Program& program)
+{
+    ostringstream output;
+    output << "(check-sat)" << endl;
 
-    outputFileStream << "(check-sat)" << endl;
-
-    outputFileStream << "(get-value (";
+    output << "(get-value (";
     for (Atom* a : program.atoms)
     {
         if (a->name)
         {
-            outputFileStream << a->getSmtName() << " ";
+            output << a->getSmtName() << " ";
         }
     }
-    outputFileStream << "))" << endl;
+    output << "))" << endl;
 
-    outputFileStream.close();
+    return output.str();
+}
 
-    system(string("cat " + outputFileName).c_str());
+// FIXME this is copying strings
+string SMTSolver::getProgramBodyString(Program& program)
+{
+    // ofstream outputFileStream;
+    // outputFileStream.open(outputFileName);
+    ostringstream output;
 
-    // FIXME Carry over from print_DIMACS
-    //clean memory from clauses that will no longer be of use
-    // if (param.sys == CASP_DIMACS_PRODUCE || param.sys == DIMACS_PRODUCE
-    //         || param.sys == SCC_LEVEL_RANKING || param.sys == LEVEL_RANKING
-    //         || param.sys == SCC_LEVEL_RANKING_STRONG
-    //         || param.sys == LEVEL_RANKING_STRONG
-    //         || (program.tight
-    //                 && (param.sys == RELSAT || param.sys == ASSAT_ZCHAFF))
-    //         || param.sys == SIMO) {
-    //     for (long indA = 0; indA < program.clauses.size(); indA++) {
-    //         delete program.clauses[indA];
-    //     }
-    //     program.clauses.clear();
+    output << "(set-info :smt-lib-version 2.6)" << endl;
+    output << "(set-option :produce-models true)" << endl;
+    output << "(set-option :produce-assignments true)" << endl;
+    output << "(set-logic ALL)" << endl;
+
+    for (Atom* a : program.atoms)
+    {
+        // FIXME Should this declare a const or fun?
+        output << "(declare-fun " << a->getSmtName() << " () Bool)" << endl;
+    }
+
+    for (Clause* c : program.clauses)
+    {
+        output << "(assert " << c->toSmtLibString() << ")" << endl;
+    }
+
+    return output.str();
+
+    // TODO output computeTrue atoms
+    // output <<
+    // for (Atom* a : program.atoms)
+    // {
+    // 	if (a->computeTrue)
+    // 	{
+    // 		output << "(assert " << c->toSmtLibString() << ")" << endl;
+    // 	}
     // }
+
+
+    // output.close();
+
+    // system(string("cat " + outputFileName).c_str());
 }

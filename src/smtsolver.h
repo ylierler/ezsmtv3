@@ -10,7 +10,10 @@ class SMTSolver
 
     private:
         bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet);
-        void writeToSmtLibFile(Program &program, string outputFileName);
+        string getProgramBodyString(Program& program);
+        string getCheckSatString(Program& program);
+        string getAnswerSetNegationString(vector<string>& answerSet);
+        void writeToFile(string input, string outputFileName);
 };
 
 
