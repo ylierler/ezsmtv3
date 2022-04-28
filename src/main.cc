@@ -295,29 +295,21 @@ int main (int argc, char *argv[])
 
   string groundingCommand = string("$EZSMTPLUS/tools/gringo-5.5.1 ")
     + ctable.cmodels.param.file
-    + " > " + ctable.cmodels.param.file + ".grounded";
+    + " &> " + ctable.cmodels.param.file + ".grounded";
 
   VLOG(1) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
 
-  // TODO Do I want to keep this?
-  //Check errors from grounding output
-  // ostringstream outputFile2;
-  // ifstream in_file2(groundingCommand);
-  // outputFile2 <<in_file2.rdbuf();
-  // string outputFilelStr2= outputFile2.str();
-  // in_file2.close();
-  // istringstream iss2(outputFilelStr);
-  // while(getline(iss2,line)){
-  //   //if a error is read, output error message
-  //   if(line.find("error: ")!=string::npos  || line.find("ERROR: (gringo): ")!=string::npos){
-  //       cout << " *** Error during grounding. See output file " <<ctable.cmodels.param.file<<".grounded ***"<< endl;
-  //       exit(1);
-  //     }
-  // }
-
-
   strcat(ctable.cmodels.param.file, ".grounded");
+
+  // Check errors from grounding output
+  ifstream groundedProgram(ctable.cmodels.param.file);
+  for (string line; getline(groundedProgram, line);) {
+    if(line.find("error: ") != string::npos  || line.find("ERROR: (gringo): ") != string::npos){
+        LOG(FATAL) << "Error during grounding. See output file " << ctable.cmodels.param.file;
+    }
+  }
+  groundedProgram.close();
 
   VLOG(2) << "Grounded program:";
   if (VLOG_IS_ON(2))

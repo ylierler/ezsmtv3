@@ -136,9 +136,9 @@ bool SMTSolver::parseSolverResults(string resultsFileName, vector<string>& resul
     string satResult;
     std::getline(inputStream, satResult);
 
-    if (satResult == "unsat")
+    if (satResult != "unsat" && satResult != "sat")
     {
-        return false;
+        LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
     }
 
     stringstream atomsListStream;
@@ -157,7 +157,7 @@ bool SMTSolver::parseSolverResults(string resultsFileName, vector<string>& resul
         resultAnswerSet.push_back(match[1].str());
     }
 
-    return true;
+    return satResult == "sat";
 }
 
 string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
