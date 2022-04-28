@@ -1,4 +1,5 @@
 #include "smtsolver.h"
+#include "timer.h"
 #include <cstring>
 #include <fstream>
 #include <ostream>
@@ -92,6 +93,10 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
 
     int i = 1;
     while (true) {
+        VLOG(1) << "Calling SMT solver, iteration " << i;
+        Timer timer;
+        timer.start();
+
         string completeProgram = programBody + programCheckSatFooter;
         writeToFile(completeProgram, smtFileName);
 
@@ -113,6 +118,9 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
         cout << endl;
 
         programBody += getAnswerSetNegationString(resultAnswerSets);
+
+        timer.stop();
+        VLOG(1) << "Finished round " << i << " in " << timer.sec << "s " << timer.msec << "ms";
 
         i++;
     }
