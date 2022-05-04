@@ -9,6 +9,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <glog/logging.h>
+#include <boost/process.hpp>
+// #include <poco/Process.h>
+
+namespace bp = boost::process;
 
 // class ProcessCommunicator
 // {
@@ -78,11 +82,11 @@
 void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
     string solverCommand = "";
     if (solver == CVC4)
-        solverCommand = "$EZSMTPLUS/tools/cvc4 --lang smt --output-lang smtlib2.6 ";
+        solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 ";
     else if (solver == Z3)
-        solverCommand = "$EZSMTPLUS/tools/z3 -smt2 ";
+        solverCommand = "../tools/z3 -smt2 ";
     else if (solver == YICES)
-        solverCommand = "$EZSMTPLUS/tools/yices-smt2 ";
+        solverCommand = "../tools/yices-smt2 ";
 
     stringstream ss;
 
@@ -91,19 +95,41 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
     string programBody = getProgramBodyString(program);
     string programCheckSatFooter = getCheckSatString(program);
 
+    bp::ipstream solverOutput;
+    bp::opstream solverInput;
+
+    VLOG(1) << "Starting child process for solver: " << solverCommand;
+    bp::child solverProcess(solverCommand, bp::std_out > solverOutput, bp::std_in < solverInput);
+
+    solverInput << programBody;
+    VLOG(2) << "Wrote program body" << endl << programBody;
+
     int i = 1;
     while (true) {
-        VLOG(1) << "Calling SMT solver, iteration " << i;
+        VLOG(1) << "SMT solver, iteration " << i;
         Timer timer;
         timer.start();
 
-        string completeProgram = programBody + programCheckSatFooter;
-        writeToFile(completeProgram, smtFileName);
+        // string completeProgram = programBody + programCheckSatFooter;
+        // writeToFile(completeProgram, smtFileName);
 
-        system((solverCommand + " " + smtFileName + " > temp.smtlib").c_str());
+        solverInput << "(check-sat)" << endl;
+        string satResult;
+        solverOutput >> satResult;
+        VLOG(1) << "Sat result: " << satResult;
+
+        solverInput << programCheckSatFooter;
+        VLOG(2) << "Wrote check sat footer" << endl << programCheckSatFooter;
+
+        // stringstream solverResults;
+        string line;
+        while (std::getline(solverOutput, line))
+        {
+            VLOG(1) << "Read: " << line;
+        }
 
         vector<string> resultAnswerSets;
-        bool isSatisfiable = parseSolverResults("temp.smtlib", resultAnswerSets);
+        bool isSatisfiable = parseSolverResults(solverOutput, resultAnswerSets);
 
         if (!isSatisfiable)
         {
@@ -117,7 +143,9 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
         }
         cout << endl;
 
-        programBody += getAnswerSetNegationString(resultAnswerSets);
+        auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
+
+        solverInput << answerSetNegation;
 
         timer.stop();
         VLOG(1) << "Finished round " << i << " in " << timer.sec << "s " << timer.msec << "ms";
@@ -136,22 +164,25 @@ void SMTSolver::writeToFile(string input, string outputFileName)
     VLOG(2) << "Wrote SMT-LIB file:" << endl << input << endl;
 }
 
-bool SMTSolver::parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet)
+bool SMTSolver::parseSolverResults(bp::ipstream& inputStream, vector<string>& resultAnswerSet)
 {
-    resultAnswerSet.clear();
-    ifstream inputStream(resultsFileName);
+    // resultAnswerSet.clear();
+    // ifstream inputStream(resultsFileName);
 
     string satResult;
-    std::getline(inputStream, satResult);
+    // std::getline(inputStream, satResult);
+    // VLOG(1) << "Read check sat result: " << satResult;
 
-    if (satResult != "unsat" && satResult != "sat")
-    {
-        LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
-    }
+    // if (satResult != "unsat" && satResult != "sat")
+    // {
+    //     LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
+    // }
 
     stringstream atomsListStream;
     string line;
-    while(std::getline(inputStream, line)) {
+    while (std::getline(inputStream, line))
+    {
+        VLOG(1) << "Read solver line: " << line;
         atomsListStream << line;
     }
     string atomsList = atomsListStream.str();
@@ -187,7 +218,7 @@ string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
 string SMTSolver::getCheckSatString(Program& program)
 {
     ostringstream output;
-    output << "(check-sat)" << endl;
+    // output << "(check-sat)" << endl;
 
     output << "(get-value (";
     for (Atom* a : program.atoms)
@@ -197,7 +228,7 @@ string SMTSolver::getCheckSatString(Program& program)
             output << a->getSmtName() << " ";
         }
     }
-    output << "))" << endl;
+    output << "))" << endl << endl;
 
     return output.str();
 }

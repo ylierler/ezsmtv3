@@ -2,6 +2,8 @@
 #define SMTSOLVER_H_
 
 #include "program.h"
+#include <boost/process.hpp>
+
 class SMTSolver
 {
     public:
@@ -9,7 +11,7 @@ class SMTSolver
         void callSMTSolver(SMTSolverCommand solver, Program &program);
 
     private:
-        bool parseSolverResults(string resultsFileName, vector<string>& resultAnswerSet);
+        bool parseSolverResults(boost::process::ipstream& inputStream, vector<string>& resultAnswerSet);
         string getProgramBodyString(Program& program);
         string getCheckSatString(Program& program);
         string getAnswerSetNegationString(vector<string>& answerSet);
