@@ -5,6 +5,9 @@ project(ezsmt_plus)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+
+# find_package(Boost 1.78 COMPONENTS process REQUIRED)
+
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 

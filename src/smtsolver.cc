@@ -10,79 +10,14 @@
 #include <unistd.h>
 #include <glog/logging.h>
 #include <boost/process.hpp>
-// #include <poco/Process.h>
 
 namespace bp = boost::process;
-
-// class ProcessCommunicator
-// {
-// public:
-//     void ExecuteProcess(string executablePath)
-//     {
-//         int pipeP2C[2], pipeC2P[2];
-//         // (names: short for pipe for X (writing) to Y with P == parent, C == child)
-
-//         if(pipe(pipeP2C) != 0 || pipe(pipeC2P) != 0)
-//         {
-//             // error
-//             // TODO: appropriate handling
-//         }
-//         else
-//         {
-//             int pid = fork();
-//             if(pid < 0)
-//             {
-//                 // error
-//                 // TODO: appropriate handling
-//             }
-//             else if(pid > 0)
-//             {
-//                 cout << "Parent started" << endl;
-//                 // parent
-//                 // close unused ends:
-//                 close(pipeP2C[0]); // read end
-//                 close(pipeC2P[1]); // write end
-
-//                 // use pipes to communicate with child...
-//                 cout << "made it to here" << endl;
-//                 cout << pipeC2P[0]
-
-//                 int status;
-//                 waitpid(pid, &status, 0);
-
-//                 // cleanup or do whatever you want to do afterwards...
-//             }
-//             else
-//             {
-//                 cout << "Child started" << endl;
-//                 // child
-//                 close(pipeP2C[1]); // write end
-//                 close(pipeC2P[0]); // read end
-//                 dup2(pipeP2C[0], STDIN_FILENO);
-//                 dup2(pipeC2P[1], STDOUT_FILENO);
-//                 // you should be able now to close the two remaining
-//                 // pipe file desciptors as well as you dup'ed them already
-//                 // (confirmed that it is working)
-//                 close(pipeP2C[0]);
-//                 close(pipeC2P[1]);
-
-//                 char * environment[0];
-//                 char * const p = new char[executablePath.length()];
-//                 strcpy(p,executablePath.c_str());
-//                 char * const command[] = {p};
-
-//                 execve(executablePath.c_str(), command, environment); // won't return - but you should now be able to
-//                                 // use stdin/stdout to communicate with parent
-//             }
-//         }
-//     }
-// };
 
 // call EZSMT and SMT solver
 void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
     string solverCommand = "";
     if (solver == CVC4)
-        solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 ";
+        solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 --incremental ";
     else if (solver == Z3)
         solverCommand = "../tools/z3 -smt2 ";
     else if (solver == YICES)
@@ -110,23 +45,8 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
         Timer timer;
         timer.start();
 
-        // string completeProgram = programBody + programCheckSatFooter;
-        // writeToFile(completeProgram, smtFileName);
-
-        solverInput << "(check-sat)" << endl;
-        string satResult;
-        solverOutput >> satResult;
-        VLOG(1) << "Sat result: " << satResult;
-
-        solverInput << programCheckSatFooter;
-        VLOG(2) << "Wrote check sat footer" << endl << programCheckSatFooter;
-
-        // stringstream solverResults;
-        string line;
-        while (std::getline(solverOutput, line))
-        {
-            VLOG(1) << "Read: " << line;
-        }
+        solverInput << programCheckSatFooter << endl;
+        VLOG(2) << "Wrote check sat footer:" << endl << programCheckSatFooter;
 
         vector<string> resultAnswerSets;
         bool isSatisfiable = parseSolverResults(solverOutput, resultAnswerSets);
@@ -166,24 +86,28 @@ void SMTSolver::writeToFile(string input, string outputFileName)
 
 bool SMTSolver::parseSolverResults(bp::ipstream& inputStream, vector<string>& resultAnswerSet)
 {
-    // resultAnswerSet.clear();
-    // ifstream inputStream(resultsFileName);
-
     string satResult;
-    // std::getline(inputStream, satResult);
-    // VLOG(1) << "Read check sat result: " << satResult;
+    std::getline(inputStream, satResult);
+    VLOG(1) << "Read check sat result: " << satResult;
 
-    // if (satResult != "unsat" && satResult != "sat")
-    // {
-    //     LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
-    // }
+    if (satResult != "unsat" && satResult != "sat")
+    {
+        LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
+    }
 
     stringstream atomsListStream;
     string line;
     while (std::getline(inputStream, line))
     {
-        VLOG(1) << "Read solver line: " << line;
+        VLOG(1) << "Read line from solver: " << line;
         atomsListStream << line;
+        // if (line.empty())
+        // {
+        //     break;
+        // }
+
+        // TODO This only works because cvc4 outputs values as a single line
+        break;
     }
     string atomsList = atomsListStream.str();
 
@@ -218,7 +142,7 @@ string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
 string SMTSolver::getCheckSatString(Program& program)
 {
     ostringstream output;
-    // output << "(check-sat)" << endl;
+    output << "(check-sat)" << endl;
 
     output << "(get-value (";
     for (Atom* a : program.atoms)
@@ -228,7 +152,7 @@ string SMTSolver::getCheckSatString(Program& program)
             output << a->getSmtName() << " ";
         }
     }
-    output << "))" << endl << endl;
+    output << "))" << endl;
 
     return output.str();
 }
