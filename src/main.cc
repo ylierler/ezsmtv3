@@ -166,12 +166,18 @@
 // 3.86.1 fixed declarations in Minisat so that gcc compiler version 5+ compiles the code (due to Marcello Balduccini)  
 //      introduced -file option to pass filename as a parameter for reading (due to Ben Susman) 
 
+#include <exception>
 #include <iostream>
 #include <new>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "boost/program_options/options_description.hpp"
+#include "boost/program_options/parsers.hpp"
+#include "boost/program_options/value_semantic.hpp"
+#include "boost/program_options/variables_map.hpp"
+#include "boost/throw_exception.hpp"
 #include "ctable.h"
 #include "timer.h"
 #include "interpret.h"
@@ -180,8 +186,10 @@
 #include <ctype.h>
 #include <fstream>
 #include <glog/logging.h>
+#include <boost/program_options.hpp>
 
 using namespace std;
+namespace popts = boost::program_options;
 
 void a_new_handler ()
 {
@@ -211,18 +219,54 @@ static void timeOutHandler(int sig)
   exit (22);
 }
 
-void SetupLogging(char * executableName)
+void SetupLogging(char * executableName, int verbosity)
 {
   FLAGS_logtostderr = 1;
   FLAGS_colorlogtostderr = 1;
   FLAGS_log_prefix = false;
-  FLAGS_v = 0;
+  FLAGS_v = verbosity;
   google::InitGoogleLogging(executableName);
+}
+
+int ParseArguments(int argc, char *argv[], popts::variables_map& variableMap)
+{
+  popts::options_description argsDescription("Allowed options");
+  argsDescription.add_options()
+    ("help,h", "Show this help menu")
+    ("verbose,v", popts::value<int>()->default_value(0), "Verbose logging level")
+    ;
+
+  try
+  {
+    store(parse_command_line(argc, argv, argsDescription), variableMap);
+    notify(variableMap);
+  }
+  catch (boost::wrapexcept<boost::program_options::unknown_option> exception)
+  {
+    cout << "Could not parse argument: " << exception.get_option_name() << endl;
+    return 1;
+  }
+
+  if (variableMap.count("help"))
+  {
+    cout << argsDescription << endl;
+    return 1;
+  }
+
+  return 0;
 }
 
 int main (int argc, char *argv[])
 {
-  SetupLogging(argv[0]);
+
+  popts::variables_map vm;
+  auto exit = ParseArguments(argc, argv, vm);
+  if (exit == 1)
+  {
+    return 1;
+  }
+
+  SetupLogging(argv[0], vm["v"].as<int>());
 
   Timer mainTimer;
 
@@ -289,8 +333,8 @@ int main (int argc, char *argv[])
 
 
   if(ctable.cmodels.param.numOfFiles==0){
-	  ctable.usage ();
-  	  exit(1);
+    ctable.usage ();
+    return 1;
   }
 
   string groundingCommand = string("$EZSMTPLUS/tools/gringo-5.5.1 ")
