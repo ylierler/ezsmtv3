@@ -34,11 +34,11 @@ class Atom;
 class Cmodels
 {
 public:
-  Cmodels (SMTSolver &solver);
+  Cmodels (SMTSolver &solver, Param &param);
   virtual ~Cmodels ();
   Program program;
   Output output;
-  Param param; //contains all the fields with parameters
+  Param &param; //contains all the fields with parameters
                //that may be initialized at command line
 
   SMTSolver &solver;

@@ -179,6 +179,7 @@
 #include "boost/program_options/variables_map.hpp"
 #include "boost/throw_exception.hpp"
 #include "ctable.h"
+#include "defines.h"
 #include "timer.h"
 #include "interpret.h"
 #include <time.h>
@@ -228,45 +229,91 @@ void SetupLogging(char * executableName, int verbosity)
   google::InitGoogleLogging(executableName);
 }
 
-int ParseArguments(int argc, char *argv[], popts::variables_map& variableMap)
+int ParseArguments(int argc, char *argv[], Param &params)
 {
-  popts::options_description argsDescription("Allowed options");
-  argsDescription.add_options()
+  bool showHelpMenu = false;
+  popts::variables_map vm;
+
+  popts::options_description genericOptions("Generic Options");
+  genericOptions.add_options()
     ("help,h", "Show this help menu")
-    ("verbose,v", popts::value<int>()->default_value(0), "Verbose logging level")
+    ("verbose,v", popts::value<int>()->default_value(0)->implicit_value(1), "Verbose logging level")
+    ("file,f", popts::value<string>(), "Input file")
     ;
+
+  popts::options_description cmodelsOptions("CModels Options");
+  cmodelsOptions.add_options()
+    ("grounder-command", popts::value<string>(), "Override the grounder command used. The command will be passed the input file as an argument. It must output the grounded program in ASPIF (Gringo 5) format to stdout.")
+    ;
+
+  popts::options_description solverOptions("Solver Options");
+  solverOptions.add_options()
+    ("solver,s", popts::value<string>()->default_value("cvc4"), "Backend SMT Solver [z3|cvc4|yices]")
+    ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0), "Enumerate X answer sets. Setting this to 0 will enumerate all answer sets.")
+    ("solver-command", popts::value<string>(), "Override the SMT solver command used. This will override the --solver option. The command must support reading the SMT-LIB program from stdin.")
+    ;
+
+  popts::positional_options_description positionalArgs;
+  positionalArgs.add("file", -1);
+
+  popts::options_description allOptions;
+  allOptions.add(genericOptions).add(cmodelsOptions).add(solverOptions);
 
   try
   {
-    store(parse_command_line(argc, argv, argsDescription), variableMap);
-    notify(variableMap);
+    store(popts::command_line_parser(argc, argv)
+          .options(allOptions)
+          .positional(positionalArgs)
+          .run(),
+      vm);
+    notify(vm);
+
+    params.verboseLogLevel = vm["verbose"].as<int>();
+
+    params.file = vm["file"].as<string>().c_str();
+    params.numOfFiles = 1;
+
+    params.grounderCommand = vm["grounder-command"].empty()
+      ? "../tools/gringo-5.5.1"
+      : vm["grounder-command"].as<string>();
+
+    params.smtSolverCommand = vm["solver-command"].empty()
+      ? ""
+      : vm["solver-command"].as<string>();
+
+    auto solver = vm["solver"].as<string>();
+    if (solver == "z3") params.SMTsolver = Z3;
+    if (solver == "cvc4") params.SMTsolver = CVC4;
+    if (solver == "yices") params.SMTsolver = YICES;
+
+    params.answerSetsToEnumerate = vm["enumerate"].as<int>();
   }
-  catch (boost::wrapexcept<boost::program_options::unknown_option> exception)
+  catch (const std::exception &e)
   {
-    cout << "Could not parse argument: " << exception.get_option_name() << endl;
-    return 1;
+    cout << "Error parsing arguments: " << e.what() << endl;
+    showHelpMenu = true;
   }
 
-  if (variableMap.count("help"))
+  if (showHelpMenu || vm.count("help"))
   {
-    cout << argsDescription << endl;
+    cout << "Usage: " << argv[0] << " [options] <file> [<file>...]" << endl << endl;
+    cout << allOptions << endl;
     return 1;
   }
 
   return 0;
 }
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-
-  popts::variables_map vm;
-  auto exit = ParseArguments(argc, argv, vm);
+  Param params;
+  int exit = ParseArguments(argc, argv, params);
   if (exit == 1)
   {
     return 1;
   }
 
-  SetupLogging(argv[0], vm["v"].as<int>());
+  SetupLogging(argv[0], params.verboseLogLevel);
 
   Timer mainTimer;
 
@@ -274,27 +321,27 @@ int main (int argc, char *argv[])
   bool error = false;
 
   SMTSolver smtSolver;
-  Cmodels cmodels(smtSolver);
+  Cmodels cmodels(smtSolver, params);
   Api api(&cmodels.program);
   Read reader(&cmodels.program, &api);
   Ctable ctable(cmodels, api, reader);
 
-  strcpy(ctable.cmodels.param.cmodelsname, &argv[0][0]);
+  strcpy(params.cmodelsname, &argv[0][0]);
 
-  strcpy(ctable.cmodels.param.config, "CONFIG");
+  strcpy(params.config, "CONFIG");
   
-  for (int c = 1; c < argc && !error; c++){
-    if (c+1<argc){
-      c=c+ctable.setSingleExecutionArgument(&argv[c][0],&argv[c+1][0]);
-    }
-    else
-      c=c+ctable.setSingleExecutionArgument(&argv[c][0],NULL);
-  }
+  // for (int c = 1; c < argc && !error; c++){
+  //   if (c+1<argc){
+  //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],&argv[c+1][0]);
+  //   }
+  //   else
+  //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],NULL);
+  // }
 
 
   //if the timeout was set then we will set the function for timeout
-  if(ctable.cmodels.param.timeout!=0)    
-     mainTimer.SetTimeout(ctable.cmodels.param.timeout, timeOutHandler);
+  if(params.timeout!=0)
+     mainTimer.SetTimeout(params.timeout, timeOutHandler);
 
 
   //This is not possble at the moment unless we include
@@ -305,22 +352,22 @@ int main (int argc, char *argv[])
   
 	
   //we find the path to cmodels and assume that config file is located there
-  if(strcmp(ctable.cmodels.param.config,"\0")==0){
+  if(strcmp(params.config,"\0")==0){
     char path_to_config[100];
     int k=0; 
     path_to_config[k]='\0';
-    int length = strlen(ctable.cmodels.param.cmodelsname);
+    int length = strlen(params.cmodelsname);
     int l = length-1;
-    while(l!=-1 && ctable.cmodels.param.cmodelsname[l]!='/'){
+    while(l!=-1 && params.cmodelsname[l]!='/'){
       l--;
     }
     if(l>=0){
       for( k= 0;k<=l;k++)
-	path_to_config[k]= ctable.cmodels.param.cmodelsname[k];
+	path_to_config[k]= params.cmodelsname[k];
       path_to_config[k]='\0';
     }
     strcat(path_to_config, "CONFIG");
-    strcpy(ctable.cmodels.param.config, path_to_config);
+    strcpy(params.config, path_to_config);
   }
  
   if (error)
@@ -328,29 +375,26 @@ int main (int argc, char *argv[])
       ctable.usage ();
       return 1;
     }
-  if(ctable.cmodels.output.asparagus==STANDARD)
-    cerr << "ezsmt version 2.0.0 (ezsmtPlus) Reading..."<<endl;;
 
 
-  if(ctable.cmodels.param.numOfFiles==0){
+  if(params.numOfFiles==0){
     ctable.usage ();
     return 1;
   }
 
-  string groundingCommand = string("$EZSMTPLUS/tools/gringo-5.5.1 ")
-    + ctable.cmodels.param.file
-    + " &> " + ctable.cmodels.param.file + ".grounded";
+  string groundingCommand = params.grounderCommand + " " + params.file
+    + " &> " + params.file + ".grounded";
 
   VLOG(1) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
 
-  strcat(ctable.cmodels.param.file, ".grounded");
+  params.file += ".grounded";
 
   // Check errors from grounding output
-  ifstream groundedProgram(ctable.cmodels.param.file);
+  ifstream groundedProgram(params.file);
   for (string line; getline(groundedProgram, line);) {
     if(line.find("error: ") != string::npos  || line.find("ERROR: (gringo): ") != string::npos){
-        LOG(FATAL) << "Error during grounding. See output file " << ctable.cmodels.param.file;
+        LOG(FATAL) << "Error during grounding. See output file " << params.file;
     }
   }
   groundedProgram.close();
@@ -358,18 +402,18 @@ int main (int argc, char *argv[])
   VLOG(2) << "Grounded program:";
   if (VLOG_IS_ON(2))
   {
-    system((string("cat ") + ctable.cmodels.param.file).c_str());
+    system((string("cat ") + params.file).c_str());
     cout << endl;
   }
 
   ctable.cmodels.output.timerAll.start();
 
-  if(strlen(ctable.cmodels.param.file) > 0)
+  if(params.file.length() > 0)
   {
-      freopen(ctable.cmodels.param.file,"r",stdin);
+      freopen(params.file.c_str(), "r", stdin);
   }
 
-  // std::ifstream groundedFile(ctable.cmodels.param.file);
+  // std::ifstream groundedFile(params.file);
 
   int bad = ctable.read();
   if(ctable.cmodels.output.asparagus==STANDARD)
@@ -380,7 +424,7 @@ int main (int argc, char *argv[])
     }
   //removes some setting that might be not fitting
   //for some specific SAT solver
-  ctable.cmodels.param.finish();
+  params.finish();
 
    ctable.calculate();
    /*	 

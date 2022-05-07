@@ -14,14 +14,20 @@
 namespace bp = boost::process;
 
 // call EZSMT and SMT solver
-void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
+void SMTSolver::callSMTSolver(Param &params, Program &program) {
     string solverCommand = "";
-    if (solver == CVC4)
+    if (params.SMTsolver == CVC4)
         solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 --incremental ";
-    else if (solver == Z3)
+    else if (params.SMTsolver == Z3)
         solverCommand = "../tools/z3 -smt2 ";
-    else if (solver == YICES)
+    else if (params.SMTsolver == YICES)
         solverCommand = "../tools/yices-smt2 ";
+
+    // Override -s option with --solver-command if provided
+    if (!params.smtSolverCommand.empty())
+    {
+        solverCommand = params.smtSolverCommand;
+    }
 
     stringstream ss;
 
@@ -40,7 +46,7 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
     VLOG(2) << "Wrote program body" << endl << programBody;
 
     int i = 1;
-    while (true) {
+    for (;;i++) {
         VLOG(1) << "SMT solver, iteration " << i;
         Timer timer;
         timer.start();
@@ -56,10 +62,14 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
             break;
         }
 
-        cout << "Answer set " << i << ": ";
+        if (params.answerSetsToEnumerate != 1)
+        {
+            cout << "Answer set " << i << ": ";
+        }
+
         for (auto smtAtom: resultAnswerSets)
         {
-            cout << smtAtom << " ";
+            cout << smtAtom.substr(1, smtAtom.size()-2) << " ";
         }
         cout << endl;
 
@@ -70,7 +80,10 @@ void SMTSolver::callSMTSolver(SMTSolverCommand solver, Program &program) {
         timer.stop();
         VLOG(1) << "Finished round " << i << " in " << timer.sec << "s " << timer.msec << "ms";
 
-        i++;
+        if (params.answerSetsToEnumerate != 0 && params.answerSetsToEnumerate == i)
+        {
+            break;
+        }
     }
 }
 

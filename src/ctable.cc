@@ -81,7 +81,7 @@ Ctable::setExecutionArgs(char args[]){
    }
 }
 
-// TODO Review
+// TODO Remove
 int
 Ctable::setSingleExecutionArgument(char *arg, char *option){  
   int ret=0;
@@ -105,8 +105,8 @@ Ctable::setSingleExecutionArgument(char *arg, char *option){
 	    usage();
 	    exit(1);
 	  }
-	  if (cmodels.param.numOfFiles == 0)
-		  strcpy(cmodels.param.file, &option[0]);
+	  // if (cmodels.param.numOfFiles == 0)
+		  // strcpy(cmodels.param.file, &option[0]);
 	  strcpy(cmodels.param.files[cmodels.param.numOfFiles], &option[0]);
 	  cmodels.param.numOfFiles++;
 	  ret=1;

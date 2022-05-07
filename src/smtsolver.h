@@ -2,13 +2,14 @@
 #define SMTSOLVER_H_
 
 #include "program.h"
+#include "param.h"
 #include <boost/process.hpp>
 
 class SMTSolver
 {
     public:
 
-        void callSMTSolver(SMTSolverCommand solver, Program &program);
+        void callSMTSolver(Param &params, Program &program);
 
     private:
         bool parseSolverResults(boost::process::ipstream& inputStream, vector<string>& resultAnswerSet);

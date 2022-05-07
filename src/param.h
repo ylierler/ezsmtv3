@@ -1,5 +1,6 @@
 // yuliya@cs.utexas.edu
 #include <string.h>
+#include <string>
 #ifndef PARAM_H
 #define PARAM_H
 class Param{
@@ -16,7 +17,7 @@ class Param{
   //parameters that can be passed at command line
   //or set by functions
   char config[100];
-  char file[512];
+  std::string file;
   char dirName[256];
   char cmodelsname[256];
   char dimacsFileName[512];
@@ -56,6 +57,12 @@ class Param{
   bool printCycle;
   int forgetPercent; //percentage of learnt clauses to be forgottem when denial comes back from external solver. Default is 0. No clauses forgot.
   //_________________
+
+  int verboseLogLevel;
+  int answerSetsToEnumerate;
+  std::string grounderCommand;
+  std::string smtSolverCommand;
+
   Param(){
     forgetPercent=0;
 	printCycle=false;
@@ -83,7 +90,6 @@ class Param{
 	temp = false;
 	numOfFiles = 0;
 	strcpy(config,"\0");
-	strcpy(file,"\0");
 	for( int a = 0; a < 10; a++ )
 		strcpy(files[a],"\0");
 	strcpy(dirName,"\0");

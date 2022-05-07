@@ -38,8 +38,9 @@ using namespace std;
 
 /* if you want some statistics during the solving, uncomment following line */
 //    SAT_AddHookFun(mng,output_status, 5000);
-Cmodels::Cmodels(SMTSolver &solverService)
-	: solver(solverService)
+Cmodels::Cmodels(SMTSolver &solverService, Param &param)
+	: solver(solverService),
+	  param(param)
 {
 	output.program = &program;
 	output.param = &param;
@@ -47,7 +48,6 @@ Cmodels::Cmodels(SMTSolver &solverService)
 	satMngMinimality = 0;
 	zchaffMng = 0;
 	LRVarIDs.clear();
-
 }
 
 void Cmodels::initRuleLists4WF() {
@@ -437,7 +437,7 @@ void Cmodels::cmodels() {
 			|| param.sys == SCC_LEVEL_RANKING
 			|| param.sys == SCC_LEVEL_RANKING_STRONG) {
 
-		solver.callSMTSolver(param.SMTsolver, program);
+		solver.callSMTSolver(param, program);
 	} else {
 		cerr << "Please specify the type of level rankings.";
 		cerr << "Available options: -levelRanking -levelRankingStrong -SCClevelRanking -SCClevelRankingStrong" << endl;
