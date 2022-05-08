@@ -17,9 +17,9 @@ namespace bp = boost::process;
 void SMTSolver::callSMTSolver(Param &params, Program &program) {
     string solverCommand = "";
     if (params.SMTsolver == CVC4)
-        solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 --incremental ";
+        solverCommand = "../tools/cvc4 --lang smt --output-lang smtlib2.6 --incremental";
     else if (params.SMTsolver == Z3)
-        solverCommand = "../tools/z3 -smt2 ";
+        solverCommand = "../tools/z3-4.8.17 -smt2 -in";
     else if (params.SMTsolver == YICES)
         solverCommand = "../tools/yices-smt2 ";
 
@@ -102,10 +102,14 @@ bool SMTSolver::parseSolverResults(bp::ipstream& inputStream, vector<string>& re
     string satResult;
     std::getline(inputStream, satResult);
     VLOG(1) << "Read check sat result: " << satResult;
-
     if (satResult != "unsat" && satResult != "sat")
     {
         LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
+    }
+
+    if (satResult == "unsat")
+    {
+        return false;
     }
 
     stringstream atomsListStream;
@@ -114,13 +118,12 @@ bool SMTSolver::parseSolverResults(bp::ipstream& inputStream, vector<string>& re
     {
         VLOG(1) << "Read line from solver: " << line;
         atomsListStream << line;
-        // if (line.empty())
-        // {
-        //     break;
-        // }
 
-        // TODO This only works because cvc4 outputs values as a single line
-        break;
+        // TODO This is a hacky workaround for z3's multiline output
+        if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')')
+        {
+            break;
+        }
     }
     string atomsList = atomsListStream.str();
 
@@ -133,7 +136,7 @@ bool SMTSolver::parseSolverResults(bp::ipstream& inputStream, vector<string>& re
         resultAnswerSet.push_back(match[1].str());
     }
 
-    return satResult == "sat";
+    return true;
 }
 
 string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
@@ -141,6 +144,7 @@ string SMTSolver::getAnswerSetNegationString(vector<string>& answerSet)
     // TODO Should I include negatives (false)?
 
     ostringstream output;
+    output << "(push 1)" << endl;
     output << "(assert (not (and";
     for (string smtAtom : answerSet)
     {
