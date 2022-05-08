@@ -46,6 +46,7 @@ private:
   int finishReading(FILE* f, long size);
 
   void readRuleLine(istringstream&);
+  void readMinimizeLine(istringstream& line);
   void readOutputLine(istringstream& line);
   void readTheoryLine(istringstream& line);
 

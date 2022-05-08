@@ -605,11 +605,13 @@ void Read::readOutputLine(istringstream& line)
     auto atom = api->new_atom();
     api->set_name(atom, atomName.c_str());
     api->set_compute(atom, true);
+    atom->showInOutputAnswerSet = true;
   }
   else if (numOfLiterals == 1)
   {
     Atom* a = getOrCreateAtom(atomId);
     api->set_name(a, atomName.c_str());
+    a->showInOutputAnswerSet = true;
   }
   else if (numOfLiterals > 1)
   {
@@ -644,6 +646,23 @@ void Read::readTheoryLine(istringstream& line)
 
 }
 
+void Read::readMinimizeLine(istringstream& line)
+{
+  int priority, numOfLiterals;
+  line >> priority >> numOfLiterals;
+
+  auto minimizationStatement = new MinimizationStatement(priority);
+
+  for (int i = 0; i < numOfLiterals; i++)
+  {
+    int literal, weight;
+    line >> literal >> weight;
+    auto atom = getAtomFromLiteral(literal);
+    minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight));
+  }
+  program->minimizations.push_back(minimizationStatement);
+}
+
 int Read::read(string fileName)
 {
   int lineNumber = 0;
@@ -668,6 +687,9 @@ int Read::read(string fileName)
           break;
         case RULE:
           readRuleLine(*lineStream);
+          break;
+        case MINIMIZE:
+          readMinimizeLine(*lineStream);
           break;
         case OUTPUT:
           readOutputLine(*lineStream);

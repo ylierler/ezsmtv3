@@ -10,7 +10,7 @@ reached(Y) :- cycle(X,Y), reached(X).
 #show cycle/2.
 
 % Optimize
-%#minimize { C,X,Y : cycle(X,Y), cost(X,Y,C) }.
+#minimize { C,X,Y : cycle(X,Y), cost(X,Y,C) }.
 
 % Nodes
 node(1..6).

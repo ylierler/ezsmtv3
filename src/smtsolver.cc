@@ -43,7 +43,10 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     bp::child solverProcess(solverCommand, bp::std_out > solverOutput, bp::std_in < solverInput);
 
     solverInput << programBody;
-    VLOG(2) << "Wrote program body" << endl << programBody;
+    if (VLOG_IS_ON(2))
+    {
+        cout << "Wrote program body:" << endl << programBody;
+    }
 
     int i = 1;
     for (;;i++) {
@@ -164,7 +167,7 @@ string SMTSolver::getCheckSatString(Program& program)
     output << "(get-value (";
     for (Atom* a : program.atoms)
     {
-        if (a->name)
+        if (a->showInOutputAnswerSet)
         {
             output << a->getSmtName() << " ";
         }
@@ -177,8 +180,6 @@ string SMTSolver::getCheckSatString(Program& program)
 // FIXME this is copying strings
 string SMTSolver::getProgramBodyString(Program& program)
 {
-    // ofstream outputFileStream;
-    // outputFileStream.open(outputFileName);
     ostringstream output;
 
     output << "(set-info :smt-lib-version 2.6)" << endl;
@@ -195,6 +196,17 @@ string SMTSolver::getProgramBodyString(Program& program)
     for (Clause* c : program.clauses)
     {
         output << "(assert " << c->toSmtLibString() << ")" << endl;
+    }
+
+    // TODO
+    for (MinimizationStatement* m : program.minimizations)
+    {
+        output << "(minimize (+";
+        for (MinimizationAtom* a : m->atoms)
+        {
+            output << " (ite " << a->atom.getSmtName() << " " << a->weight << " 0)";
+        }
+        output << "))" << endl;
     }
 
     return output.str();

@@ -81,10 +81,10 @@ public:
 
   const char *atom_name ();
   inline int get_lparse_id (){
-	return original_id;
+    return original_id;
   }
   inline void set_lparse_id (int id){
-	original_id=id;
+    original_id=id;
   }
   void checkDoubleCycle();
   void printsmt(FILE *file);
@@ -217,8 +217,7 @@ public:
 
   bool external; //true if externally defined (EZCSP type of use), false default 
 
-
-
+  bool showInOutputAnswerSet = false;
 };
 class  FunctionalityRule
 {

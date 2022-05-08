@@ -33,6 +33,31 @@ using namespace std;
 
 class OptimizeRule;
 struct sortedLE;
+
+class MinimizationAtom
+{
+  public:
+    MinimizationAtom(Atom &atom, double weight) : atom(atom)
+    {
+      this->weight = weight;
+    };
+    Atom& atom;
+    double weight;
+};
+
+class MinimizationStatement
+{
+
+  public:
+    MinimizationStatement(int priority)
+    {
+      this->priority = priority;
+    };
+
+    int priority;
+    list<MinimizationAtom*> atoms;
+};
+
 class Program
 {
 public:
@@ -50,6 +75,7 @@ public:
   vector<Atom*>atoms;
 
   list<Rule*> rules;
+  list<MinimizationStatement*> minimizations;
 
   //Vector which will have all the completions
   vector<Completion*> completions;
