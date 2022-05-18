@@ -1,7 +1,7 @@
 /*
- * File print.h 
+ * File print.h
  * Last modified on 2 19:34 2002
- * By Yuliya Babovich 
+ * By Yuliya Babovich
  *
  */
 

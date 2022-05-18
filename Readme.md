@@ -30,5 +30,8 @@ cmake --build . && ./test && ./ezsmtPlus -file <some_file>
 
 ```
 
+## Format All Code
 
-
+``` sh
+clang-format -i src/*.cc src/*.h tests/*.cc
+```

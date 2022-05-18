@@ -1,7 +1,7 @@
 /*
- * File timer.h 
+ * File timer.h
  * Last modified on 2 19:34 2002
- * By Yuliya Babovich 
+ * By Yuliya Babovich
  *
  */
 
@@ -25,29 +25,28 @@
 #ifndef TIMER_H
 #define TIMER_H
 #include <cstring>
-#include <time.h>
 #include <sys/time.h>
-#ifndef __MINGW32__	// marcy
-#  include <sys/resource.h>
+#include <time.h>
+#ifndef __MINGW32__ // marcy
+#include <sys/resource.h>
 #endif
-#include <unistd.h>
 #include <signal.h>
+#include <unistd.h>
 
-class Timer
-{
+class Timer {
 public:
   float prevTime;
   long sec;
   long msec;
   clock_t timer;
   bool on;
-  Timer ();
-  ~Timer () {};
-  void start ();
-  void stop ();
-  void reset ();
-  char *print ();
-#ifdef __MINGW32__	// marcy
+  Timer();
+  ~Timer(){};
+  void start();
+  void stop();
+  void reset();
+  char *print();
+#ifdef __MINGW32__ // marcy
   float ru1, ru2, ru;
   int r;
 #else
@@ -55,11 +54,9 @@ public:
   struct rlimit r;
 #endif
   float Epoch();
-  void  Start();
+  void Start();
   float Elapsed();
-  void  SetTimeout(int seconds, void(*handler)(int));
-
-  
+  void SetTimeout(int seconds, void (*handler)(int));
 };
 
 #endif

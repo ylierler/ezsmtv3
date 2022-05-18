@@ -1,7 +1,7 @@
 /*
- * File read.h 
+ * File read.h
  * Last modified on 2 19:34 2002
- * By Yuliya Babovich 
+ * By Yuliya Babovich
  *
  */
 
@@ -28,41 +28,39 @@
 #include "rulebuilder.h"
 #include <stdio.h>
 
-
-class Read
-{
+class Read {
 public:
-  Read (Program *p, Api *a);
-  ~Read ();
-  int read (string fileName);
+  Read(Program *p, Api *a);
+  ~Read();
+  int read(string fileName);
 
-  long models; //number of models to compute
+  long models; // number of models to compute
 
 private:
-  Atom* getOrCreateAtom(long n);
-  Atom* getAtomFromLiteral(long n);
-  Atom* getFalseAtom (long n);
-  int readBody (FILE *f, long size, bool pos, RuleType type);
-  int finishReading(FILE* f, long size);
+  Atom *getOrCreateAtom(long n);
+  Atom *getAtomFromLiteral(long n);
+  Atom *getFalseAtom(long n);
+  int readBody(FILE *f, long size, bool pos, RuleType type);
+  int finishReading(FILE *f, long size);
 
-  void readRuleLine(istringstream&);
-  void readMinimizeLine(istringstream& line);
-  void readOutputLine(istringstream& line);
-  void readTheoryLine(istringstream& line);
+  void readRuleLine(istringstream &);
+  void readMinimizeLine(istringstream &line);
+  void readOutputLine(istringstream &line);
+  void readTheoryLine(istringstream &line);
 
-  int addBasicRule (FILE *f);
-  int addDisjunctionRule (FILE *f);
-  int addConstraintRule (FILE *f);
-  int addGenerateRule (FILE *f);
-  int addChoiceRule (FILE *f);
-  int addWeightRule (FILE *f);
-  int addOptimizeRule (FILE *f);
+  int addBasicRule(FILE *f);
+  int addDisjunctionRule(FILE *f);
+  int addConstraintRule(FILE *f);
+  int addGenerateRule(FILE *f);
+  int addChoiceRule(FILE *f);
+  int addWeightRule(FILE *f);
+  int addOptimizeRule(FILE *f);
 
-  map<long, Atom*> atoms;
+  map<long, Atom *> atoms;
   long size;
   long linenumber;
-  Program * const program;
-  Api * const api;
+  Program *const program;
+  Api *const api;
 };
 
 #endif

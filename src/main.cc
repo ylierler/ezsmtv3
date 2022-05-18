@@ -1,7 +1,7 @@
 /*
- * File main.cc 
+ * File main.cc
  * Last modified on 2 19:34 2002
- * By Yuliya Babovich 
+ * By Yuliya Babovich
  *
  */
 
@@ -23,156 +23,155 @@
 //
 // Patrik.Simons@hut.fi
 
-//3.53 version Aug 24, 05 removed hend1,pend1,nend1 from the rules
-//that used to be copies of hen,pend,nend
+// 3.53 version Aug 24, 05 removed hend1,pend1,nend1 from the rules
+// that used to be copies of hen,pend,nend
 //
-//3.54 version Aug 25, 05:
-//(1) bug at buildingLoopFormulas fixed so it could cause 
-//problems for nontight programs
+// 3.54 version Aug 25, 05:
+//(1) bug at buildingLoopFormulas fixed so it could cause
+// problems for nontight programs
 //(2) bug with rules ...v A v...:-..A... not being remove is fixed
-//3.55 version Sep 21, 05:
+// 3.55 version Sep 21, 05:
 //(1) Zchaff version 2004.11.15 is incorporated in place of Zchaff 2003
 //(2) Cmodels is made compatable with gcc3.4/4.* thanks too Wolfgang Faber
-//3.57 Includes
-//        HCF check        
-//        modularity in model checking
-//        loopformula by default
-//3.58 fixes the bug with loopformula from now on for disj programs only part of loop formula is added where head atom is sat
-//    
-//3.59 includes -eloop flag that performs elementary set computation
-// and adds loop formulas of elementary loops when needed
-// 
-//3.60 tightness bug fix through away SCC of 1 element
-//     now all the unsat loops are added 
+// 3.57 Includes
+//         HCF check
+//         modularity in model checking
+//         loopformula by default
+// 3.58 fixes the bug with loopformula from now on for disj programs only part
+// of loop formula is added where head atom is sat
 //
-//3.6x    Ilkka's circuit component's 
-//        where implemented -bc flag is used plus bcircuit program
-//        must be present  
-//        impl is preliminary hence output is not readable
-//        no positive time results were gained
-//        as Cmodels CNF representation is more compact and seem to 
-//        be better suit
-//3.63 Datastructures added to support linear time WFM, and Reduct
+// 3.59 includes -eloop flag that performs elementary set computation
+//  and adds loop formulas of elementary loops when needed
 //
-//3.64-65 Bug fixes at WFM
+// 3.60 tightness bug fix through away SCC of 1 element
+//      now all the unsat loops are added
 //
-//3.66 Bug fixes Zchaff to be portable into 64 bit archetecture
-// Thanks to Yinlei Yu: 
-// zchaff_dbase.cpp, line 324. Replacing "int displacement" with
+// 3.6x    Ilkka's circuit component's
+//         where implemented -bc flag is used plus bcircuit program
+//         must be present
+//         impl is preliminary hence output is not readable
+//         no positive time results were gained
+//         as Cmodels CNF representation is more compact and seem to
+//         be better suit
+// 3.63 Datastructures added to support linear time WFM, and Reduct
+//
+// 3.64-65 Bug fixes at WFM
+//
+// 3.66 Bug fixes Zchaff to be portable into 64 bit archetecture
+//  Thanks to Yinlei Yu:
+//  zchaff_dbase.cpp, line 324. Replacing "int displacement" with
 //"long long displacement"
-//3.67 Bug fixes Zchaff to be portable into 64 bit archetecture
-// Thanks to Andre Neumann: on 64 bit archetecture UNSAT when SAT, due to no 
-// return true; in the end of createClauses 
-// zchaff_dbase.cpp, line 324. Replacing "int displacement" with
+// 3.67 Bug fixes Zchaff to be portable into 64 bit archetecture
+//  Thanks to Andre Neumann: on 64 bit archetecture UNSAT when SAT, due to no
+//  return true; in the end of createClauses
+//  zchaff_dbase.cpp, line 324. Replacing "int displacement" with
 //"long long displacement"
-// 
-// 3.68 Esra's bug fix that could occur on constraint rules translation
-// where new_atom was created instead of a false atom 
-// + improved simplification
-// + Added flag -ms that allows calling MINISAT
-//    Minisat is now incorporated into Cmodels,
-//    its code has been added as part of Cmodels
-//    two functions added to SimpSolver to allow
-//    adding clauses from cmodels, and getting feedback from a solver
-//    once solution is found
-//    Minisat and Zchaff communication is alike 
-// + bug fixes for choice rules as {k}:-k.
-// + bug fix with Weights that were not allowed to drop below negative value 
-// version 3.69 
-// + replaced zChaff version from 2004 with zChaff 2007.3.12
-// + added check on what addClause from Minisat returns, since when
-//   it returns false the instance is UNSAT.
-// + -zca flag added only for comparison reasons of incremental SAT solving and 
-//   assat method
-// cmodels 3.70
-// Esra's bug Fix
-// WFM bug
-//void ConstraintRule::HeadInOneRule(Atom* at)
-//void     WeightRule::HeadInOneRule(Atom* at){
-//some of the atoms could have been assigned values by now
-//for instance a:-1{falseassigned1, notassigned}
-//in such case only notassigned should be assigned computetrue
-//Such bug could not appear in Basic, choice or disj rules
+//
+//  3.68 Esra's bug fix that could occur on constraint rules translation
+//  where new_atom was created instead of a false atom
+//  + improved simplification
+//  + Added flag -ms that allows calling MINISAT
+//     Minisat is now incorporated into Cmodels,
+//     its code has been added as part of Cmodels
+//     two functions added to SimpSolver to allow
+//     adding clauses from cmodels, and getting feedback from a solver
+//     once solution is found
+//     Minisat and Zchaff communication is alike
+//  + bug fixes for choice rules as {k}:-k.
+//  + bug fix with Weights that were not allowed to drop below negative value
+//  version 3.69
+//  + replaced zChaff version from 2004 with zChaff 2007.3.12
+//  + added check on what addClause from Minisat returns, since when
+//    it returns false the instance is UNSAT.
+//  + -zca flag added only for comparison reasons of incremental SAT solving and
+//    assat method
+//  cmodels 3.70
+//  Esra's bug Fix
+//  WFM bug
+// void ConstraintRule::HeadInOneRule(Atom* at)
+// void     WeightRule::HeadInOneRule(Atom* at){
+// some of the atoms could have been assigned values by now
+// for instance a:-1{falseassigned1, notassigned}
+// in such case only notassigned should be assigned computetrue
+// Such bug could not appear in Basic, choice or disj rules
 //
 //
-//3.71 improvement of clausification by not inroducing aux atom
-//when -a occurs in the body i.e, avoiding intoruding clauses for aux_1==-a 
+// 3.71 improvement of clausification by not inroducing aux atom
+// when -a occurs in the body i.e, avoiding intoruding clauses for aux_1==-a
 //+fixing intro two aux atoms for the same room
 //
-//3.73 atmost is computed (wfs--complete); sorting is introduced to disregard
-//  same bodies in rules, and also the rules that are subsummed by others
+// 3.73 atmost is computed (wfs--complete); sorting is introduced to disregard
+//   same bodies in rules, and also the rules that are subsummed by others
 //
-//3.74 bug fixes due to Benjamin Kaufmann
-// (i) weightrule Atmost computation
-// (ii) completionchoice 
-// (iii) weight rule elimination inefficiency in translation is removed 
-//      (compare worked unproperly) cmodels worked correctly but inefficiently
-//3.75 bug fix due to  Christian Drescher drescher@cs.uni-potsdam.de
-//(occured in 3.73 not previously and only for the case of 
-//disjunctive programs i.e.
-// a v b:-c would be represented as two clauses: -c v a; -c v b 
-// in place of -c v a v b
+// 3.74 bug fixes due to Benjamin Kaufmann
+//  (i) weightrule Atmost computation
+//  (ii) completionchoice
+//  (iii) weight rule elimination inefficiency in translation is removed
+//       (compare worked unproperly) cmodels worked correctly but inefficiently
+// 3.75 bug fix due to  Christian Drescher drescher@cs.uni-potsdam.de
+//(occured in 3.73 not previously and only for the case of
+// disjunctive programs i.e.
+//  a v b:-c would be represented as two clauses: -c v a; -c v b
+//  in place of -c v a v b
 //
 //+ following Benjamin suggestion changed minisatSolver->solve(true,false))
-//  to minisatSolver->solve(true,true)) that disables farther than first time
-//  preprocessing in minisat
+//   to minisatSolver->solve(true,true)) that disables farther than first time
+//   preprocessing in minisat
 //
-//3.76 bug fixed in loop formula construction due to not cleanscc
-//3.77 bug fixed in loop formula construction due to not cleanscc
+// 3.76 bug fixed in loop formula construction due to not cleanscc
+// 3.77 bug fixed in loop formula construction due to not cleanscc
 //
-//Minisat version 1 is added -ms1
+// Minisat version 1 is added -ms1
 //-loopformula1 flag (just one loopformula at a time is added
-// instead of all
+//  instead of all
 //-temp flag in case of Minisat v 1(-ms1) learns and forgets loop formulas
 //
 //
-//3.78 bug fixed in read.cc 
-//int Read::addWeightRule (FILE *f) 
-// now reading is done with add_head() 
-// in place of add_head_repetition 
-// bug was reported by Roland Kaminski 26 Feb Fri 
+// 3.78 bug fixed in read.cc
+// int Read::addWeightRule (FILE *f)
+//  now reading is done with add_head()
+//  in place of add_head_repetition
+//  bug was reported by Roland Kaminski 26 Feb Fri
 //(it could occur only on programs with weight rules)
-//3.79 
-// 1) bug fixed in cmodels.cc 
-// bool Cmodels::rec_weight_rule(Weight totalweight, int sizeC, Atom* headC,
+// 3.79
+//  1) bug fixed in cmodels.cc
+//  bool Cmodels::rec_weight_rule(Weight totalweight, int sizeC, Atom* headC,
 //		     unsigned long atleast, int counter_body)
 //
-//weightrules translation had a bug by assigning the same atom to 
-//two different expressions (see comments in the code that specify what was changed)
+// weightrules translation had a bug by assigning the same atom to
+// two different expressions (see comments in the code that specify what was
+// changed)
 //
-// bug was reported by  Raphael Finkel  10 Mar 2009
+//  bug was reported by  Raphael Finkel  10 Mar 2009
 //(it could occur only on programs with weight rules)
-// 2) in zchaff_dbase.cc displacement given a new type
-//    to support both 32 and 64 bit archetectures in uniform manner.
-//    The change is suggested by  Gurucharan Huchachar 11 Mar 2009
-//    Line 329 zchaff_dbase.cc :
-//    ptrdiff_t displacement = _lit_pool_start - old_start;
-//    For 64 bit archetecture
-//3.80
-// minisat is now default instead of zchaff
+//  2) in zchaff_dbase.cc displacement given a new type
+//     to support both 32 and 64 bit archetectures in uniform manner.
+//     The change is suggested by  Gurucharan Huchachar 11 Mar 2009
+//     Line 329 zchaff_dbase.cc :
+//     ptrdiff_t displacement = _lit_pool_start - old_start;
+//     For 64 bit archetecture
+// 3.80
+//  minisat is now default instead of zchaff
 //
-//3.81
-// capability for incremental ASP is added; please see ctable.h file 
-// that contains all the details of the interface
-//3.82
-// under construction
-// idea to implement an additional propagation of minisat 1 on cmodels side 
-// so that non-lazy approach were possible with EZ-CSP or other system if it needs to
-// 3.82g -> h bug fix due to Benjamin Kaufmann clearLoop added at cmodels.cc 4847
-// 3.83 per Marcello's request change in partial assignment return to external solver. Now it is more flexible which atoms external solver wants to see. See ctable.h for Docs.
-// 3.84 bug fix reported by Peter Schueller. Occurred in addDenial cmodels.cc
-// 3.86 introduced -cdimacs flag to allow ezsmt 
-//      to use cmodles capability compute completion
-// 3.86.1 fixed declarations in Minisat so that gcc compiler version 5+ compiles the code (due to Marcello Balduccini)  
-//      introduced -file option to pass filename as a parameter for reading (due to Ben Susman) 
+// 3.81
+//  capability for incremental ASP is added; please see ctable.h file
+//  that contains all the details of the interface
+// 3.82
+//  under construction
+//  idea to implement an additional propagation of minisat 1 on cmodels side
+//  so that non-lazy approach were possible with EZ-CSP or other system if it
+//  needs to 3.82g -> h bug fix due to Benjamin Kaufmann clearLoop added at
+//  cmodels.cc 4847 3.83 per Marcello's request change in partial assignment
+//  return to external solver. Now it is more flexible which atoms external
+//  solver wants to see. See ctable.h for Docs. 3.84 bug fix reported by Peter
+//  Schueller. Occurred in addDenial cmodels.cc 3.86 introduced -cdimacs flag to
+//  allow ezsmt
+//       to use cmodles capability compute completion
+//  3.86.1 fixed declarations in Minisat so that gcc compiler version 5+
+//  compiles the code (due to Marcello Balduccini)
+//       introduced -file option to pass filename as a parameter for reading
+//       (due to Ben Susman)
 
-#include <exception>
-#include <iostream>
-#include <new>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "boost/program_options/options_description.hpp"
 #include "boost/program_options/parsers.hpp"
 #include "boost/program_options/value_semantic.hpp"
@@ -180,48 +179,51 @@
 #include "boost/throw_exception.hpp"
 #include "ctable.h"
 #include "defines.h"
-#include "timer.h"
 #include "interpret.h"
-#include <time.h>
-#include <sstream>
+#include "timer.h"
+#include <boost/program_options.hpp>
 #include <ctype.h>
+#include <exception>
 #include <fstream>
 #include <glog/logging.h>
-#include <boost/program_options.hpp>
+#include <iostream>
+#include <new>
+#include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 using namespace std;
 namespace popts = boost::program_options;
 
-void a_new_handler ()
-{
+void a_new_handler() {
   cerr << "operator new failed: out of memory" << endl;
   exit(23);
 }
-static void timeOutHandler(int sig)
-{
-    // ctable.cmodels.output.PrintStats();
+static void timeOutHandler(int sig) {
+  // ctable.cmodels.output.PrintStats();
   // switch (sig) {
 
   //   ctable.cmodels.output.PrintStats();
-// #ifndef _WIN32	// marcy
-//   case SIGXCPU:
-// #ifndef SHORT_OUT
-//     ctable.cmodels.output.PrintStats();
-// #else
-//     ctable.cmodels.output.PrintStats();
-// #endif
-//     break;
-// #endif
+  // #ifndef _WIN32	// marcy
+  //   case SIGXCPU:
+  // #ifndef SHORT_OUT
+  //     ctable.cmodels.output.PrintStats();
+  // #else
+  //     ctable.cmodels.output.PrintStats();
+  // #endif
+  //     break;
+  // #endif
   // default:
   //   fprintf(stderr, "Unknown event\n");
   //   break;
   // }
 
-  exit (22);
+  exit(22);
 }
 
-void SetupLogging(char * executableName, int verbosity)
-{
+void SetupLogging(char *executableName, int verbosity) {
   FLAGS_logtostderr = 1;
   FLAGS_colorlogtostderr = 1;
   FLAGS_log_prefix = false;
@@ -229,29 +231,34 @@ void SetupLogging(char * executableName, int verbosity)
   google::InitGoogleLogging(executableName);
 }
 
-int ParseArguments(int argc, char *argv[], Param &params)
-{
+int ParseArguments(int argc, char *argv[], Param &params) {
   bool showHelpMenu = false;
   popts::variables_map vm;
 
   popts::options_description genericOptions("Generic Options");
-  genericOptions.add_options()
-    ("help,h", "Show this help menu")
-    ("verbose,v", popts::value<int>()->default_value(0)->implicit_value(1), "Verbose logging level")
-    ("file,f", popts::value<string>(), "Input file")
-    ;
+  genericOptions.add_options()("help,h", "Show this help menu")(
+      "verbose,v", popts::value<int>()->default_value(0)->implicit_value(1),
+      "Verbose logging level")("file,f", popts::value<string>(), "Input file");
 
   popts::options_description cmodelsOptions("CModels Options");
-  cmodelsOptions.add_options()
-    ("grounder-command", popts::value<string>(), "Override the grounder command used. The command will be passed the input file as an argument. It must output the grounded program in ASPIF (Gringo 5) format to stdout.")
-    ;
+  cmodelsOptions.add_options()("grounder-command", popts::value<string>(),
+                               "Override the grounder command used. The "
+                               "command will be passed the input "
+                               "file as an argument. It must output the "
+                               "grounded program in ASPIF (Gringo "
+                               "5) format to stdout.");
 
   popts::options_description solverOptions("Solver Options");
-  solverOptions.add_options()
-    ("solver,s", popts::value<string>()->default_value("cvc4"), "Backend SMT Solver [z3|cvc4|yices]")
-    ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0), "Enumerate X answer sets. Setting this to 0 will enumerate all answer sets.")
-    ("solver-command", popts::value<string>(), "Override the SMT solver command used. This will override the --solver option. The command must support reading the SMT-LIB program from stdin.")
-    ;
+  solverOptions.add_options()("solver,s",
+                              popts::value<string>()->default_value("cvc4"),
+                              "Backend SMT Solver [z3|cvc4|yices]")(
+      "enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
+      "Enumerate X answer sets. Setting this to 0 will enumerate all answer "
+      "sets.")(
+      "solver-command", popts::value<string>(),
+      "Override the SMT solver command used. This will override the --solver "
+      "option. The command must support reading the SMT-LIB program from "
+      "stdin.");
 
   popts::positional_options_description positionalArgs;
   positionalArgs.add("file", -1);
@@ -259,13 +266,12 @@ int ParseArguments(int argc, char *argv[], Param &params)
   popts::options_description allOptions;
   allOptions.add(genericOptions).add(cmodelsOptions).add(solverOptions);
 
-  try
-  {
+  try {
     store(popts::command_line_parser(argc, argv)
-          .options(allOptions)
-          .positional(positionalArgs)
-          .run(),
-      vm);
+              .options(allOptions)
+              .positional(positionalArgs)
+              .run(),
+          vm);
     notify(vm);
 
     params.verboseLogLevel = vm["verbose"].as<int>();
@@ -274,29 +280,29 @@ int ParseArguments(int argc, char *argv[], Param &params)
     params.numOfFiles = 1;
 
     params.grounderCommand = vm["grounder-command"].empty()
-      ? "../tools/gringo-5.5.1"
-      : vm["grounder-command"].as<string>();
+                                 ? "../tools/gringo-5.5.1"
+                                 : vm["grounder-command"].as<string>();
 
-    params.smtSolverCommand = vm["solver-command"].empty()
-      ? ""
-      : vm["solver-command"].as<string>();
+    params.smtSolverCommand =
+        vm["solver-command"].empty() ? "" : vm["solver-command"].as<string>();
 
     auto solver = vm["solver"].as<string>();
-    if (solver == "z3") params.SMTsolver = Z3;
-    if (solver == "cvc4") params.SMTsolver = CVC4;
-    if (solver == "yices") params.SMTsolver = YICES;
+    if (solver == "z3")
+      params.SMTsolver = Z3;
+    if (solver == "cvc4")
+      params.SMTsolver = CVC4;
+    if (solver == "yices")
+      params.SMTsolver = YICES;
 
     params.answerSetsToEnumerate = vm["enumerate"].as<int>();
-  }
-  catch (const std::exception &e)
-  {
+  } catch (const std::exception &e) {
     cout << "Error parsing arguments: " << e.what() << endl;
     showHelpMenu = true;
   }
 
-  if (showHelpMenu || vm.count("help"))
-  {
-    cout << "Usage: " << argv[0] << " [options] <file> [<file>...]" << endl << endl;
+  if (showHelpMenu || vm.count("help")) {
+    cout << "Usage: " << argv[0] << " [options] <file> [<file>...]" << endl
+         << endl;
     cout << allOptions << endl;
     return 1;
   }
@@ -304,12 +310,10 @@ int ParseArguments(int argc, char *argv[], Param &params)
   return 0;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   Param params;
   int exit = ParseArguments(argc, argv, params);
-  if (exit == 1)
-  {
+  if (exit == 1) {
     return 1;
   }
 
@@ -317,7 +321,7 @@ int main(int argc, char *argv[])
 
   Timer mainTimer;
 
-  set_new_handler (&a_new_handler);
+  set_new_handler(&a_new_handler);
   bool error = false;
 
   SMTSolver smtSolver;
@@ -329,7 +333,7 @@ int main(int argc, char *argv[])
   strcpy(params.cmodelsname, &argv[0][0]);
 
   strcpy(params.config, "CONFIG");
-  
+
   // for (int c = 1; c < argc && !error; c++){
   //   if (c+1<argc){
   //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],&argv[c+1][0]);
@@ -338,52 +342,47 @@ int main(int argc, char *argv[])
   //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],NULL);
   // }
 
+  // if the timeout was set then we will set the function for timeout
+  if (params.timeout != 0)
+    mainTimer.SetTimeout(params.timeout, timeOutHandler);
 
-  //if the timeout was set then we will set the function for timeout
-  if(params.timeout!=0)
-     mainTimer.SetTimeout(params.timeout, timeOutHandler);
+  // This is not possble at the moment unless we include
+  // clausification of loop formulas using many clauses
+  //   if(ctable.cmodels.sys == 3 & ctable.cmodels.le)
+  //     ctable.cmodels.sys =6; //here we force zchaff
+  // with incremental learning to be our choice of a sat solver
 
-
-  //This is not possble at the moment unless we include
-  //clausification of loop formulas using many clauses
-  //  if(ctable.cmodels.sys == 3 & ctable.cmodels.le)
-    //    ctable.cmodels.sys =6; //here we force zchaff 
-  //with incremental learning to be our choice of a sat solver
-  
-	
-  //we find the path to cmodels and assume that config file is located there
-  if(strcmp(params.config,"\0")==0){
+  // we find the path to cmodels and assume that config file is located there
+  if (strcmp(params.config, "\0") == 0) {
     char path_to_config[100];
-    int k=0; 
-    path_to_config[k]='\0';
+    int k = 0;
+    path_to_config[k] = '\0';
     int length = strlen(params.cmodelsname);
-    int l = length-1;
-    while(l!=-1 && params.cmodelsname[l]!='/'){
+    int l = length - 1;
+    while (l != -1 && params.cmodelsname[l] != '/') {
       l--;
     }
-    if(l>=0){
-      for( k= 0;k<=l;k++)
-	path_to_config[k]= params.cmodelsname[k];
-      path_to_config[k]='\0';
+    if (l >= 0) {
+      for (k = 0; k <= l; k++)
+        path_to_config[k] = params.cmodelsname[k];
+      path_to_config[k] = '\0';
     }
     strcat(path_to_config, "CONFIG");
     strcpy(params.config, path_to_config);
   }
- 
-  if (error)
-    {
-      ctable.usage ();
-      return 1;
-    }
 
-
-  if(params.numOfFiles==0){
-    ctable.usage ();
+  if (error) {
+    ctable.usage();
     return 1;
   }
 
-  string groundingCommand = params.grounderCommand + " " + params.file
-    + " &> " + params.file + ".grounded";
+  if (params.numOfFiles == 0) {
+    ctable.usage();
+    return 1;
+  }
+
+  string groundingCommand = params.grounderCommand + " " + params.file +
+                            " &> " + params.file + ".grounded";
 
   VLOG(1) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
@@ -393,50 +392,47 @@ int main(int argc, char *argv[])
   // Check errors from grounding output
   ifstream groundedProgram(params.file);
   for (string line; getline(groundedProgram, line);) {
-    if(line.find("error: ") != string::npos  || line.find("ERROR: (gringo): ") != string::npos){
-        LOG(FATAL) << "Error during grounding. See output file " << params.file;
+    if (line.find("error: ") != string::npos ||
+        line.find("ERROR: (gringo): ") != string::npos) {
+      LOG(FATAL) << "Error during grounding. See output file " << params.file;
     }
   }
   groundedProgram.close();
 
   VLOG(2) << "Grounded program:";
-  if (VLOG_IS_ON(2))
-  {
+  if (VLOG_IS_ON(2)) {
     system((string("cat ") + params.file).c_str());
     cout << endl;
   }
 
   ctable.cmodels.output.timerAll.start();
 
-  if(params.file.length() > 0)
-  {
-      freopen(params.file.c_str(), "r", stdin);
+  if (params.file.length() > 0) {
+    freopen(params.file.c_str(), "r", stdin);
   }
 
   // std::ifstream groundedFile(params.file);
 
   int bad = ctable.read();
-  if(ctable.cmodels.output.asparagus==STANDARD)
-  if (bad)
-    {
+  if (ctable.cmodels.output.asparagus == STANDARD)
+    if (bad) {
       cerr << "Error in input" << endl;
       return 1;
     }
-  //removes some setting that might be not fitting
-  //for some specific SAT solver
+  // removes some setting that might be not fitting
+  // for some specific SAT solver
   params.finish();
 
-   ctable.calculate();
-   /*	 
+  ctable.calculate();
+  /*
 
-   //	  for DEBUGGING externals replace above line with the following comented code
-  ctable.setSolver(MINISAT1);
-  int numLits=ctable.getNumberGroundedAtoms();
+   //	  for DEBUGGING externals replace above line with the following comented
+  code ctable.setSolver(MINISAT1); int numLits=ctable.getNumberGroundedAtoms();
   int* answerset_lits = new int[numLits];
   ctable.Initialize(answerset_lits, numLits);
   if (numLits!=-2){
-	cerr<<"preporcessing is sufficient here";
-	exit(23);
+        cerr<<"preporcessing is sufficient here";
+        exit(23);
   }
   answerset_lits[0]=2;
   answerset_lits[1]=3;
@@ -451,35 +447,35 @@ int main(int argc, char *argv[])
   ctable.Solve(answerset_lits, numLits);
 
   int inner_count=0;
-	//by default assignment and constraint_lits is false
+        //by default assignment and constraint_lits is false
 
-	for(int j=0; j<ctable.cmodels.program.cmodelsAtomsFromThisId; j++){
-	  assignments[j]= false;
-	}
+        for(int j=0; j<ctable.cmodels.program.cmodelsAtomsFromThisId; j++){
+          assignments[j]= false;
+        }
 
-	for (int i=0; i<numLits; i++){
-	  for(int indA=inner_count; indA<ctable.cmodels.program.cmodelsAtomsFromThisId; indA++){
-		inner_count++;
-		if(answerset_lits[i]==ctable.cmodels.program.atoms[indA]->get_lparse_id()){
-		  
-		  assignments[indA]= true;		  
+        for (int i=0; i<numLits; i++){
+          for(int indA=inner_count;
+  indA<ctable.cmodels.program.cmodelsAtomsFromThisId; indA++){ inner_count++;
+                if(answerset_lits[i]==ctable.cmodels.program.atoms[indA]->get_lparse_id()){
 
-		  break;
-		}
-	  }
-	}  
-	for (long i=0;i<ctable.cmodels.program.cmodelsAtomsFromThisId;i++){
-	  if(assignments[i]){
-		if(strcmp("#noname#",	ctable.cmodels.program.atoms[i]->atom_name()))
-			printf("%s ",	ctable.cmodels.program.atoms[i]->atom_name ());
-		  
-	   
+                  assignments[indA]= true;
+
+                  break;
+                }
+          }
+        }
+        for (long i=0;i<ctable.cmodels.program.cmodelsAtomsFromThisId;i++){
+          if(assignments[i]){
+                if(strcmp("#noname#",
+  ctable.cmodels.program.atoms[i]->atom_name())) printf("%s ",
+  ctable.cmodels.program.atoms[i]->atom_name ());
+
+
       }
-    }  
+    }
    */
   ctable.cmodels.output.timerAll.stop();
   ctable.cmodels.output.print();
 
   return 0;
 }
-

@@ -1,7 +1,7 @@
 /*
- * File defines.h 
+ * File defines.h
  * Last modified on 2 19:34 2002
- * By Yuliya Babovich 
+ * By Yuliya Babovich
  *
  */
 
@@ -27,44 +27,24 @@
 
 #define CMODELS_VERSION "1"
 
-typedef enum {
-  NOT_DEF,
-  POS,
-  NEG
-} InClause;
-typedef enum {
-  LTH,
-  EQ,
-  SUBSET,
-  SUPERSET,
-  GTH
-} CompareValues;
+typedef enum { NOT_DEF, POS, NEG } InClause;
+typedef enum { LTH, EQ, SUBSET, SUPERSET, GTH } CompareValues;
 
-typedef enum {
-  UNDEF,
-  POSB,
-  NEGB,
-  HEAD
-} InRule;
+typedef enum { UNDEF, POSB, NEGB, HEAD } InRule;
 typedef enum {
   ENDRULE,
   BASICRULE, // Ex: x :- y, not z.
   CONSTRAINTRULE,
   CHOICERULE, // Ex: { x } :- y.
   GENERATERULE,
-  WEIGHTRULE, // Ex:
+  WEIGHTRULE,   // Ex:
   OPTIMIZERULE, // not supported
   SOMETHING,
   //
   DISJUNCTIONRULE, // Same as aspif disjunction, but with head > 1
-  NESTED // internal to cmodels
-  } RuleType;
-typedef enum {
-  AND,
-  OR,
-  EQUIV,
-  IMPL
-} Connector;
+  NESTED           // internal to cmodels
+} RuleType;
+typedef enum { AND, OR, EQUIV, IMPL } Connector;
 typedef enum {
   //  RELSAT1, is no longer supporte
   RELSAT,
@@ -83,41 +63,28 @@ typedef enum {
   // MCHAFF  is no longer supported
 } SolverType;
 
+typedef enum { CVC4, Z3, YICES } SMTSolverCommand;
+
+typedef enum { FD, R, MIXED } LogicType;
+
+typedef enum { UNSAT = -1, UNKNOWN = 0, SAT = 1 } Result;
 typedef enum {
-	CVC4,
-	Z3,
-	YICES
-} SMTSolverCommand;
+  TIGHT = 1,
+  NONDISJ = 2,
+  MIN = 3,
+  MINSCC = 4,
+  HCF = 5
+} VerifyMethod;
 
 typedef enum {
-	FD,
-	R,
-	MIXED
-} LogicType;
-
-
- typedef enum {
-  UNSAT = -1 , 
-  UNKNOWN =0 ,
-  SAT =1     
- } Result;
-typedef enum {
-  TIGHT=1, 
-  NONDISJ=2,
-  MIN=3,
-  MINSCC=4,
-  HCF=5
- } VerifyMethod;
-
- typedef enum {
-  STANDARD=0, 
-  ASPARAGUS=1,
-  ASPCOMP2=2,
-  SILENT=3
- } OutputMethod;
+  STANDARD = 0,
+  ASPARAGUS = 1,
+  ASPCOMP2 = 2,
+  SILENT = 3
+} OutputMethod;
 
 //#ifdef USEDOUBLE
-//typedef double Weight;
+// typedef double Weight;
 //#define WEIGHT_MAX DBL_MAX
 //#define WEIGHT_MIN -DBL_MAX
 //#else
