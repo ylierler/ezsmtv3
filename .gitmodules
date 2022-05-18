@@ -1,3 +1,7 @@
-[submodule "libpotassco"]
-	path = libpotassco
-	url = https://github.com/potassco/libpotassco.git
+[submodule "glog"]
+	path = src/include/glog
+	url = https://github.com/google/glog.git
+
+[submodule "Catch2"]
+	path = tests/include/Catch2
+	url = https://github.com/catchorg/Catch2.git
