@@ -251,7 +251,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   popts::options_description solverOptions("Solver Options");
   solverOptions.add_options()("solver,s",
                               popts::value<string>()->default_value("cvc4"),
-                              "Backend SMT Solver [z3|cvc4|yices]")(
+                              "Backend SMT Solver [z3|cvc4|cvc5|yices]")(
       "enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
       "Enumerate X answer sets. Setting this to 0 will enumerate all answer "
       "sets.")(
@@ -291,6 +291,8 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       params.SMTsolver = Z3;
     if (solver == "cvc4")
       params.SMTsolver = CVC4;
+    if (solver == "cvc5")
+      params.SMTsolver = CVC5;
     if (solver == "yices")
       params.SMTsolver = YICES;
 

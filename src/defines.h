@@ -63,7 +63,7 @@ typedef enum {
   // MCHAFF  is no longer supported
 } SolverType;
 
-typedef enum { CVC4, Z3, YICES } SMTSolverCommand;
+typedef enum { CVC4, CVC5, Z3, YICES } SMTSolverCommand;
 
 typedef enum { FD, R, MIXED } LogicType;
 

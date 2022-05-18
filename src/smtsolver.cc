@@ -17,7 +17,10 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
   string solverCommand = "";
   if (params.SMTsolver == CVC4)
     solverCommand =
-        "../tools/cvc4 --lang smt --output-lang smtlib2.6 --incremental";
+        "../tools/cvc4 --lang smt --output-lang smt --incremental";
+  else if (params.SMTsolver == CVC5)
+    solverCommand =
+        "../tools/cvc5 --lang smt --output-lang smt --incremental";
   else if (params.SMTsolver == Z3)
     solverCommand = "../tools/z3-4.8.17 -smt2 -in";
   else if (params.SMTsolver == YICES)
