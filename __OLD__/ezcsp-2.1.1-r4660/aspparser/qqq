@@ -1,6 +1,0 @@
-a(X,Y) :- not b(a(X,Y)), not -a(Z,Y).
-
-#sig a(p,q), b(o).
-
-c(X) :- a(X,T).
-

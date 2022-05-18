@@ -1,4 +1,0 @@
-Answer: 1
-Stable Model: cspdomain(lp) cspvar(x1,0,40) cspvar(x2,0,100) cspvar(x3,0,100) required(ezcsp__leq(ezcsp__pl(ezcsp__mn(x2,x1),x3),20)) required(ezcsp__leq(ezcsp__pl(ezcsp__mn(x1,ezcsp__tm(3,x2)),x3),30)) x1=0.0 x2=0.0 x3=0.0 
-False
-Number of CP-to-ASP backtrackings: 1

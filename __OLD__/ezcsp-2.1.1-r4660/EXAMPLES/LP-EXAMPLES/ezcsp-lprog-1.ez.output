@@ -1,4 +1,0 @@
-Answer: 1
-Stable Model: cspdomain(lp) cspvar(a,0,10) required(ezcsp__eq(a,4)) a=4.0 
-False
-Number of CP-to-ASP backtrackings: 1

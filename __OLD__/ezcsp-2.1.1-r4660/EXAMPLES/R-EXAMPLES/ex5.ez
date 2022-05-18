@@ -1,9 +1,0 @@
-% ezcsp --sicstus3 -n 0 ex5.ez
-
-cspdomain(r).
-
-cspvar(t,0,1).
-cspvar(s,0,1).
-required(s+t==1).
-required(0.5==4*s).
-
