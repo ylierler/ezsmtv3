@@ -28,12 +28,10 @@
 #include "defines.h"
 #include "graphscc.h"
 #include "timer.h"
-//#include "wf.h"
 #include "SimpSolver.h"
 #include <iostream>
 #include <map>
 #include <string>
-//#include "SAT.h"
 #include <unordered_set>
 
 using namespace std;

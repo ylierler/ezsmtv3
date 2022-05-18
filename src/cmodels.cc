@@ -19,7 +19,6 @@
 #include <set>
 #include <vector>
 
-#include "SAT.h"
 #include "atomrule.h"
 #include "cmodels.h"
 #include "defines.h"

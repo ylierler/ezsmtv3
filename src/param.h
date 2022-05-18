@@ -1,6 +1,7 @@
 // yuliya@cs.utexas.edu
 #include <string.h>
 #include <string>
+#include "defines.h"
 #ifndef PARAM_H
 #define PARAM_H
 class Param {
