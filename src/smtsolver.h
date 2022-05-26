@@ -11,10 +11,12 @@ public:
 
 private:
   bool parseSolverResults(boost::process::ipstream &inputStream,
-                          vector<string> &resultAnswerSet);
+                                   vector<string> &resultAnswerSet,
+                                   map<string, string> &resultMinimizationValues);
   string getProgramBodyString(Program &program);
   string getCheckSatString(Program &program);
   string getAnswerSetNegationString(vector<string> &answerSet);
+  string getMinimizationAssertionString(map<string,string> &minimizationResults);
   void writeToFile(string input, string outputFileName);
 };
 

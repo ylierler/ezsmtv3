@@ -39,7 +39,7 @@
 #include <string.h>
 #include <string>
 
-Read::Read(Program *p, Api *a) : program(p), api(a) {
+Read::Read(Program *p, Api *a, Param *params) : program(p), api(a), params(params) {
   // atoms = 0;
   size = 0;
   models = 1;
@@ -560,11 +560,15 @@ void Read::readTheoryLine(istringstream &line) {
   }
 }
 
-void Read::readMinimizeLine(istringstream &line) {
+void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
+  if (params->answerSetsToEnumerate == 1) {
+    LOG(WARNING) << "Minimization statements are ignored when only one answer set is generated. Try using the -e flag.";
+  }
+
   int priority, numOfLiterals;
   line >> priority >> numOfLiterals;
 
-  auto minimizationStatement = new MinimizationStatement(priority);
+  auto minimizationStatement = new MinimizationStatement(minimizationStatementId, priority);
 
   for (int i = 0; i < numOfLiterals; i++) {
     int literal, weight;
@@ -582,6 +586,7 @@ int Read::read(string fileName) {
     ifstream fileStream(fileName);
 
     string line;
+    int minimizationStatementId = 0;
     while (std::getline(fileStream, line)) {
       VLOG(2) << "Reading line: " << line;
       lineNumber++;
@@ -598,7 +603,8 @@ int Read::read(string fileName) {
         readRuleLine(*lineStream);
         break;
       case MINIMIZE:
-        readMinimizeLine(*lineStream);
+        readMinimizeLine(*lineStream, minimizationStatementId);
+        minimizationStatementId++;
         break;
       case OUTPUT:
         readOutputLine(*lineStream);

@@ -28,6 +28,7 @@
 #include "atomrule.h"
 #include <queue>
 #include <vector>
+#include <sstream>
 using namespace std;
 
 class OptimizeRule;
@@ -42,13 +43,27 @@ public:
   double weight;
 };
 
+const string MINIMIZATION_SMT_PREFIX = "EZSMTPLUS_MINIMIZATION";
+
 class MinimizationStatement {
 
 public:
-  MinimizationStatement(int priority) { this->priority = priority; };
+    MinimizationStatement(int id, int priority) {
+      this->id = id;
+      this->priority = priority;
+    };
 
+  int id;
   int priority;
   list<MinimizationAtom *> atoms;
+
+
+  string getSmtAtomName()
+  {
+    stringstream name;
+    name << "|" << MINIMIZATION_SMT_PREFIX << "(" << id << "," << priority << ")|";
+    return name.str();
+  }
 };
 
 class Program {

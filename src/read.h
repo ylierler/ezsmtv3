@@ -26,11 +26,12 @@
 #define READ_H
 
 #include "rulebuilder.h"
+#include "param.h"
 #include <stdio.h>
 
 class Read {
 public:
-  Read(Program *p, Api *a);
+  Read(Program *p, Api *a, Param *params);
   ~Read();
   int read(string fileName);
 
@@ -44,7 +45,7 @@ private:
   int finishReading(FILE *f, long size);
 
   void readRuleLine(istringstream &);
-  void readMinimizeLine(istringstream &line);
+  void readMinimizeLine(istringstream &line, int minimizationStatementId);
   void readOutputLine(istringstream &line);
   void readTheoryLine(istringstream &line);
 
@@ -61,6 +62,7 @@ private:
   long linenumber;
   Program *const program;
   Api *const api;
+  Param *const params;
 };
 
 #endif

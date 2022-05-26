@@ -21,7 +21,8 @@ string writeTempFile(string content) {
 TEST_CASE("read correctly parses aspif format", "[read]") {
   Program *program = new Program();
   Api *api = new Api(program);
-  Read read(program, api);
+  Param *params = new Param();
+  Read read(program, api, params);
 
   SECTION("should ignore comments") {
     string grounded = "asp 1 0 0\n"

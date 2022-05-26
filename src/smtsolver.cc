@@ -5,6 +5,7 @@
 #include <fstream>
 #include <glog/logging.h>
 #include <iostream>
+#include <map>
 #include <ostream>
 #include <regex>
 #include <sstream>
@@ -29,6 +30,10 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
   // Override -s option with --solver-command if provided
   if (!params.smtSolverCommand.empty()) {
     solverCommand = params.smtSolverCommand;
+  }
+
+  if (params.answerSetsToEnumerate == 1) {
+
   }
 
   stringstream ss;
@@ -60,15 +65,17 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     VLOG(2) << "Wrote check sat footer:" << endl << programCheckSatFooter;
 
     vector<string> resultAnswerSets;
-    bool isSatisfiable = parseSolverResults(solverOutput, resultAnswerSets);
+    map<string, string> resultMinimizationValues;
+    bool isSatisfiable = parseSolverResults(solverOutput, resultAnswerSets, resultMinimizationValues);
 
     if (!isSatisfiable) {
       break;
     }
 
     if (params.answerSetsToEnumerate != 1) {
-      cout << "Answer set " << i << ": ";
+      cout << "Answer " << i << ": ";
     }
+
 
     for (auto smtAtom : resultAnswerSets) {
       cout << smtAtom.substr(1, smtAtom.size() - 2) << " ";
@@ -76,8 +83,18 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     cout << endl;
 
     auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
-
     solverInput << answerSetNegation;
+
+    if (!resultMinimizationValues.empty()) {
+      auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
+      solverInput << minimizationAssertion;
+
+      cout << "Minimization: ";
+      for (auto minimization : resultMinimizationValues) {
+        cout << minimization.second;
+      }
+      cout << endl;
+    }
 
     timer.stop();
     VLOG(1) << "Finished round " << i << " in " << timer.sec << "s "
@@ -100,7 +117,11 @@ void SMTSolver::writeToFile(string input, string outputFileName) {
 }
 
 bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
-                                   vector<string> &resultAnswerSet) {
+                                   vector<string> &resultAnswerSet,
+                                   map<string, string> &resultMinimizationValues) {
+  resultAnswerSet.clear();
+  resultMinimizationValues.clear();
+
   string satResult;
   std::getline(inputStream, satResult);
   VLOG(1) << "Read check sat result: " << satResult;
@@ -125,12 +146,21 @@ bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
   }
   string atomsList = atomsListStream.str();
 
-  regex r("\\((\\|[^ ]*\\|) true\\)");
+  VLOG(2) << "Parsing assignments:";
+  regex r("\\((\\|[^ ]+\\|) ([^()]+)\\)");
   smatch match;
   string::const_iterator searchStart(atomsList.cbegin());
   while (regex_search(searchStart, atomsList.cend(), match, r)) {
     searchStart = match.suffix().first;
-    resultAnswerSet.push_back(match[1].str());
+    string variable = match[1].str();
+    string value = match[2].str();
+    VLOG(2) << "Found assignment " << variable << " = " << value;
+
+    if (value == "true") {
+      resultAnswerSet.push_back(variable);
+    } else if (variable.find(MINIMIZATION_SMT_PREFIX) != string::npos) {
+      resultMinimizationValues[variable] = value;
+    }
   }
 
   return true;
@@ -140,7 +170,7 @@ string SMTSolver::getAnswerSetNegationString(vector<string> &answerSet) {
   // TODO Should I include negatives (false)?
 
   ostringstream output;
-  output << "(push 1)" << endl;
+  // output << "(push 1)" << endl; // TODO Is this needed?
   output << "(assert (not (and";
   for (string smtAtom : answerSet) {
     output << " " << smtAtom;
@@ -148,6 +178,19 @@ string SMTSolver::getAnswerSetNegationString(vector<string> &answerSet) {
   output << ")))" << endl;
 
   VLOG(2) << "Generated answer set negation:" << endl << output.str();
+  return output.str();
+}
+
+string SMTSolver::getMinimizationAssertionString(map<string,string> &minimizationResults) {
+  ostringstream output;
+  // TODO Support priorities
+  output << "(assert (or ";
+  for (auto minimization : minimizationResults) {
+    output << "(<= " << minimization.first << " " << minimization.second << ") ";
+  }
+  output << "))" << endl;
+
+  VLOG(2) << "Generated minimization assertion:" << endl << output.str();
   return output.str();
 }
 
@@ -161,6 +204,9 @@ string SMTSolver::getCheckSatString(Program &program) {
       output << a->getSmtName() << " ";
     }
   }
+  for (auto minimization : program.minimizations) {
+      output << minimization->getSmtAtomName() << " ";
+  }
   output << "))" << endl;
 
   return output.str();
@@ -171,26 +217,27 @@ string SMTSolver::getProgramBodyString(Program &program) {
   ostringstream output;
 
   output << "(set-info :smt-lib-version 2.6)" << endl;
-  output << "(set-option :produce-models true)" << endl;
+  output << "(set-option :produce-models true)" << endl; // TODO don't produce models for performance?
   output << "(set-option :produce-assignments true)" << endl;
   output << "(set-logic ALL)" << endl;
 
   for (Atom *a : program.atoms) {
     // FIXME Should this declare a const or fun?
-    output << "(declare-fun " << a->getSmtName() << " () Bool)" << endl;
+    output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
   }
 
   for (Clause *c : program.clauses) {
     output << "(assert " << c->toSmtLibString() << ")" << endl;
   }
 
-  // TODO
+  // TODO declare-fun?
   for (MinimizationStatement *m : program.minimizations) {
-    output << "(minimize (+";
+    output << "(declare-const " << m->getSmtAtomName() << " Int)" << endl;
+    output << "(assert (= " << m->getSmtAtomName() << " (+";
     for (MinimizationAtom *a : m->atoms) {
       output << " (ite " << a->atom.getSmtName() << " " << a->weight << " 0)";
     }
-    output << "))" << endl;
+    output << ")))" << endl;
   }
 
   return output.str();

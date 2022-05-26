@@ -329,7 +329,7 @@ int main(int argc, char *argv[]) {
   SMTSolver smtSolver;
   Cmodels cmodels(smtSolver, params);
   Api api(&cmodels.program);
-  Read reader(&cmodels.program, &api);
+  Read reader(&cmodels.program, &api, &params);
   Ctable ctable(cmodels, api, reader);
 
   strcpy(params.cmodelsname, &argv[0][0]);
