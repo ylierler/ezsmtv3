@@ -72,23 +72,33 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
       break;
     }
 
-    if (params.answerSetsToEnumerate != 1) {
-      cout << "Answer " << i << ": ";
+    auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
+    solverInput << answerSetNegation;
+
+    if (VLOG_IS_ON(1) && !resultMinimizationValues.empty()) {
+      cout << "Minimization: ";
     }
 
+    if (!resultMinimizationValues.empty()) {
+      auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
+      solverInput << minimizationAssertion;
+
+      for (auto minimization : resultMinimizationValues) {
+        cout << minimization.second;
+      }
+      cout << " : ";
+    }
+
+    if (VLOG_IS_ON(1) && params.answerSetsToEnumerate != 1) {
+      cout << "Answer " << i << ": ";
+    }
 
     for (auto smtAtom : resultAnswerSets) {
       cout << smtAtom.substr(1, smtAtom.size() - 2) << " ";
     }
     cout << endl;
 
-    auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
-    solverInput << answerSetNegation;
-
-    if (!resultMinimizationValues.empty()) {
-      auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
-      solverInput << minimizationAssertion;
-
+    if (VLOG_IS_ON(1) && !resultMinimizationValues.empty()) {
       cout << "Minimization: ";
       for (auto minimization : resultMinimizationValues) {
         cout << minimization.second;
@@ -186,7 +196,7 @@ string SMTSolver::getMinimizationAssertionString(map<string,string> &minimizatio
   // TODO Support priorities
   output << "(assert (or ";
   for (auto minimization : minimizationResults) {
-    output << "(<= " << minimization.first << " " << minimization.second << ") ";
+    output << "(< " << minimization.first << " " << minimization.second << ") ";
   }
   output << "))" << endl;
 

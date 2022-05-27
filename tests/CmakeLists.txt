@@ -2,6 +2,7 @@ target_sources(test
   PUBLIC
     example.cc
     readtests.cc
+    integrationtests.cc
 )
 
 # TODO Restrict to only test exe
