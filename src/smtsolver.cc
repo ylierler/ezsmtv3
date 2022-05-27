@@ -46,23 +46,23 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
   bp::ipstream solverOutput;
   bp::opstream solverInput;
 
-  VLOG(1) << "Starting child process for solver: " << solverCommand;
+  VLOG(2) << "Starting child process for solver: " << solverCommand;
   bp::child solverProcess(solverCommand, bp::std_out > solverOutput,
                           bp::std_in < solverInput);
 
   solverInput << programBody;
-  if (VLOG_IS_ON(2)) {
+  if (VLOG_IS_ON(3)) {
     cout << "Wrote program body:" << endl << programBody;
   }
 
   int i = 1;
   for (;; i++) {
-    VLOG(1) << "SMT solver, iteration " << i;
+    VLOG(2) << "SMT solver, iteration " << i;
     Timer timer;
     timer.start();
 
     solverInput << programCheckSatFooter << endl;
-    VLOG(2) << "Wrote check sat footer:" << endl << programCheckSatFooter;
+    VLOG(3) << "Wrote check sat footer:" << endl << programCheckSatFooter;
 
     vector<string> resultAnswerSets;
     map<string, string> resultMinimizationValues;
@@ -97,7 +97,7 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     }
 
     timer.stop();
-    VLOG(1) << "Finished round " << i << " in " << timer.sec << "s "
+    VLOG(2) << "Finished round " << i << " in " << timer.sec << "s "
             << timer.msec << "ms";
 
     if (params.answerSetsToEnumerate != 0 &&
@@ -113,7 +113,7 @@ void SMTSolver::writeToFile(string input, string outputFileName) {
   outputStream << input;
   outputStream.close();
 
-  VLOG(2) << "Wrote SMT-LIB file:" << endl << input << endl;
+  VLOG(3) << "Wrote SMT-LIB file:" << endl << input << endl;
 }
 
 bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
@@ -124,7 +124,7 @@ bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
 
   string satResult;
   std::getline(inputStream, satResult);
-  VLOG(1) << "Read check sat result: " << satResult;
+  VLOG(2) << "Read check sat result: " << satResult;
   if (satResult != "unsat" && satResult != "sat") {
     LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
   }
@@ -136,17 +136,17 @@ bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
   stringstream atomsListStream;
   string line;
   while (std::getline(inputStream, line)) {
-    VLOG(1) << "Read line from solver: " << line;
+    VLOG(2) << "Read line from solver: " << line;
     atomsListStream << line;
 
-    // TODO This is a hacky workaround for z3's multiline output
+    // This is a hacky workaround to handle z3's multiline output
     if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
       break;
     }
   }
   string atomsList = atomsListStream.str();
 
-  VLOG(2) << "Parsing assignments:";
+  VLOG(3) << "Parsing assignments:";
   regex r("\\((\\|[^ ]+\\|) ([^()]+)\\)");
   smatch match;
   string::const_iterator searchStart(atomsList.cbegin());
@@ -154,7 +154,7 @@ bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
     searchStart = match.suffix().first;
     string variable = match[1].str();
     string value = match[2].str();
-    VLOG(2) << "Found assignment " << variable << " = " << value;
+    VLOG(3) << "Found assignment " << variable << " = " << value;
 
     if (value == "true") {
       resultAnswerSet.push_back(variable);
@@ -177,7 +177,7 @@ string SMTSolver::getAnswerSetNegationString(vector<string> &answerSet) {
   }
   output << ")))" << endl;
 
-  VLOG(2) << "Generated answer set negation:" << endl << output.str();
+  VLOG(3) << "Generated answer set negation:" << endl << output.str();
   return output.str();
 }
 
@@ -190,7 +190,7 @@ string SMTSolver::getMinimizationAssertionString(map<string,string> &minimizatio
   }
   output << "))" << endl;
 
-  VLOG(2) << "Generated minimization assertion:" << endl << output.str();
+  VLOG(3) << "Generated minimization assertion:" << endl << output.str();
   return output.str();
 }
 

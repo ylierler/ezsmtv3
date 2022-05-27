@@ -235,13 +235,18 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   bool showHelpMenu = false;
   popts::variables_map vm;
 
+  // Empty comments are added after each line to prevent clang-format
+  // from poorly formatting them.
   popts::options_description genericOptions("Generic Options");
-  genericOptions.add_options()("help,h", "Show this help menu")(
-      "verbose,v", popts::value<int>()->default_value(0)->implicit_value(1),
-      "Verbose logging level")("file,f", popts::value<string>(), "Input file");
+  genericOptions.add_options()
+    ("help,h", "Show this help menu") //
+    ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level: 0 = Minimal output, 1 = Default output, 2 = Debug output, 3 = Verbose debug output") //
+    ("file,f", popts::value<string>(), "Input file") //
+    ;
 
   popts::options_description cmodelsOptions("CModels Options");
-  cmodelsOptions.add_options()("grounder-command", popts::value<string>(),
+  cmodelsOptions.add_options()
+    ("grounder-command", popts::value<string>(),
                                "Override the grounder command used. The "
                                "command will be passed the input "
                                "file as an argument. It must output the "
@@ -249,13 +254,11 @@ int ParseArguments(int argc, char *argv[], Param &params) {
                                "5) format to stdout.");
 
   popts::options_description solverOptions("Solver Options");
-  solverOptions.add_options()("solver,s",
-                              popts::value<string>()->default_value("cvc4"),
-                              "Backend SMT Solver [z3|cvc4|cvc5|yices]")(
-      "enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
-      "Enumerate X answer sets. Setting this to 0 will enumerate all answer "
-      "sets.")(
-      "solver-command", popts::value<string>(),
+  solverOptions.add_options()
+    ("solver,s", popts::value<string>()->default_value("cvc4"), "Backend SMT Solver [z3|cvc4|cvc5|yices]") //
+    ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
+      "Enumerate X answer sets. 0 or -e will enumerate all answer sets.")
+    ("solver-command", popts::value<string>(), //
       "Override the SMT solver command used. This will override the --solver "
       "option. The command must support reading the SMT-LIB program from "
       "stdin.");
@@ -386,7 +389,7 @@ int main(int argc, char *argv[]) {
   string groundingCommand = params.grounderCommand + " " + params.file +
                             " &> " + params.file + ".grounded";
 
-  VLOG(1) << "Running grounding command: " << groundingCommand;
+  VLOG(2) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
 
   params.file += ".grounded";
@@ -401,8 +404,8 @@ int main(int argc, char *argv[]) {
   }
   groundedProgram.close();
 
-  VLOG(2) << "Grounded program:";
-  if (VLOG_IS_ON(2)) {
+  VLOG(3) << "Grounded program:";
+  if (VLOG_IS_ON(3)) {
     system((string("cat ") + params.file).c_str());
     cout << endl;
   }

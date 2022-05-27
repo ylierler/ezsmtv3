@@ -163,7 +163,7 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
 
   initRuleLists4WF();
 
-  if (VLOG_IS_ON(1)) {
+  if (VLOG_IS_ON(2)) {
     program.print();
   }
 
@@ -251,7 +251,7 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
   // if we want to add SCC level ranking formula
   if (param.sys == SCC_LEVEL_RANKING or param.sys == SCC_LEVEL_RANKING_STRONG) {
     if (program.tight)
-      cout << "Program is tight, no level ranking formula is added." << endl;
+      VLOG(1) << "Program is tight, no level ranking formula is added.";
     else {
       output.timerCompletion.start();
       createSCCRankingFormula();
@@ -262,7 +262,7 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
   // if we want to add level ranking formula
   if (param.sys == LEVEL_RANKING or param.sys == LEVEL_RANKING_STRONG) {
     if (program.tight)
-      cout << "Program is tight, no level ranking formula is added." << endl;
+      VLOG(1) << "Program is tight, no level ranking formula is added.";
     else {
       output.timerCompletion.start();
       createRankingFormula();
@@ -394,7 +394,7 @@ void Cmodels::cmodels() {
     if (!programempty)
       output.print_wfm();
     else {
-      cerr << "Program is empty." << endl;
+      LOG(WARNING) << "Program is empty.";
       // empty set is solution
       output.start_output();
       output.end_output();

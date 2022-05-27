@@ -1,6 +1,7 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 #include "defines.h"
+#include "glog/logging.h"
 #include "param.h"
 #include "program.h"
 #include "timer.h"
@@ -73,21 +74,21 @@ inline void Output::start_output() {
 inline void Output::disj_output() {
   if (asparagus == STANDARD)
     if (program->disj)
-      cerr << "Program is Disjunctive." << endl;
+      VLOG(1) << "Program is Disjunctive." << endl;
 }
 inline void Output::tight_output() {
   if (asparagus == STANDARD)
     if (!program->tight)
-      cerr << "Program is not tight." << endl;
+      VLOG(1) << "Program is not tight.";
     else
-      cerr << "Program is tight." << endl;
+      VLOG(1) << "Program is tight.";
 }
 inline void Output::hcf_output() {
   if (asparagus == STANDARD)
     if (!program->hcf)
-      cerr << "Program is not HCF." << endl;
+      VLOG(1) << "Program is not HCF." << endl;
     else
-      cerr << "Program is HCF." << endl;
+      VLOG(1) << "Program is HCF." << endl;
 }
 inline void Output::end_output() {
   if (asparagus == STANDARD || asparagus == ASPCOMP2)

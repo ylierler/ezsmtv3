@@ -582,13 +582,13 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
 int Read::read(string fileName) {
   int lineNumber = 0;
   try {
-    VLOG(1) << "Opening file: " << fileName;
+    VLOG(2) << "Opening file: " << fileName;
     ifstream fileStream(fileName);
 
     string line;
     int minimizationStatementId = 0;
     while (std::getline(fileStream, line)) {
-      VLOG(2) << "Reading line: " << line;
+      VLOG(3) << "Reading line: " << line;
       lineNumber++;
       unique_ptr<istringstream> lineStream(new istringstream(line));
 
@@ -619,7 +619,7 @@ int Read::read(string fileName) {
       }
     }
 
-    VLOG(1) << "Done reading";
+    VLOG(2) << "Done reading";
     return 0;
   } catch (exception e) {
     LOG(FATAL) << "Failed to parse grounded logic program."
