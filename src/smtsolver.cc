@@ -98,14 +98,6 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     }
     cout << endl;
 
-    if (VLOG_IS_ON(1) && !resultMinimizationValues.empty()) {
-      cout << "Minimization: ";
-      for (auto minimization : resultMinimizationValues) {
-        cout << minimization.second;
-      }
-      cout << endl;
-    }
-
     timer.stop();
     VLOG(2) << "Finished round " << i << " in " << timer.sec << "s "
             << timer.msec << "ms";
