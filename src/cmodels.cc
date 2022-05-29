@@ -295,7 +295,7 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
     return UNSAT;
   }
 
-  eraseFalseAtomsFromClauses();
+  // eraseFalseAtomsFromClauses(); FIXME this breaks theory atoms
   createSingleAtomClauses(); // from Bpos and Bneg
   output.timerClausification.stop();
 
@@ -427,6 +427,7 @@ void Cmodels::cmodels() {
   // clean();
 }
 
+// FIXME This breaks support for ESMTPLUS_THEORY() atoms
 void Cmodels::eraseFalseAtomsFromClauses() {
   list<Atom *> temp;
   long prevCmId = program.cmodelsAtomsFromThisId;

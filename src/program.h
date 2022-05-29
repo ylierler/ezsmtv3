@@ -43,7 +43,9 @@ public:
   double weight;
 };
 
+const string NEVER_ATOM = "EZSMTPLUS_NEVER";
 const string MINIMIZATION_SMT_PREFIX = "EZSMTPLUS_MINIMIZATION";
+const string THEORY_ATOM_PREFIX = "EZSMTPLUS_THEORY";
 
 class MinimizationStatement {
 

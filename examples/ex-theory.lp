@@ -10,5 +10,6 @@ b :- not a.
 e :- a, b.
 e :- not a, not b.
 
-&required { x } >= 10 :- e.
-&required { x } <= 9 :- not e.
+{ task(X) } :- X = 1..5.
+
+success :- &required { X } >= 10, task(X).

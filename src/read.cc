@@ -52,7 +52,6 @@ Read::~Read() {
 //
 // creates an instance of a new atom
 //
-// FIXME Why do we use Atoms here? This seems like a leak of domain boundaries
 // FIXME Why doesn't the API do this check instead?
 Atom *Read::getOrCreateAtom(long n) {
   if (atoms[n] == 0)
@@ -464,7 +463,7 @@ void Read::readRuleLine(istringstream &line) {
 
   if (headLength == 0) {
     Atom *neverAtom = getOrCreateAtom(0);
-    neverAtom->name = "never";
+    api->set_name(neverAtom, NEVER_ATOM.c_str());
     api->set_compute(neverAtom, false);
 
     program->false_atom = neverAtom;
@@ -556,7 +555,9 @@ void Read::readTheoryLine(istringstream &line) {
     int atomId;
     line >> atomId;
     Atom *atom = getOrCreateAtom(atomId);
-    atom->name = "<theory>";
+    stringstream name;
+    name << THEORY_ATOM_PREFIX << "(" << atomId << ")";
+    api->set_name(atom, name.str().c_str());
   }
 }
 
