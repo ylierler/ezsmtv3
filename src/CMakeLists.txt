@@ -15,6 +15,7 @@ target_sources(ezsmtPlus
     interpret.cc
     graphscc.cc
     smtsolver.cc
+    smtlogics.cc
     main.cc
 )
 
@@ -30,5 +31,6 @@ target_sources(test
     interpret.cc
     graphscc.cc
     smtsolver.cc
+    smtlogics.cc
     # main.cc
 )

@@ -33,6 +33,7 @@
 #include <glog/logging.h>
 #include <iostream>
 #include <limits.h>
+#include <list>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -547,17 +548,132 @@ enum TheoryLineType {
   STATEMENT = 6
 };
 
-void Read::readTheoryLine(istringstream &line) {
-  int lineType;
-  line >> lineType;
+// TODO support directives
+void Read::readTheoryStatements(list<string> &lines) {
+  for (string line : lines) {
+    stringstream lineStream(line);
+    int statementType, theoryLineType;
+    lineStream >> statementType;
 
-  if (lineType == STATEMENT) {
-    int atomId;
-    line >> atomId;
-    Atom *atom = getOrCreateAtom(atomId);
-    stringstream name;
-    name << THEORY_ATOM_PREFIX << "(" << atomId << ")";
-    api->set_name(atom, name.str().c_str());
+    if (statementType == THEORY) {
+      lineStream >> theoryLineType;
+
+      if (theoryLineType == STATEMENT) {
+        int atomId;
+        lineStream >> atomId;
+        Atom *atom = getOrCreateAtom(atomId);
+        stringstream name;
+        name << THEORY_ATOM_PREFIX << "(" << atomId << ")";
+        api->set_name(atom, name.str().c_str());
+
+        int symbolicTermId;
+        lineStream >> symbolicTermId;
+        auto symbolicTerm = program->theoryTerms[symbolicTermId];
+        if (symbolicTerm == nullptr) {
+          LOG(FATAL) << "Could not find symbolic theory term " << symbolicTermId << " referenced by line '" << line << "'";
+        }
+
+        int numOfElements;
+        lineStream >> numOfElements;
+        list<TheoryAtomElements *> leftElements;
+        for (int i = 0; i < numOfElements; i++) {
+          int theoryAtomElementId;
+          lineStream >> theoryAtomElementId;
+          auto element = program->theoryAtomElements[theoryAtomElementId];
+          if (element == nullptr) {
+            LOG(FATAL) << "Could not find theory atom element " << theoryAtomElementId << " referenced by line '" << line << "'";
+          }
+          leftElements.push_back(element);
+        }
+
+        string statementOperator;
+        lineStream >> statementOperator;
+
+        int rightTermId;
+        lineStream >> rightTermId;
+        auto rightTerm = program->theoryTerms[rightTermId];
+        if (rightTerm == nullptr) {
+          LOG(FATAL) << "Could not find theory term " << rightTermId << " referenced by line '" << line << "'";
+        }
+
+        auto statement = new TheoryStatement(atom, symbolicTerm->value, leftElements, statementOperator, rightTerm);
+        program->theoryStatements[atomId] = statement;
+      }
+    }
+  }
+}
+
+void Read::readTheoryTerms(list<string> &lines) {
+  for (string line : lines) {
+    stringstream lineStream(line);
+    int statementType;
+    lineStream >> statementType;
+
+    if (statementType == THEORY) {
+      int theoryLineType, termId;
+      lineStream >> theoryLineType >> termId;
+
+      switch (theoryLineType) {
+        case NUMERIC_TERMS:
+          int termValue;
+          lineStream >> termValue;
+          program->theoryTerms[termId] = new TheoryTerm(termId, NUMERIC, to_string(termValue));
+          break;
+        case SYMBOLIC_TERMS:
+          int length;
+          string symbolValue;
+          lineStream >> length >> symbolValue;
+          program->theoryTerms[termId] = new TheoryTerm(termId, SYMBOLIC, symbolValue);
+          break;
+        // TODO support compound terms
+      }
+    }
+  }
+}
+
+void Read::readTheoryAtomElements(list<string> &lines) {
+  for (string line : lines) {
+    stringstream lineStream(line);
+    int statementType;
+    lineStream >> statementType;
+
+    if (statementType == THEORY) {
+      int theoryLineType, theoryAtomElementId;
+      lineStream >> theoryLineType >> theoryAtomElementId;
+
+      if (theoryLineType == ATOM_ELEMENTS) {
+        auto theoryAtomElements = new TheoryAtomElements(theoryAtomElementId);
+
+        int numOfTerms;
+        lineStream >> numOfTerms;
+        for (int i = 0; i < numOfTerms; i++) {
+          int termId;
+          lineStream >> termId;
+          auto theoryTerm = program->theoryTerms[termId];
+          if (theoryTerm == nullptr) {
+            LOG(FATAL) << "Could not find definition for theory term " << termId << " referenced in '" << line << "'";
+          }
+
+          theoryAtomElements->terms.push_back(theoryTerm);
+        }
+
+        int numOfLiterals;
+        lineStream >> numOfLiterals;
+        for (int i = 0; i < numOfLiterals; i++) {
+          int literal;
+          lineStream >> literal;
+          int atomId = abs(literal);
+          auto atom = atoms[atomId];
+          if (atom == nullptr) {
+            LOG(FATAL) << "Could not find definition for atom " << atomId << " referenced in '" << line << "'";
+          }
+
+          theoryAtomElements->literals.push_back(AtomLiteral(atom, literal >= 0));
+        }
+
+        program->theoryAtomElements[theoryAtomElementId] = theoryAtomElements;
+      }
+    }
   }
 }
 
@@ -582,6 +698,8 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
 
 int Read::read(string fileName) {
   int lineNumber = 0;
+  list<string> lines;
+
   try {
     VLOG(2) << "Opening file: " << fileName;
     ifstream fileStream(fileName);
@@ -591,6 +709,7 @@ int Read::read(string fileName) {
     while (std::getline(fileStream, line)) {
       VLOG(3) << "Reading line: " << line;
       lineNumber++;
+      lines.push_back(line);
       unique_ptr<istringstream> lineStream(new istringstream(line));
 
       int statementType;
@@ -611,7 +730,7 @@ int Read::read(string fileName) {
         readOutputLine(*lineStream);
         break;
       case THEORY:
-        readTheoryLine(*lineStream);
+        // Handled out of sequence below
         break;
       default:
         LOG(WARNING) << "Encountered unknown statement type: " << statementType
@@ -619,12 +738,19 @@ int Read::read(string fileName) {
         break;
       }
     }
-
-    VLOG(2) << "Done reading";
-    return 0;
   } catch (exception e) {
     LOG(FATAL) << "Failed to parse grounded logic program."
                << " Stopped at " << fileName << ":" << lineNumber
                << " Got exception message: " << e.what();
   }
+
+    VLOG(2) << "Reading theory components";
+
+    readTheoryTerms(lines);
+    readTheoryAtomElements(lines);
+    readTheoryStatements(lines);
+
+    VLOG(2) << "Done reading";
+
+    return 0;
 };

@@ -5,6 +5,6 @@
 (declare-const |a| Bool)
 (declare-const x Int)
 (assert (ite |a| (> (+ 0 x) 5) true))
-(assert (not (> (+ 0 x) (- 1))))
+(assert (not (> (+ 0 x) 10)))
 (check-sat)
 (get-value (x |a|))

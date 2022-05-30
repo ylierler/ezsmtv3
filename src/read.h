@@ -47,7 +47,10 @@ private:
   void readRuleLine(istringstream &);
   void readMinimizeLine(istringstream &line, int minimizationStatementId);
   void readOutputLine(istringstream &line);
-  void readTheoryLine(istringstream &line);
+
+  void readTheoryStatements(list<string> &lines);
+  void readTheoryTerms(list<string> &lines);
+  void readTheoryAtomElements(list<string> &lines);
 
   int addBasicRule(FILE *f);
   int addDisjunctionRule(FILE *f);

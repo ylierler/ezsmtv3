@@ -13,6 +13,8 @@
 
 namespace bp = boost::process;
 
+// TODO separate SMT-LIB writing logic from SMT solver process interaction for easier unit testing
+
 // call EZSMT and SMT solver
 void SMTSolver::callSMTSolver(Param &params, Program &program) {
   string solverCommand = "";
@@ -32,13 +34,11 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     solverCommand = params.smtSolverCommand;
   }
 
-  if (params.answerSetsToEnumerate == 1) {
-
+  this->logic = QF_LIA();
+  for (auto pair : program.theoryStatements) {
+    auto statement = pair.second;
+    logic.processTheoryStatement(statement);
   }
-
-  stringstream ss;
-
-  string smtFileName = "output.smt";
 
   string programBody = getProgramBodyString(program);
   string programCheckSatFooter = getCheckSatString(program);
@@ -221,18 +221,19 @@ string SMTSolver::getProgramBodyString(Program &program) {
   output << "(set-info :smt-lib-version 2.6)" << endl;
   output << "(set-option :produce-models true)" << endl; // TODO don't produce models for performance?
   output << "(set-option :produce-assignments true)" << endl;
-  output << "(set-logic ALL)" << endl;
+  output << "(set-logic " << logic.SMT_LOGIC_NAME() << ")" << endl;
 
   for (Atom *a : program.atoms) {
     // FIXME Should this declare a const or fun?
     output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
   }
+  logic.getDeclarationStatements(output);
 
   for (Clause *c : program.clauses) {
     output << "(assert " << c->toSmtLibString() << ")" << endl;
   }
+  logic.getAssertionStatements(output);
 
-  // TODO declare-fun?
   for (MinimizationStatement *m : program.minimizations) {
     output << "(declare-const " << m->getSmtAtomName() << " Int)" << endl;
     output << "(assert (= " << m->getSmtAtomName() << " (+";
@@ -243,18 +244,4 @@ string SMTSolver::getProgramBodyString(Program &program) {
   }
 
   return output.str();
-
-  // TODO output computeTrue atoms
-  // output <<
-  // for (Atom* a : program.atoms)
-  // {
-  // 	if (a->computeTrue)
-  // 	{
-  // 		output << "(assert " << c->toSmtLibString() << ")" << endl;
-  // 	}
-  // }
-
-  // output.close();
-
-  // system(string("cat " + outputFileName).c_str());
 }
