@@ -15,6 +15,32 @@ namespace bp = boost::process;
 
 // TODO separate SMT-LIB writing logic from SMT solver process interaction for easier unit testing
 
+
+void logSolverRoundResults(int roundNumber, vector<string> &answerSet, map<string, string> &minimizationValues, Timer &roundTimer) {
+    if (VLOG_IS_ON(1) && !minimizationValues.empty()) {
+      cout << "Minimization: ";
+    }
+
+    if (!minimizationValues.empty()) {
+      for (auto minimization : minimizationValues) {
+        cout << minimization.second;
+      }
+      cout << " : ";
+    }
+
+    if (VLOG_IS_ON(1)) {
+      cout << "Answer " << roundNumber << ": ";
+    }
+
+    for (auto smtAtom : answerSet) {
+      cout << smtAtom.substr(1, smtAtom.size() - 2) << " ";
+    }
+    cout << endl;
+
+    VLOG(2) << "Finished round " << roundNumber << " in " << roundTimer.sec << "s "
+            << roundTimer.msec << "ms";
+}
+
 // call EZSMT and SMT solver
 void SMTSolver::callSMTSolver(Param &params, Program &program) {
   string solverCommand = "";
@@ -57,7 +83,6 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
 
   int i = 1;
   for (;; i++) {
-    VLOG(2) << "SMT solver, iteration " << i;
     Timer timer;
     timer.start();
 
@@ -75,32 +100,13 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
     solverInput << answerSetNegation;
 
-    if (VLOG_IS_ON(1) && !resultMinimizationValues.empty()) {
-      cout << "Minimization: ";
-    }
-
     if (!resultMinimizationValues.empty()) {
       auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
       solverInput << minimizationAssertion;
-
-      for (auto minimization : resultMinimizationValues) {
-        cout << minimization.second;
-      }
-      cout << " : ";
     }
-
-    if (VLOG_IS_ON(1) && params.answerSetsToEnumerate != 1) {
-      cout << "Answer " << i << ": ";
-    }
-
-    for (auto smtAtom : resultAnswerSets) {
-      cout << smtAtom.substr(1, smtAtom.size() - 2) << " ";
-    }
-    cout << endl;
 
     timer.stop();
-    VLOG(2) << "Finished round " << i << " in " << timer.sec << "s "
-            << timer.msec << "ms";
+    logSolverRoundResults(i, resultAnswerSets, resultMinimizationValues, timer);
 
     if (params.answerSetsToEnumerate != 0 &&
         params.answerSetsToEnumerate == i) {
@@ -108,6 +114,7 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     }
   }
 }
+
 
 void SMTSolver::writeToFile(string input, string outputFileName) {
   ofstream outputStream;
