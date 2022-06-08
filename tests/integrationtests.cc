@@ -14,7 +14,7 @@ void assertEnumeratedAnswerSetsMatchExpected(string testName) {
     string outputPath = "temp.output";
 
     std::stringstream command;
-    command << "./ezsmtPlus " << inputPath << " -e -v 0 | sort > " << outputPath;
+    command << "./ezsmtPlus --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -v 0 | sort > " << outputPath;
 
     int exitCode = system(command.str().c_str());
     REQUIRE(exitCode == SUCCESS);
@@ -35,5 +35,8 @@ TEST_CASE("ezsmtplus enumerates all answer sets", "[integration]") {
     }
     SECTION("graph-coloring") {
         assertEnumeratedAnswerSetsMatchExpected("graph-coloring");
+    }
+    SECTION("empty answer set outputs blank line") {
+        assertEnumeratedAnswerSetsMatchExpected("empty-answer-set");
     }
 }

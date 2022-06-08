@@ -168,7 +168,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
     SECTION("should populate false_atom") {
       auto false_atom = program->atoms[0];
       CHECK(false_atom->original_id == 0);
-      CHECK(string(false_atom->name) == "never");
+      CHECK(string(false_atom->name) == NEVER_ATOM);
       CHECK(false_atom->computeFalse == true);
 
       // TODO There shouldn't be a separate computeTrue and computeFalse
