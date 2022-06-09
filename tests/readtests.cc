@@ -221,4 +221,99 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
       CHECK(rule->aux[1].weight == 4);
     }
   }
+
+  SECTION("parsing simple theory terms") {
+    string grounded = "asp 1 0 0\n"
+                      "9 0 1 5\n" // Numeric
+                      "9 1 2 10 helloworld\n" // Symbolic
+                      "0";
+    read.read(writeTempFile(grounded));
+
+    SECTION("should parse numeric term") {
+      auto term = dynamic_cast<NumericTerm*>(program->theoryTerms[1]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 1);
+      CHECK(term->value == 5);
+    }
+
+    SECTION("should parse symbolic term") {
+      auto term = dynamic_cast<SymbolicTerm*>(program->theoryTerms[2]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 2);
+      CHECK(term->name == "helloworld");
+    }
+  }
+
+  SECTION("parsing theory tuple terms") {
+    string grounded = "asp 1 0 0\n"
+                      "9 0 1 5\n" // 5
+                      "9 0 2 10\n" // 10
+                      "9 0 3 15\n" // 15
+                      "9 2 4 -1 3 1 2 3\n" // (5, 10, 15)
+                      "9 2 5 -2 3 1 2 3\n" // {5, 10, 15}
+                      "9 2 6 -3 3 1 2 3\n" // [5, 10, 15]
+                      "0";
+    read.read(writeTempFile(grounded));
+
+    SECTION("should parse tuple term in parenthesis") {
+      auto term = dynamic_cast<TupleTerm*>(program->theoryTerms[4]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 4);
+      CHECK(term->type == PARENTHESES);
+      auto childTerms = vector<ITheoryTerm*>(term->children.begin(), term->children.end());
+      CHECK(childTerms[0] == program->theoryTerms[1]);
+      CHECK(childTerms[1] == program->theoryTerms[2]);
+      CHECK(childTerms[2] == program->theoryTerms[3]);
+    }
+
+    SECTION("should parse tuple term in braces") {
+      auto term = dynamic_cast<TupleTerm*>(program->theoryTerms[5]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 5);
+      CHECK(term->type == BRACES);
+      auto childTerms = vector<ITheoryTerm*>(term->children.begin(), term->children.end());
+      CHECK(childTerms[0] == program->theoryTerms[1]);
+      CHECK(childTerms[1] == program->theoryTerms[2]);
+      CHECK(childTerms[2] == program->theoryTerms[3]);
+    }
+
+    SECTION("should parse tuple term in brackets") {
+      auto term = dynamic_cast<TupleTerm*>(program->theoryTerms[6]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 6);
+      CHECK(term->type == BRACKETS);
+      auto childTerms = vector<ITheoryTerm*>(term->children.begin(), term->children.end());
+      CHECK(childTerms[0] == program->theoryTerms[1]);
+      CHECK(childTerms[1] == program->theoryTerms[2]);
+      CHECK(childTerms[2] == program->theoryTerms[3]);
+    }
+  }
+
+  SECTION("parsing theory compound terms") {
+    string grounded = "asp 1 0 0\n"
+                      "9 0 1 5\n" // 5
+                      "9 1 2 1 x\n" // x
+                      "9 1 3 1 +\n" // +
+                      "9 2 4 3 2 1 2\n" // 5 + x
+                      "0";
+    read.read(writeTempFile(grounded));
+
+    SECTION("should parse binary operation") {
+      auto term = dynamic_cast<CompoundTerm*>(program->theoryTerms[4]);
+      REQUIRE(term != nullptr);
+      CHECK(term->id == 4);
+      CHECK(term->operation == program->theoryTerms[3]);
+      auto childTerms = vector<ITheoryTerm*>(term->children.begin(), term->children.end());
+      CHECK(childTerms[0] == program->theoryTerms[1]);
+      CHECK(childTerms[1] == program->theoryTerms[2]);
+    }
+  }
+
+  SECTION("Theory atom elements") {
+    // TODO test theory atom elements
+  }
+
+  SECTION("Theory statements") {
+    // TODO test theory statements
+  }
 }
