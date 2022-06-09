@@ -26,6 +26,7 @@
 #define PROGRAM_H
 
 #include "atomrule.h"
+#include "theory.h"
 #include <map>
 #include <queue>
 #include <vector>
@@ -69,62 +70,6 @@ public:
   }
 };
 
-class AtomLiteral {
-public:
-  AtomLiteral(Atom *atom, bool sign) {
-    this->atom = atom;
-    this->sign = sign;
-  }
-
-  Atom *atom;
-  bool sign;
-};
-
-enum TheoryTermType {
-NUMERIC,
-SYMBOLIC
-};
-
-class TheoryTerm {
-public:
-  TheoryTerm(int id, TheoryTermType type, string value) {
-    this->id = id;
-    this->type = type;
-    this->value = value;
-  }
-
-  int id;
-  TheoryTermType type;
-  string value;
-};
-
-class TheoryAtomElements {
-public:
-  TheoryAtomElements(int id) {
-    this->id = id;
-  }
-
-  int id;
-  list<TheoryTerm *> terms;
-  list<AtomLiteral> literals;
-};
-
-class TheoryStatement {
-public:
-  TheoryStatement(Atom *atom, string symbolicTerm, list<TheoryAtomElements *> leftElements, string statementOperator, TheoryTerm *rightTerm) {
-    this->statementAtom = atom;
-    this->symbolicTerm = symbolicTerm;
-    this->leftElements = leftElements;
-    this->statementOperator = statementOperator;
-    this->rightTerm = rightTerm;
-  }
-
-  Atom *statementAtom;
-  string symbolicTerm;
-  list<TheoryAtomElements *> leftElements;
-  string statementOperator;
-  TheoryTerm *rightTerm;
-};
 
 class Program {
 public:
@@ -143,8 +88,8 @@ public:
 
   list<Rule *> rules;
   list<MinimizationStatement *> minimizations;
-  map<int, TheoryTerm *> theoryTerms;
-  map<int, TheoryAtomElements *> theoryAtomElements;
+  map<int, ITheoryTerm *> theoryTerms;
+  map<int, TheoryAtomElement *> theoryAtomElements;
   map<int, TheoryStatement *> theoryStatements;
 
 

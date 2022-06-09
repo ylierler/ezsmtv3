@@ -26,6 +26,7 @@
 #include "atomrule.h"
 #include "defines.h"
 #include "program.h"
+#include "theory.h"
 #include <cstdlib>
 #include <exception>
 #include <float.h>
@@ -568,14 +569,14 @@ void Read::readTheoryStatements(list<string> &lines) {
 
         int symbolicTermId;
         lineStream >> symbolicTermId;
-        auto symbolicTerm = program->theoryTerms[symbolicTermId];
+        auto symbolicTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[symbolicTermId]);
         if (symbolicTerm == nullptr) {
           LOG(FATAL) << "Could not find symbolic theory term " << symbolicTermId << " referenced by line '" << line << "'";
         }
 
         int numOfElements;
         lineStream >> numOfElements;
-        list<TheoryAtomElements *> leftElements;
+        list<TheoryAtomElement *> leftElements;
         for (int i = 0; i < numOfElements; i++) {
           int theoryAtomElementId;
           lineStream >> theoryAtomElementId;
@@ -586,17 +587,21 @@ void Read::readTheoryStatements(list<string> &lines) {
           leftElements.push_back(element);
         }
 
-        string statementOperator;
-        lineStream >> statementOperator;
+        int operatorTermId;
+        lineStream >> operatorTermId;
+        auto operatorTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[operatorTermId]);
+        if (operatorTerm == nullptr) {
+          LOG(FATAL) << "Could not find operator theory term " << operatorTermId << " referenced by line '" << line << "'";
+        }
 
         int rightTermId;
         lineStream >> rightTermId;
         auto rightTerm = program->theoryTerms[rightTermId];
         if (rightTerm == nullptr) {
-          LOG(FATAL) << "Could not find theory term " << rightTermId << " referenced by line '" << line << "'";
+          LOG(FATAL) << "Could not find right theory term " << rightTermId << " referenced by line '" << line << "'";
         }
 
-        auto statement = new TheoryStatement(atom, symbolicTerm->value, leftElements, statementOperator, rightTerm);
+        auto statement = new TheoryStatement(atom, symbolicTerm, leftElements, operatorTerm, rightTerm);
         program->theoryStatements[atomId] = statement;
       }
     }
@@ -617,15 +622,50 @@ void Read::readTheoryTerms(list<string> &lines) {
         case NUMERIC_TERMS:
           int termValue;
           lineStream >> termValue;
-          program->theoryTerms[termId] = new TheoryTerm(termId, NUMERIC, to_string(termValue));
+          program->theoryTerms[termId] = new NumericTerm(termId, termValue);
           break;
-        case SYMBOLIC_TERMS:
+        case SYMBOLIC_TERMS: {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-          program->theoryTerms[termId] = new TheoryTerm(termId, SYMBOLIC, symbolValue);
+          program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
           break;
-        // TODO support compound terms
+        }
+        case COMPOUND_TERMS:
+          int t, numOfTerms;
+          lineStream >> t >> numOfTerms;
+
+          if (t < 0) {
+            auto tupleTerm = new TupleTerm(termId, (TupleType)t);
+            for (int i = 0; i < numOfTerms; i++) {
+              int childTermId;
+              lineStream >> childTermId;
+              auto childTerm = program->theoryTerms[childTermId];
+              if (childTerm == nullptr) {
+                LOG(FATAL) << "Could not find child theory term " << childTermId << " referenced by line '" << line << "'";
+              }
+              tupleTerm->children.push_back(childTerm);
+            }
+            program->theoryTerms[termId] = tupleTerm;
+          } else {
+            auto operationTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[t]);
+            if (operationTerm == nullptr) {
+              LOG(FATAL) << "Could not find symbolic operator theory term " << operationTerm << " referenced by line '" << line << "'";
+            }
+
+            auto compoundTerm = new CompoundTerm(termId, operationTerm);
+            for (int i = 0; i < numOfTerms; i++) {
+              int childTermId;
+              lineStream >> childTermId;
+              auto childTerm = program->theoryTerms[childTermId];
+              if (childTerm == nullptr) {
+                LOG(FATAL) << "Could not find child theory term " << childTermId << " referenced by line '" << line << "'";
+              }
+              compoundTerm->children.push_back(childTerm);
+            }
+            program->theoryTerms[termId] = compoundTerm;
+          }
+          break;
       }
     }
   }
@@ -642,7 +682,7 @@ void Read::readTheoryAtomElements(list<string> &lines) {
       lineStream >> theoryLineType >> theoryAtomElementId;
 
       if (theoryLineType == ATOM_ELEMENTS) {
-        auto theoryAtomElements = new TheoryAtomElements(theoryAtomElementId);
+        auto theoryAtomElements = new TheoryAtomElement(theoryAtomElementId);
 
         int numOfTerms;
         lineStream >> numOfTerms;

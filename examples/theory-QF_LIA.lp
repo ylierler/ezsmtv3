@@ -21,9 +21,6 @@
 
 {a}.
 &sum {x} > 5 :- a.
-:- &sum {x,2 : a} > 10.
+:- &sum {x} > 10 + 2.
 
-% (declare-const |a| Bool)
-% (assert (ite |a| (> (+ x) 5))
-% (assert (not (> (+ x) 10)))
-
+:- &sum {x} > (1 + 2) + 5.

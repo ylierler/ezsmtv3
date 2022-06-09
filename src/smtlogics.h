@@ -7,6 +7,7 @@
 
 class ILogic {
 public:
+  virtual ~ILogic() {};
   virtual string SMT_LOGIC_NAME() = 0;
   virtual void processTheoryStatement(TheoryStatement *statement) = 0;
 
@@ -22,7 +23,11 @@ public:
     void getAssertionStatements(std::ostringstream &output) override;
 
 private:
-    map<int,TheoryTerm *> symbolicTerms;
+    map<int, SymbolicTerm*> symbolicTerms;
+    list<TheoryStatement *> statements;
+
+    string toString(TheoryAtomElement* elements);
+    string toString(ITheoryTerm* term);
 };
 
 #endif // SMTLOGICS_H_
