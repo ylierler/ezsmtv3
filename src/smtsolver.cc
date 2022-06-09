@@ -1,10 +1,12 @@
 #include "smtsolver.h"
 #include "timer.h"
+#include <algorithm>
 #include <boost/process.hpp>
 #include <cstring>
 #include <fstream>
 #include <glog/logging.h>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <ostream>
 #include <regex>
@@ -60,11 +62,13 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
     solverCommand = params.smtSolverCommand;
   }
 
-  this->logic = QF_LIA();
+  list<TheoryStatement*> theoryStatements;
   for (auto pair : program.theoryStatements) {
-    auto statement = pair.second;
-    logic.processTheoryStatement(statement);
+    theoryStatements.push_back(pair.second);
   }
+
+  this->logic = QF_LIA();
+  this->logic.processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
   string programCheckSatFooter = getCheckSatString(program);

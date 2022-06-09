@@ -9,7 +9,7 @@ class ILogic {
 public:
   virtual ~ILogic() {};
   virtual string SMT_LOGIC_NAME() = 0;
-  virtual void processTheoryStatement(TheoryStatement *statement) = 0;
+  virtual void processTheoryStatements(list<TheoryStatement*> statements) = 0;
 
   virtual void getDeclarationStatements(std::ostringstream &output) = 0;
   virtual void getAssertionStatements(std::ostringstream &output) = 0;
@@ -18,7 +18,7 @@ public:
 class QF_LIA : public ILogic {
 public:
     string SMT_LOGIC_NAME() override;
-    void processTheoryStatement(TheoryStatement *statement) override;
+    void processTheoryStatements(list<TheoryStatement*> statements) override;
     void getDeclarationStatements(std::ostringstream &output) override;
     void getAssertionStatements(std::ostringstream &output) override;
 

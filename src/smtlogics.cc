@@ -5,21 +5,23 @@
 
 string QF_LIA::SMT_LOGIC_NAME() { return "QF_LIA"; }
 
-void QF_LIA::processTheoryStatement(TheoryStatement *statement) {
-    if (statement->symbolicTerm->name == "sum") {
-        statements.push_back(statement);
-        for (auto element : statement->leftElements) {
-            for (auto term : element->terms) {
-                if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
-                    symbolicTerms[s->id] = s;
+void QF_LIA::processTheoryStatements(list<TheoryStatement*> statements) {
+    for (auto statement : statements) {
+        if (statement->symbolicTerm->name == "sum") {
+            this->statements.push_back(statement);
+            for (auto element : statement->leftElements) {
+                for (auto term : element->terms) {
+                    if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
+                        symbolicTerms[s->id] = s;
+                    }
                 }
             }
+            if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(statement->rightTerm)) {
+                symbolicTerms[s->id] = s;
+            }
+        } else {
+            LOG(FATAL) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm;
         }
-        if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(statement->rightTerm)) {
-            symbolicTerms[s->id] = s;
-        }
-    } else {
-        LOG(FATAL) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm;
     }
 }
 
