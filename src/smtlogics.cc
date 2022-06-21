@@ -11,14 +11,18 @@ void QF_LIA::processTheoryStatements(list<TheoryStatement*> statements) {
             this->statements.push_back(statement);
             for (auto element : statement->leftElements) {
                 for (auto term : element->terms) {
-                    if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
-                        symbolicTerms[s->id] = s;
-                    }
+                    term->traverseNestedTerms([&](ITheoryTerm* term) {
+                        if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
+                            symbolicTerms[s->id] = s;
+                        }
+                    });
                 }
             }
-            if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(statement->rightTerm)) {
-                symbolicTerms[s->id] = s;
-            }
+            statement->rightTerm->traverseNestedTerms([&](ITheoryTerm* term) {
+                if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
+                    symbolicTerms[s->id] = s;
+                }
+            });
         } else {
             LOG(FATAL) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm;
         }
@@ -82,4 +86,8 @@ string QF_LIA::toString(ITheoryTerm* term) {
     }
 
     LOG(FATAL) << "Unsupported term type";
+}
+
+list<SymbolicTerm*> getNestedSymbolicTerms(ITheoryTerm* term) {
+
 }

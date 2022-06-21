@@ -2,6 +2,7 @@
 #define THEORY_H_
 
 #include "atomrule.h"
+#include <functional>
 #include <map>
 #include <queue>
 #include <vector>
@@ -20,17 +21,11 @@ public:
   bool sign;
 };
 
-// enum TheoryTermType {
-// NUMERIC,
-// SYMBOLIC
-// };
-
 class ITheoryTerm {
 public:
     virtual ~ITheoryTerm() {};
 
-  // virtual int GetId() const = 0;
-  // virtual TheoryTermType GetType() const = 0;
+    virtual void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) = 0;
 };
 
 class NumericTerm : public ITheoryTerm {
@@ -43,9 +38,9 @@ class NumericTerm : public ITheoryTerm {
       this->value = value;
     }
 
-    // TheoryTermType GetType() const override {
-    //   return NUMERIC;
-    // }
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) override {
+      visitor(this);
+    }
 };
 
 class SymbolicTerm : public ITheoryTerm {
@@ -58,9 +53,9 @@ class SymbolicTerm : public ITheoryTerm {
       this->name = name;
     }
 
-    // TheoryTermType GetType() const override {
-    //   return SYMBOLIC;
-    // }
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+      visitor(this);
+    }
 };
 
 enum TupleType
@@ -81,9 +76,12 @@ class TupleTerm : public ITheoryTerm {
       this->type = type;
     }
 
-    // TheoryTermType GetType() const override {
-    //   return SYMBOLIC;
-    // }
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+      visitor(this);
+      for (ITheoryTerm* t : children) {
+        t->traverseNestedTerms(visitor);
+      }
+    }
 };
 
 class CompoundTerm : public ITheoryTerm {
@@ -95,6 +93,14 @@ class CompoundTerm : public ITheoryTerm {
     CompoundTerm(int id, SymbolicTerm* operation) {
       this->id = id;
       this->operation = operation;
+    }
+
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+      visitor(this);
+      // operation->traverseNestedTerms(visitor);
+      for (ITheoryTerm* t : children) {
+        t->traverseNestedTerms(visitor);
+      }
     }
 };
 
@@ -110,6 +116,7 @@ public:
   }
 };
 
+// TODO distinguish operators differently
 class TheoryStatement {
 public:
   Atom* statementAtom;
