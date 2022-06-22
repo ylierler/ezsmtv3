@@ -563,6 +563,8 @@ void Read::readTheoryStatements(list<string> &lines) {
         int atomId;
         lineStream >> atomId;
         Atom *atom = getOrCreateAtom(atomId);
+        atom->showInOutputAnswerSet = true;
+
         stringstream name;
         name << THEORY_ATOM_PREFIX << "(" << atomId << ")";
         api->set_name(atom, name.str().c_str());

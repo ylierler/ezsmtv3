@@ -42,14 +42,23 @@ void QF_LIA::getAssertionStatements(std::ostringstream &output) {
             LOG(FATAL) << "The EZSMTPLUS " << SMT_LOGIC_NAME() << " implementation does not support symbolic term " << statement->symbolicTerm;
         }
 
-        output << "(assert (" << statement->operation->name;
+        output << "(assert (= " << statement->statementAtom->getSmtName() << " ";
+        output << "(" << statement->operation->name;
 
         for (const auto element : statement->leftElements) {
             output << " " << toString(element);
         }
 
-        output << " " << toString(statement->rightTerm) << "))" << endl;
+        output << " " << toString(statement->rightTerm) << ")))" << endl;
     }
+}
+
+list<SymbolicTerm*> QF_LIA::getConstraintVariables() {
+    list<SymbolicTerm*> variables;
+    for (auto pair : symbolicTerms) {
+        variables.push_back(pair.second);
+    }
+    return variables;
 }
 
 string QF_LIA::toString(TheoryAtomElement* element) {

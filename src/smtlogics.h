@@ -13,6 +13,7 @@ public:
 
   virtual void getDeclarationStatements(std::ostringstream &output) = 0;
   virtual void getAssertionStatements(std::ostringstream &output) = 0;
+  virtual list<SymbolicTerm*> getConstraintVariables() = 0;
 };
 
 class QF_LIA : public ILogic {
@@ -21,6 +22,7 @@ public:
     void processTheoryStatements(list<TheoryStatement*> statements) override;
     void getDeclarationStatements(std::ostringstream &output) override;
     void getAssertionStatements(std::ostringstream &output) override;
+    list<SymbolicTerm*> getConstraintVariables() override;
 
 private:
     map<int, SymbolicTerm*> symbolicTerms;

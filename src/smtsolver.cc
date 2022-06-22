@@ -218,7 +218,10 @@ string SMTSolver::getCheckSatString(Program &program) {
     }
   }
   for (auto minimization : program.minimizations) {
-      output << minimization->getSmtAtomName() << " ";
+    output << minimization->getSmtAtomName() << " ";
+  }
+  for (auto constraintVariable : this->logic.getConstraintVariables()) {
+    output << constraintVariable->name << " ";
   }
   output << "))" << endl;
 
