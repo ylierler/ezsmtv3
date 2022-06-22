@@ -36,7 +36,7 @@ using namespace std;
 
 /* if you want some statistics during the solving, uncomment following line */
 //    SAT_AddHookFun(mng,output_status, 5000);
-Cmodels::Cmodels(SMTSolver &solverService, Param &param)
+Cmodels::Cmodels(Solver &solverService, Param &param)
     : solver(solverService), param(param) {
   output.program = &program;
   output.param = &param;

@@ -1,4 +1,6 @@
 #include "smtsolver.h"
+#include "defines.h"
+#include "theory.h"
 #include "timer.h"
 #include <algorithm>
 #include <boost/process.hpp>
@@ -18,49 +20,46 @@ namespace bp = boost::process;
 // TODO separate SMT-LIB writing logic from SMT solver process interaction for easier unit testing
 
 
-void logSolverRoundResults(int roundNumber, vector<string> &answerSet, map<string, string> &minimizationValues, Timer &roundTimer) {
-    if (VLOG_IS_ON(1) && !minimizationValues.empty()) {
-      cout << "Minimization: ";
-    }
+void logIterationResults(int roundNumber, SolverResult& results, Timer &roundTimer) {
+  // TODO
+  // if (VLOG_IS_ON(1) && !minimizationValues.empty()) {
+  //   cout << "Minimization: ";
+  // }
 
-    if (!minimizationValues.empty()) {
-      for (auto minimization : minimizationValues) {
-        cout << minimization.second;
-      }
-      cout << " : ";
-    }
+  // if (!minimizationValues.empty()) {
+  //   for (auto minimization : minimizationValues) {
+  //     cout << minimization.second;
+  //   }
+  //   cout << " : ";
+  // }
 
-    if (VLOG_IS_ON(1)) {
-      cout << "Answer " << roundNumber << ": ";
-    }
+  if (VLOG_IS_ON(1)) {
+    cout << "Answer " << roundNumber << ": ";
+  }
 
-    for (auto smtAtom : answerSet) {
-      cout << smtAtom.substr(1, smtAtom.size() - 2) << " ";
+  for (auto assignment : results.atomAssignments) {
+    if (assignment.second) {
+      cout << assignment.first->name << " ";
     }
-    cout << endl;
+  }
+  cout << endl;
 
-    VLOG(2) << "Finished round " << roundNumber << " in " << roundTimer.sec << "s "
-            << roundTimer.msec << "ms";
+  for (auto assignment : results.constraintVariableAssignments) {
+    cout << assignment.first->name << "=" << assignment.second << " ";
+  }
+  cout << endl;
+
+  VLOG(2) << "Finished round " << roundNumber << " in " << roundTimer.sec << "s "
+          << roundTimer.msec << "ms";
 }
 
 // call EZSMT and SMT solver
-void SMTSolver::callSMTSolver(Param &params, Program &program) {
-  string solverCommand = "";
-  if (params.SMTsolver == CVC4)
-    solverCommand =
-        "../tools/cvc4 --lang smt --output-lang smt --incremental";
-  else if (params.SMTsolver == CVC5)
-    solverCommand =
-        "../tools/cvc5 --lang smt --output-lang smt --incremental";
-  else if (params.SMTsolver == Z3)
-    solverCommand = "../tools/z3-4.8.17 -smt2 -in";
-  else if (params.SMTsolver == YICES)
-    solverCommand = "../tools/yices-smt2 ";
+void Solver::callSMTSolver(Param &params, Program &program) {
 
   // Override -s option with --solver-command if provided
-  if (!params.smtSolverCommand.empty()) {
-    solverCommand = params.smtSolverCommand;
-  }
+  // if (!params.smtSolverCommand.empty()) {
+  //   solverCommand = params.smtSolverCommand;
+  // }
 
   list<TheoryStatement*> theoryStatements;
   for (auto pair : program.theoryStatements) {
@@ -73,44 +72,45 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
   string programBody = getProgramBodyString(program);
   string programCheckSatFooter = getCheckSatString(program);
 
-  bp::ipstream solverOutput;
-  bp::opstream solverInput;
+  SMTProcess solverProcess(params.SMTsolver);
 
-  VLOG(2) << "Starting child process for solver: " << solverCommand;
-  bp::child solverProcess(solverCommand, bp::std_out > solverOutput,
-                          bp::std_in < solverInput);
-
-  solverInput << programBody;
+  solverProcess.Send(programBody);
   if (VLOG_IS_ON(3)) {
     cout << "Wrote program body:" << endl << programBody;
   }
+
+
+  auto constraintVariables = logic.getConstraintVariables();
+  list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
 
   int i = 1;
   for (;; i++) {
     Timer timer;
     timer.start();
 
-    solverInput << programCheckSatFooter << endl;
-    VLOG(3) << "Wrote check sat footer:" << endl << programCheckSatFooter;
+    // map<string, string> resultMinimizationValues; TODO
 
-    vector<string> resultAnswerSets;
-    map<string, string> resultMinimizationValues;
-    bool isSatisfiable = parseSolverResults(solverOutput, resultAnswerSets, resultMinimizationValues);
+    auto result = solverProcess.CheckSatAndGetAssignments(atoms, constraintVariables);
 
-    if (!isSatisfiable) {
+    if (i == 1) {
+      LOG(INFO) << (result.isSatisfiable ? "SAT" : "UNSAT");
+    }
+
+    if (!result.isSatisfiable) {
       break;
     }
 
-    auto answerSetNegation = getAnswerSetNegationString(resultAnswerSets);
-    solverInput << answerSetNegation;
+    auto answerSetNegation = getAnswerNegationString(result, true);
+    solverProcess.Send(answerSetNegation);
 
-    if (!resultMinimizationValues.empty()) {
-      auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
-      solverInput << minimizationAssertion;
-    }
+    // TODO
+    // if (!resultMinimizationValues.empty()) {
+    //   auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
+    //   solverProcess.Send(minimizationAssertion);
+    // }
 
     timer.stop();
-    logSolverRoundResults(i, resultAnswerSets, resultMinimizationValues, timer);
+    logIterationResults(i, result, timer);
 
     if (params.answerSetsToEnumerate != 0 &&
         params.answerSetsToEnumerate == i) {
@@ -120,7 +120,7 @@ void SMTSolver::callSMTSolver(Param &params, Program &program) {
 }
 
 
-void SMTSolver::writeToFile(string input, string outputFileName) {
+void Solver::writeToFile(string input, string outputFileName) {
   ofstream outputStream;
   outputStream.open(outputFileName);
   outputStream << input;
@@ -129,7 +129,7 @@ void SMTSolver::writeToFile(string input, string outputFileName) {
   VLOG(3) << "Wrote SMT-LIB file:" << endl << input << endl;
 }
 
-bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
+bool Solver::parseSolverResults(bp::ipstream &inputStream,
                                    vector<string> &resultAnswerSet,
                                    map<string, string> &resultMinimizationValues) {
   resultAnswerSet.clear();
@@ -179,22 +179,35 @@ bool SMTSolver::parseSolverResults(bp::ipstream &inputStream,
   return true;
 }
 
-string SMTSolver::getAnswerSetNegationString(vector<string> &answerSet) {
+string Solver::getAnswerNegationString(SolverResult& result, bool includeConstraintVariables) {
   // TODO Should I include negatives (false)?
 
   ostringstream output;
-  // output << "(push 1)" << endl; // TODO Is this needed?
   output << "(assert (not (and";
-  for (string smtAtom : answerSet) {
-    output << " " << smtAtom;
+  for (pair<Atom*, bool> atomAssignment : result.atomAssignments) {
+    string atomName = atomAssignment.first->getSmtName();
+    output << " ";
+    if (atomAssignment.second) {
+      output << atomName;
+    } else {
+      output << "(not " << atomName << ")";
+    }
   }
   output << ")))" << endl;
 
-  VLOG(3) << "Generated answer set negation:" << endl << output.str();
+  if (includeConstraintVariables) {
+    output << "(assert (not (and";
+    for (pair<SymbolicTerm*, string> variableAssignment : result.constraintVariableAssignments) {
+      output << " (= " << variableAssignment.first->name << " " << variableAssignment.second << ")";
+    }
+    output << ")))";
+  }
+
+  VLOG(3) << "Generated answer negation:" << endl << output.str();
   return output.str();
 }
 
-string SMTSolver::getMinimizationAssertionString(map<string,string> &minimizationResults) {
+string Solver::getMinimizationAssertionString(map<string,string> &minimizationResults) {
   ostringstream output;
   // TODO Support priorities
   output << "(assert (or ";
@@ -207,7 +220,8 @@ string SMTSolver::getMinimizationAssertionString(map<string,string> &minimizatio
   return output.str();
 }
 
-string SMTSolver::getCheckSatString(Program &program) {
+// TODO
+string Solver::getCheckSatString(Program &program) {
   ostringstream output;
   output << "(check-sat)" << endl;
 
@@ -229,7 +243,7 @@ string SMTSolver::getCheckSatString(Program &program) {
 }
 
 // FIXME this is copying strings
-string SMTSolver::getProgramBodyString(Program &program) {
+string Solver::getProgramBodyString(Program &program) {
   ostringstream output;
 
   output << "(set-info :smt-lib-version 2.6)" << endl;
@@ -258,4 +272,106 @@ string SMTSolver::getProgramBodyString(Program &program) {
   }
 
   return output.str();
+}
+
+SMTProcess::SMTProcess(SMTSolverCommand type) {
+  solverOption = type;
+
+  string solverCommand;
+  if (type == CVC4)
+    solverCommand =
+        "../tools/cvc4 --lang smt --output-lang smt --incremental";
+  else if (type == CVC5)
+    solverCommand =
+        "../tools/cvc5 --lang smt --output-lang smt --incremental";
+  else if (type == Z3)
+    solverCommand = "../tools/z3-4.8.17 -smt2 -in";
+  else if (type == YICES)
+    solverCommand = "../tools/yices-smt2 ";
+
+  VLOG(2) << "Starting child process for solver: " << solverCommand;
+
+  process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
+}
+
+void SMTProcess::Send(string body) {
+  input << body << endl;
+}
+
+SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<SymbolicTerm*> constraintVariables) {
+  Send("(check-sat)");
+
+  string satResult;
+  std::getline(output, satResult);
+  VLOG(2) << "Read check sat result: " << satResult;
+  if (satResult != "unsat" && satResult != "sat") {
+    LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
+  }
+
+  if (satResult == "unsat") {
+    return SolverResult(false);
+  }
+
+  SolverResult result(true);
+
+  list<string> atomNames;
+  transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
+  auto rawAtomAssignments = getRawAssignments(atomNames);
+  for (Atom* atom : atoms) {
+    string atomName = atom->getSmtName();
+    if (rawAtomAssignments.find(atomName) != rawAtomAssignments.end()) {
+      result.atomAssignments[atom] = rawAtomAssignments[atomName] == "true" ? true : false;
+    }
+  }
+
+  list<string> variableNames;
+  transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
+  auto rawVariableAssignments = getRawAssignments(variableNames);
+  for (SymbolicTerm* variable : constraintVariables) {
+    if (rawAtomAssignments.find(variable->name) != rawAtomAssignments.end()) {
+      result.constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];
+    }
+  }
+
+  return result;
+}
+
+map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
+
+  stringstream getValueStatement;
+  getValueStatement << "(get-value (";
+  for (string variableName : variableNames) {
+    getValueStatement << variableName << " ";
+  }
+  getValueStatement << "))";
+
+  Send(getValueStatement.str());
+
+  // Concat multi-line output to single line
+  stringstream singleLineStream;
+  string line;
+  while (std::getline(output, line)) {
+    VLOG(2) << "Read line from solver: " << line;
+    singleLineStream << line;
+
+    // This is a hacky workaround to handle z3's multiline output
+    if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
+      break;
+    }
+  }
+  string assignmentsLine = singleLineStream.str();
+  map<string,string> rawAssignments;
+
+  regex r("\\((\\|[^ ]+\\||[^ ]+) ([^()]+)\\)");
+  smatch match;
+  string::const_iterator searchStart(assignmentsLine.cbegin());
+  while (regex_search(searchStart, assignmentsLine.cend(), match, r)) {
+    searchStart = match.suffix().first;
+    string variable = match[1].str();
+    string value = match[2].str();
+
+    rawAssignments[variable] = value;
+  }
+
+  return rawAssignments;
 }

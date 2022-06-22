@@ -329,7 +329,7 @@ int main(int argc, char *argv[]) {
   set_new_handler(&a_new_handler);
   bool error = false;
 
-  SMTSolver smtSolver;
+  Solver smtSolver;
   Cmodels cmodels(smtSolver, params);
   Api api(&cmodels.program);
   Read reader(&cmodels.program, &api, &params);

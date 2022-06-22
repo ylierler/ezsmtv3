@@ -31,14 +31,14 @@ class Atom;
 
 class Cmodels {
 public:
-  Cmodels(SMTSolver &solver, Param &param);
+  Cmodels(Solver &solver, Param &param);
   virtual ~Cmodels();
   Program program;
   Output output;
   Param &param; // contains all the fields with parameters
                 // that may be initialized at command line
 
-  SMTSolver &solver;
+  Solver &solver;
   Api *api;
 
   Atom *false_atom; // atom that is false (used in constraints or later)
