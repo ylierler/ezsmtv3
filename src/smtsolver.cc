@@ -4,6 +4,7 @@
 #include "timer.h"
 #include <algorithm>
 #include <boost/process.hpp>
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <glog/logging.h>
@@ -11,16 +12,14 @@
 #include <iterator>
 #include <map>
 #include <ostream>
+#include <ratio>
 #include <regex>
 #include <sstream>
 #include <unistd.h>
 
 namespace bp = boost::process;
 
-// TODO separate SMT-LIB writing logic from SMT solver process interaction for easier unit testing
-
-
-void logIterationResults(int roundNumber, SolverResult& results, Timer &roundTimer) {
+void logIterationResults(int roundNumber, SolverResult& results, chrono::milliseconds totalRoundDuration) {
   // TODO
   // if (VLOG_IS_ON(1) && !minimizationValues.empty()) {
   //   cout << "Minimization: ";
@@ -37,20 +36,35 @@ void logIterationResults(int roundNumber, SolverResult& results, Timer &roundTim
     cout << "Answer " << roundNumber << ": ";
   }
 
+  int displayedAtoms = 0;
   for (auto assignment : results.atomAssignments) {
-    if (assignment.second) {
-      cout << assignment.first->atom_name() << " ";
+    auto atom = assignment.first;
+    bool atomSign = assignment.second;
+    if (atomSign && (atom->showInOutputAnswerSet || VLOG_IS_ON(3))) {
+      cout << atom->atom_name() << " ";
+      displayedAtoms++;
     }
   }
-  cout << endl;
 
-  for (auto assignment : results.constraintVariableAssignments) {
-    cout << assignment.first->name << "=" << assignment.second << " ";
+  if (displayedAtoms == 0) {
+    cout << "{}";
   }
+
   cout << endl;
 
-  VLOG(2) << "Finished round " << roundNumber << " in " << roundTimer.sec << "s "
-          << roundTimer.msec << "ms";
+  if (!results.constraintVariableAssignments.empty()) {
+    for (auto assignment : results.constraintVariableAssignments) {
+      cout << assignment.first->name << "=" << assignment.second << " ";
+    }
+    cout << endl;
+  }
+
+  VLOG(1) << "Finished round " << roundNumber << " in " << totalRoundDuration.count() << "ms";
+  VLOG(1) << "  " << results.solveDuration.count() << "ms SMT Check Satisfiability";
+  VLOG(1) << "  " << results.getValuesDuration.count() << "ms SMT Get Values";
+
+  // Add newline between iterations
+  cout << endl;
 }
 
 // call EZSMT and SMT solver
@@ -70,7 +84,7 @@ void Solver::callSMTSolver(Param &params, Program &program) {
   this->logic.processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
-  string programCheckSatFooter = getCheckSatString(program);
+  // string programCheckSatFooter = getCheckSatString(program);
 
   SMTProcess solverProcess(params.SMTsolver);
 
@@ -83,10 +97,10 @@ void Solver::callSMTSolver(Param &params, Program &program) {
   auto constraintVariables = logic.getConstraintVariables();
   list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
 
+  auto roundStart = chrono::high_resolution_clock::now();
+
   int i = 1;
   for (;; i++) {
-    Timer timer;
-    timer.start();
 
     // map<string, string> resultMinimizationValues; TODO
 
@@ -101,8 +115,9 @@ void Solver::callSMTSolver(Param &params, Program &program) {
     }
 
     // Only log timer results if SAT
-    timer.stop();
-    logIterationResults(i, result, timer);
+    auto roundEnd = chrono::high_resolution_clock::now();
+    logIterationResults(i, result, chrono::duration_cast<chrono::milliseconds>(roundEnd - roundStart));
+    roundStart = chrono::high_resolution_clock::now();
 
     // TODO
     // if (!resultMinimizationValues.empty()) {
@@ -128,56 +143,6 @@ void Solver::writeToFile(string input, string outputFileName) {
   outputStream.close();
 
   VLOG(3) << "Wrote SMT-LIB file:" << endl << input << endl;
-}
-
-bool Solver::parseSolverResults(bp::ipstream &inputStream,
-                                   vector<string> &resultAnswerSet,
-                                   map<string, string> &resultMinimizationValues) {
-  resultAnswerSet.clear();
-  resultMinimizationValues.clear();
-
-  string satResult;
-  std::getline(inputStream, satResult);
-  VLOG(2) << "Read check sat result: " << satResult;
-  if (satResult != "unsat" && satResult != "sat") {
-    LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
-  }
-
-  if (satResult == "unsat") {
-    return false;
-  }
-
-  stringstream atomsListStream;
-  string line;
-  while (std::getline(inputStream, line)) {
-    VLOG(2) << "Read line from solver: " << line;
-    atomsListStream << line;
-
-    // This is a hacky workaround to handle z3's multiline output
-    if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
-      break;
-    }
-  }
-  string atomsList = atomsListStream.str();
-
-  VLOG(3) << "Parsing assignments:";
-  regex r("\\((\\|[^ ]+\\|) ([^()]+)\\)");
-  smatch match;
-  string::const_iterator searchStart(atomsList.cbegin());
-  while (regex_search(searchStart, atomsList.cend(), match, r)) {
-    searchStart = match.suffix().first;
-    string variable = match[1].str();
-    string value = match[2].str();
-    VLOG(3) << "Found assignment " << variable << " = " << value;
-
-    if (value == "true") {
-      resultAnswerSet.push_back(variable);
-    } else if (variable.find(MINIMIZATION_SMT_PREFIX) != string::npos) {
-      resultMinimizationValues[variable] = value;
-    }
-  }
-
-  return true;
 }
 
 string Solver::getAnswerNegationString(SolverResult& result, bool includeConstraintVariables) {
@@ -224,26 +189,26 @@ string Solver::getMinimizationAssertionString(map<string,string> &minimizationRe
 }
 
 // TODO
-string Solver::getCheckSatString(Program &program) {
-  ostringstream output;
-  output << "(check-sat)" << endl;
+// string Solver::getCheckSatString(Program &program) {
+//   ostringstream output;
+//   output << "(check-sat)" << endl;
 
-  output << "(get-value (";
-  for (Atom *a : program.atoms) {
-    if (a->showInOutputAnswerSet) {
-      output << a->getSmtName() << " ";
-    }
-  }
-  for (auto minimization : program.minimizations) {
-    output << minimization->getSmtAtomName() << " ";
-  }
-  for (auto constraintVariable : this->logic.getConstraintVariables()) {
-    output << constraintVariable->name << " ";
-  }
-  output << "))" << endl;
+//   output << "(get-value (";
+//   for (Atom *a : program.atoms) {
+//     if (a->showInOutputAnswerSet) {
+//       output << a->getSmtName() << " ";
+//     }
+//   }
+//   for (auto minimization : program.minimizations) {
+//     output << minimization->getSmtAtomName() << " ";
+//   }
+//   for (auto constraintVariable : this->logic.getConstraintVariables()) {
+//     output << constraintVariable->name << " ";
+//   }
+//   output << "))" << endl;
 
-  return output.str();
-}
+//   return output.str();
+// }
 
 // FIXME this is copying strings
 string Solver::getProgramBodyString(Program &program) {
@@ -255,7 +220,6 @@ string Solver::getProgramBodyString(Program &program) {
   output << "(set-logic " << logic.SMT_LOGIC_NAME() << ")" << endl;
 
   for (Atom *a : program.atoms) {
-    // FIXME Should this declare a const or fun?
     output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
   }
   logic.getDeclarationStatements(output);
@@ -292,30 +256,39 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
   else if (type == YICES)
     solverCommand = "../tools/yices-smt2 ";
 
-  VLOG(2) << "Starting child process for solver: " << solverCommand;
+  VLOG(3) << "Starting child process for solver: " << solverCommand;
 
   process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
 }
 
 void SMTProcess::Send(string body) {
+  VLOG(3) << "Sending to SMT process: " << body;
   input << body << endl;
 }
 
 SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<SymbolicTerm*> constraintVariables) {
+  SolverResult result;
+
+  auto solveStart = chrono::high_resolution_clock::now();
   Send("(check-sat)");
+  auto solveEnd = chrono::high_resolution_clock::now();
+  result.solveDuration = chrono::duration_cast<chrono::milliseconds>(solveEnd - solveStart);
 
   string satResult;
   std::getline(output, satResult);
-  VLOG(2) << "Read check sat result: " << satResult;
+  VLOG(3) << "Read check sat result: " << satResult;
   if (satResult != "unsat" && satResult != "sat") {
     LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
   }
 
   if (satResult == "unsat") {
-    return SolverResult(false);
+    result.isSatisfiable = false;
+    return result;
   }
 
-  SolverResult result(true);
+  result.isSatisfiable = true;
+
+  auto getValuesStart = chrono::high_resolution_clock::now();
 
   list<string> atomNames;
   transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
@@ -336,10 +309,16 @@ SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<Symbo
     }
   }
 
+  auto getValuesEnd = chrono::high_resolution_clock::now();
+  result.getValuesDuration = chrono::duration_cast<chrono::milliseconds>(getValuesEnd - getValuesStart);
+
   return result;
 }
 
 map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
+  if (variableNames.empty()) {
+    return map<string, string>();
+  }
 
   stringstream getValueStatement;
   getValueStatement << "(get-value (";
@@ -354,7 +333,7 @@ map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
   stringstream singleLineStream;
   string line;
   while (std::getline(output, line)) {
-    VLOG(2) << "Read line from solver: " << line;
+    VLOG(3) << "Read line from solver: " << line;
     singleLineStream << line;
 
     // This is a hacky workaround to handle z3's multiline output
@@ -365,14 +344,14 @@ map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
   string assignmentsLine = singleLineStream.str();
   map<string,string> rawAssignments;
 
-  SMTExpressionParser parser;
-  auto assignmentsList = parser.ParseListExpression(assignmentsLine);
+  SymbolicExpressionParser parser;
+  auto assignmentsList = parser.ParseSymbolList(assignmentsLine);
   for (auto a : assignmentsList->children) {
-    auto assignment = dynamic_cast<SMTList*>(a);
-    auto variable = dynamic_cast<SMTVariable*>(assignment->children.front());
-    auto value = dynamic_cast<ISMTExpression*>(assignment->children.back());
+    auto assignment = dynamic_cast<SymbolList*>(a);
+    auto variable = dynamic_cast<Symbol*>(assignment->children.front());
+    auto value = dynamic_cast<ISymbolicExpression*>(assignment->children.back());
 
-    VLOG(2) << "Parsed assignment: " << variable->ToString() << "=" << value->ToString();
+    VLOG(3) << "Parsed assignment: " << variable->ToString() << "=" << value->ToString();
     rawAssignments[variable->content] = value->ToString();
   }
 

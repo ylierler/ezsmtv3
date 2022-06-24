@@ -4,22 +4,25 @@
 #include "boost/process/detail/child_decl.hpp"
 #include "boost/process/pipe.hpp"
 #include "defines.h"
+#include "glog/logging.h"
 #include "param.h"
 #include "program.h"
 #include "smtlogics.h"
 #include <boost/process.hpp>
+#include <chrono>
+#include <memory>
 #include <regex>
 
-class ISMTExpression {
+class ISymbolicExpression {
 public:
-  virtual ~ISMTExpression() {};
+  virtual ~ISymbolicExpression() {};
   virtual string ToString() { return ""; };
 };
 
-class SMTVariable : public ISMTExpression {
+class Symbol : public ISymbolicExpression {
 public:
     string content;
-    SMTVariable(string content) {
+    Symbol(string content) {
       this->content = content;
     }
 
@@ -28,73 +31,81 @@ public:
     }
 };
 
-class SMTList : public ISMTExpression {
+class SymbolList : public ISymbolicExpression {
   public:
-    list<ISMTExpression*> children;
+    vector<ISymbolicExpression*> children;
+
+    ~SymbolList() {
+      for (auto child : children) {
+        delete child;
+      }
+    }
 
     string ToString() {
       ostringstream output;
       output << "(";
       for (auto child : children) {
-        output << child->ToString() << " ";
+        output << child->ToString();
+        if (child != children.back()) {
+          output << " ";
+        }
       }
-      output << ") ";
+      output << ")";
       return output.str();
     }
 };
 
 // https://stackoverflow.com/questions/15679672/recursive-parsing-for-lisp-like-syntax
-class SMTExpressionParser {
+class SymbolicExpressionParser {
   public:
-    SMTList* ParseListExpression(string input) {
-      readSymbols(input);
-      return parseList();
+    unique_ptr<SymbolList> ParseSymbolList(string input) {
+      readTokens(input);
+      return unique_ptr<SymbolList>(parseList());
     }
   private:
-    list<string> symbols;
+    list<string> tokens;
 
-    void readSymbols(string input) {
-      regex symbolsRegex("[()]|[^ ()]+|\\|[^ ]+\\|");
+    void readTokens(string input) {
+      regex r("[()]|[^ ()|]+|\\|[^ ]+\\|");
       smatch match;
       string::const_iterator searchStart(input.cbegin());
-      while (regex_search(searchStart, input.cend(), match, symbolsRegex)) {
-        cout << "readSymbols " << input;
+      while (regex_search(searchStart, input.cend(), match, r)) {
         searchStart = match.suffix().first;
-        symbols.push_back(match[0].str()); // TODO
+        tokens.push_back(match[0].str()); // TODO
+        VLOG(3) << "Found token: " << match[0].str();
       }
     }
 
-    SMTList* parseList() {
-      symbols.pop_front();
-      auto list = new SMTList();
-      while (symbols.front() != ")") {
+    SymbolList* parseList() {
+      tokens.pop_front();
+      auto list = new SymbolList();
+      while (tokens.front() != ")") {
         auto member = parseExpression();
         list->children.push_back(member);
       }
-      symbols.pop_front();
+      tokens.pop_front();
       return list;
     }
 
-    ISMTExpression* parseExpression() {
-      if (symbols.front() == "(") {
+    ISymbolicExpression* parseExpression() {
+      if (tokens.front() == "(") {
         return parseList();
       } else {
-        string symbol = symbols.front();
-        symbols.pop_front();
-        return new SMTVariable(symbol);
+        string symbol = tokens.front();
+        tokens.pop_front();
+        return new Symbol(symbol);
       }
     }
 };
 
 class SolverResult {
   public:
-    SolverResult(bool isSatisfiable) {
-      this->isSatisfiable = isSatisfiable;
-    }
-
     bool isSatisfiable;
     map<Atom*, bool> atomAssignments;
     map<SymbolicTerm*, string> constraintVariableAssignments;
+
+    chrono::milliseconds solveDuration;
+    chrono::milliseconds getValuesDuration;
 };
 
 class Solver {
@@ -106,7 +117,7 @@ private:
                                    vector<string> &resultAnswerSet,
                                    map<string, string> &resultMinimizationValues);
   string getProgramBodyString(Program &program);
-  string getCheckSatString(Program &program);
+  // string getCheckSatString(Program &program);
   string getAnswerNegationString(SolverResult& result, bool includeConstraintVariables);
   string getMinimizationAssertionString(map<string,string> &minimizationResults);
   void writeToFile(string input, string outputFileName);
