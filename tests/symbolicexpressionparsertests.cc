@@ -1,4 +1,4 @@
-#include "smtsolver.h"
+#include "solver/symbolicexpressionparser.h"
 #include "catch2/catch_test_macros.hpp"
 
 TEST_CASE("SymbolicExpressionParser parses strings to S-Expressions") {

@@ -116,7 +116,7 @@
 #include "read.h"
 // #include "api.h"
 #include "defines.h"
-#include "smtsolver.h"
+#include "solver/smtsolver.h"
 #include "timer.h"
 
 class Ctable {

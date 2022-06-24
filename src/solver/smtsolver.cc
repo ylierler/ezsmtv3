@@ -1,4 +1,5 @@
 #include "smtsolver.h"
+#include "symbolicexpressionparser.h"
 #include "defines.h"
 #include "theory.h"
 #include "timer.h"
@@ -18,8 +19,9 @@
 #include <unistd.h>
 
 namespace bp = boost::process;
+using namespace chrono;
 
-void logIterationResults(int roundNumber, SolverResult& results, chrono::milliseconds totalRoundDuration) {
+void logIterationResults(int roundNumber, SolverResult& results, milliseconds totalRoundDuration) {
   if (VLOG_IS_ON(1)) {
     cout << "Answer " << roundNumber << ": ";
   }
@@ -89,7 +91,7 @@ void Solver::callSMTSolver(Param &params, Program &program) {
   auto constraintVariables = logic->getConstraintVariables();
   list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
 
-  auto roundStart = chrono::high_resolution_clock::now();
+  auto roundStart = high_resolution_clock::now();
 
   int i = 1;
   for (;; i++) {
@@ -104,9 +106,9 @@ void Solver::callSMTSolver(Param &params, Program &program) {
     }
 
     // Only log timer results if SAT
-    auto roundEnd = chrono::high_resolution_clock::now();
-    logIterationResults(i, *result, chrono::duration_cast<chrono::milliseconds>(roundEnd - roundStart));
-    roundStart = chrono::high_resolution_clock::now();
+    auto roundEnd = high_resolution_clock::now();
+    logIterationResults(i, *result, duration_cast<milliseconds>(roundEnd - roundStart));
+    roundStart = high_resolution_clock::now();
 
     if (params.answerSetsToEnumerate != 0 &&
         params.answerSetsToEnumerate == i) {
@@ -226,10 +228,10 @@ void SMTProcess::Send(string body) {
 unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
-  auto solveStart = chrono::high_resolution_clock::now();
+  auto solveStart = high_resolution_clock::now();
   Send("(check-sat)");
-  auto solveEnd = chrono::high_resolution_clock::now();
-  result->solveDuration = chrono::duration_cast<chrono::milliseconds>(solveEnd - solveStart);
+  auto solveEnd = high_resolution_clock::now();
+  result->solveDuration = duration_cast<milliseconds>(solveEnd - solveStart);
 
   string satResult;
   std::getline(output, satResult);
@@ -245,7 +247,7 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
 
   result->isSatisfiable = true;
 
-  auto getValuesStart = chrono::high_resolution_clock::now();
+  auto getValuesStart = high_resolution_clock::now();
 
   // Atoms
   list<string> atomNames;
@@ -279,8 +281,8 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
     }
   }
 
-  auto getValuesEnd = chrono::high_resolution_clock::now();
-  result->getValuesDuration = chrono::duration_cast<chrono::milliseconds>(getValuesEnd - getValuesStart);
+  auto getValuesEnd = high_resolution_clock::now();
+  result->getValuesDuration = duration_cast<milliseconds>(getValuesEnd - getValuesStart);
 
   return result;
 }

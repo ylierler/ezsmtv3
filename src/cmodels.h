@@ -23,7 +23,7 @@
 //#include "wf.h"
 #include "interpret.h"
 #include "rulebuilder.h"
-#include "smtsolver.h"
+#include "solver/smtsolver.h"
 #include <vector>
 
 using namespace std;
