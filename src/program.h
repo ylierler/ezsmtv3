@@ -61,7 +61,6 @@ public:
   int priority;
   list<MinimizationAtom *> atoms;
 
-
   string getSmtAtomName()
   {
     stringstream name;
@@ -69,7 +68,6 @@ public:
     return name.str();
   }
 };
-
 
 class Program {
 public:
@@ -83,7 +81,6 @@ public:
   void print_atoms_wf();
 
   queue<Atom *> q;
-  // TODO: Change to Map
   vector<Atom *> atoms;
 
   list<Rule *> rules;

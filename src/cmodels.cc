@@ -415,7 +415,7 @@ void Cmodels::cmodels() {
              param.sys == SCC_LEVEL_RANKING ||
              param.sys == SCC_LEVEL_RANKING_STRONG) {
 
-    solver.callSMTSolver(param, program);
+    solver.SolveProgram(param, program);
   } else {
     cerr << "Please specify the type of level rankings.";
     cerr << "Available options: -levelRanking -levelRankingStrong "

@@ -342,14 +342,6 @@ int main(int argc, char *argv[]) {
 
   strcpy(params.config, "CONFIG");
 
-  // for (int c = 1; c < argc && !error; c++){
-  //   if (c+1<argc){
-  //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],&argv[c+1][0]);
-  //   }
-  //   else
-  //     c=c+ctable.setSingleExecutionArgument(&argv[c][0],NULL);
-  // }
-
   // if the timeout was set then we will set the function for timeout
   if (params.timeout != 0)
     mainTimer.SetTimeout(params.timeout, timeOutHandler);
@@ -432,56 +424,7 @@ int main(int argc, char *argv[]) {
   params.finish();
 
   ctable.calculate();
-  /*
 
-   //	  for DEBUGGING externals replace above line with the following comented
-  code ctable.setSolver(MINISAT1); int numLits=ctable.getNumberGroundedAtoms();
-  int* answerset_lits = new int[numLits];
-  ctable.Initialize(answerset_lits, numLits);
-  if (numLits!=-2){
-        cerr<<"preporcessing is sufficient here";
-        exit(23);
-  }
-  answerset_lits[0]=2;
-  answerset_lits[1]=3;
-  //  answerset_lits[2]=4;
-  //answerset_lits[3]=5;
-  //answerset_lits[4]=6;
-  numLits=2;
-  ctable.markExternallyConstrainedAtoms (answerset_lits, numLits);
-
-  numLits=ctable.getNumberGroundedAtoms();
-  bool* assignments= new bool [ctable.cmodels.program.number_of_atoms];
-  ctable.Solve(answerset_lits, numLits);
-
-  int inner_count=0;
-        //by default assignment and constraint_lits is false
-
-        for(int j=0; j<ctable.cmodels.program.cmodelsAtomsFromThisId; j++){
-          assignments[j]= false;
-        }
-
-        for (int i=0; i<numLits; i++){
-          for(int indA=inner_count;
-  indA<ctable.cmodels.program.cmodelsAtomsFromThisId; indA++){ inner_count++;
-                if(answerset_lits[i]==ctable.cmodels.program.atoms[indA]->get_lparse_id()){
-
-                  assignments[indA]= true;
-
-                  break;
-                }
-          }
-        }
-        for (long i=0;i<ctable.cmodels.program.cmodelsAtomsFromThisId;i++){
-          if(assignments[i]){
-                if(strcmp("#noname#",
-  ctable.cmodels.program.atoms[i]->atom_name())) printf("%s ",
-  ctable.cmodels.program.atoms[i]->atom_name ());
-
-
-      }
-    }
-   */
   ctable.cmodels.output.timerAll.stop();
   ctable.cmodels.output.print();
 

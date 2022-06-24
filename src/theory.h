@@ -97,13 +97,11 @@ class CompoundTerm : public ITheoryTerm {
 
     void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
       visitor(this);
-      // operation->traverseNestedTerms(visitor);
       for (ITheoryTerm* t : children) {
         t->traverseNestedTerms(visitor);
       }
     }
 };
-
 
 class TheoryAtomElement {
 public:
