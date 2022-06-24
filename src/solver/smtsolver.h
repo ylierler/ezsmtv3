@@ -32,6 +32,8 @@ private:
   string getAnswerNegationString(SolverResult& result, bool includeConstraintVariables);
   string getMinimizationAssertionString(map<MinimizationStatement*,string> &minimizationResults);
 
+  string toSMTString(Clause *clause);
+
   ILogic* logic;
 };
 

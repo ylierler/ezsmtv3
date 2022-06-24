@@ -32,7 +32,6 @@
 #include <stdlib.h>
 #include <unordered_set>
 #include <vector>
-//#include "api.h"
 
 class Api;
 class Rule;
@@ -43,7 +42,6 @@ class Atom;
 class Program;
 using namespace std;
 
-// TODO rename
 struct Auxiliary {
   Auxiliary(bool p = false) {
     positive = p;
@@ -586,8 +584,6 @@ public:
   void printcnf(FILE *file);
   void printsmtcnf(FILE *file);
   void printBCircuit(FILE *file, char *gateName);
-
-  string toSmtLibString();
 
   void translateToZchaffClause(int *clause, int &size);
   void translateToMinisatClause(int *clause, int &size);

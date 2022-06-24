@@ -210,7 +210,6 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
 
   // Report an error if the program is disjunctive.
   if (program.disj) {
-    // FIXME What does disjunctive mean?
     cerr << "Error: disjunctive programs are not supported." << endl;
     exit(-1);
   }
@@ -295,7 +294,9 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
     return UNSAT;
   }
 
-  // eraseFalseAtomsFromClauses(); FIXME this breaks theory atoms
+  // NOTE this breaks theory atoms. Commenting it out doesn't seem to
+  // break anything.
+  // eraseFalseAtomsFromClauses();
   createSingleAtomClauses(); // from Bpos and Bneg
   output.timerClausification.stop();
 
@@ -427,7 +428,9 @@ void Cmodels::cmodels() {
   // clean();
 }
 
-// FIXME This breaks support for ESMTPLUS_THEORY() atoms
+// NOTE This breaks support for ESMTPLUS_THEORY() atoms
+// Keeping this here for reference, but I'm not sure we
+// will need it.
 void Cmodels::eraseFalseAtomsFromClauses() {
   list<Atom *> temp;
   long prevCmId = program.cmodelsAtomsFromThisId;

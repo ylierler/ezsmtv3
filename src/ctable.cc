@@ -71,7 +71,8 @@ void Ctable::setExecutionArgs(char args[]) {
   }
 }
 
-// TODO Remove
+// DEPRECATED This has been replaced by Boost program_options.
+// I'm keeping this here for reference.
 int Ctable::setSingleExecutionArgument(char *arg, char *option) {
   int ret = 0;
 
@@ -348,9 +349,9 @@ void Ctable::print_lits(int *constraint_lits, int num_lits, bool denial) {
 
 void Ctable::calculate() { cmodels.cmodels(); }
 
-// TODO: Add support for arbitrary SMT solver command
-// TODO: Redo man/help page
 
+// DEPRECATED This has been replaced by Boost program_options in main.cc
+// I'm leaving this here for reference.
 void Ctable::usage() {
   cerr << "Usage: ./ezsmtPlus -file <path> [-file <path>] [-file <path>] "
           "<num1> <num2> [-PrintExtAS] "
@@ -387,6 +388,4 @@ void Ctable::usage() {
           "number of atoms) would be selected by default."
        << endl
        << "[-non-linear] selects non-linear logics for SMT solvers." << endl;
-}
-
-;
+};

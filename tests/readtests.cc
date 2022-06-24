@@ -108,7 +108,6 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
   //         "4 1 x 1 2\n"
   //         "4 1 z 1 3\n"
   //         "0";
-  //     // TODO Make more specific
   //     REQUIRE_THROWS(read.read(writeTempFile(grounded)));
   // }
 

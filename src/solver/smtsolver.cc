@@ -155,7 +155,6 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
 
 string Solver::getMinimizationAssertionString(map<MinimizationStatement*,string> &minimizationResults) {
   ostringstream output;
-  // TODO Support priorities
   output << "(assert (or ";
   for (auto minimization : minimizationResults) {
     output << "(< " << minimization.first->getSmtAtomName() << " " << minimization.second << ") ";
@@ -179,7 +178,7 @@ string Solver::getProgramBodyString(Program &program) {
   logic->getDeclarationStatements(output);
 
   for (Clause *c : program.clauses) {
-    output << "(assert " << c->toSmtLibString() << ")" << endl;
+    output << "(assert " << toSMTString(c) << ")" << endl;
   }
   logic->getAssertionStatements(output);
 
@@ -195,3 +194,22 @@ string Solver::getProgramBodyString(Program &program) {
   return output.str();
 }
 
+string Solver::toSMTString(Clause *clause) {
+  ostringstream expression;
+  Atom **a;
+
+  expression << "(or";
+
+  for (a = clause->nbody; a != clause->nend; a++) {
+    string atomName = (*a)->getSmtName();
+    expression << " (not " << atomName << ")";
+  }
+  for (a = clause->pbody; a != clause->pend; a++) {
+    string atomName = (*a)->getSmtName();
+    expression << " " << atomName;
+  }
+
+  expression << ")";
+
+  return expression.str();
+}

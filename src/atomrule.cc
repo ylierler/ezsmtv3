@@ -2270,7 +2270,6 @@ void Clause::print(bool useAtomNames) {
   cout << '.' << endl;
 }
 
-// TODO delete
 void Clause::printcnf(FILE *file) {
   Atom **a;
   int comma = 0;
@@ -2291,7 +2290,6 @@ void Clause::printcnf(FILE *file) {
   fprintf(file, " 0\n");
 }
 
-// TODO delete
 void Clause::printsmtcnf(FILE *file) {
   Atom **a;
   int comma = 0;
@@ -2313,27 +2311,8 @@ void Clause::printsmtcnf(FILE *file) {
 }
 
 // TODO move to smtsolver
-string Clause::toSmtLibString() {
-  ostringstream expression;
-  Atom **a;
 
-  expression << "(or";
-
-  for (a = nbody; a != nend; a++) {
-    string atomName = (*a)->getSmtName();
-    expression << " (not " << atomName << ")";
-  }
-  for (a = pbody; a != pend; a++) {
-    string atomName = (*a)->getSmtName();
-    expression << " " << atomName;
-  }
-
-  expression << ")";
-
-  return expression.str();
-}
-
-// TODO delete
+// DEPRECATED This is replaced by smtsolver.cc
 void Atom::printsmt(FILE *file) {
   /*  std::string str;
   std::string comma (",");

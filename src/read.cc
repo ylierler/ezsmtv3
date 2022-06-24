@@ -63,12 +63,12 @@ enum StatementType {
   END = 0,
   RULE = 1,
   MINIMIZE = 2,
-  PROJECT = 3,    // TODO support later on
+  PROJECT = 3,    // NOTE Not supported
   OUTPUT = 4,
-  EXTERNAL = 5,   // TODO look into later
-  ASSUMPTION = 6, // TODO look into later
-  HEURISTIC = 7,  // TODO look into later
-  EDGE = 8,       // TODO look into later
+  EXTERNAL = 5,   // NOTE Not supported
+  ASSUMPTION = 6, // NOTE Not supported
+  HEURISTIC = 7,  // NOTE Not supported
+  EDGE = 8,       // NOTE Not supported
   THEORY = 9,
   COMMENT = 10
 };
@@ -76,13 +76,12 @@ enum StatementType {
 enum HeadType {
   // x :- y.
   // x|y :- z.
-  DISJUNCTION = 0, // TODO Only support head size 1
-  CHOICE = 1       // { x } :- y.
+  DISJUNCTION = 0,
+  // { x } :- y.
+  CHOICE = 1
 };
 
 enum BodyType { NORMAL_BODY = 0, WEIGHT_BODY = 1 };
-
-// TODO will cmodels support choice head with weight body?
 
 void Read::readRuleLine(istringstream &line) {
   int headType, headLength;
@@ -92,6 +91,10 @@ void Read::readRuleLine(istringstream &line) {
     api->begin_rule(BASICRULE);
   } else if (headType == CHOICE) {
     api->begin_rule(CHOICERULE);
+  }
+
+  if (headType == DISJUNCTION && headLength > 1) {
+    LOG(FATAL) << "Disjunction rules with more than one head atom are not supported. Line: " + line.str();
   }
 
   for (int i = 0; i < headLength; i++) {
@@ -162,7 +165,6 @@ void Read::readOutputLine(istringstream &line) {
   long atomId;
   line >> _ >> atomName >> numOfLiterals >> atomId;
 
-  // FIXME Include zero numOfLiterals atoms in output
   if (numOfLiterals == 0) {
     auto atom = api->new_atom();
     api->set_name(atom, atomName.c_str());
