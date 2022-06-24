@@ -6,7 +6,7 @@ target_link_libraries(test PRIVATE glog::glog ${Boost_LIBRARIES})
 target_sources(ezsmtPlus
   PUBLIC
     ctable.cc
-    rulebuilder.cc
+    api.cc
     atomrule.cc
     read.cc
     timer.cc
@@ -22,7 +22,7 @@ target_sources(ezsmtPlus
 target_sources(test
   PUBLIC
     ctable.cc
-    rulebuilder.cc
+    api.cc
     atomrule.cc
     read.cc
     timer.cc

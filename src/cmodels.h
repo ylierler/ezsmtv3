@@ -22,7 +22,7 @@
 #include "program.h"
 //#include "wf.h"
 #include "interpret.h"
-#include "rulebuilder.h"
+#include "api.h"
 #include "solver/smtsolver.h"
 #include <vector>
 

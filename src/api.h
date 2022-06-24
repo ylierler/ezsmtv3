@@ -71,31 +71,6 @@ public:
   amap atomMap;
 };
 
-class RuleBuilder {
-public:
-  RuleBuilder();
-
-private:
-  unordered_set<int> head;
-  unordered_set<int> body;
-
-  // listApi pbody;
-  // listApi nbody;
-  // listApi nnbody; //body with double negation
-  // listApi head;
-
-  // //  listApi temp; //for sorting
-  // list<Rule*> tempRules; //for sorting
-  // list<NestedRule*> tempNestedRules; //for sorting
-  // listApi compPbody; //completion bodies
-  // listApi compNbody;
-
-  void addHead(int literal);
-  void addBody(int literal);
-  Rule build();
-};
-
-// FIXME: Deprecate
 class Api {
 public:
   Api(Program *);

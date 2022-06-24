@@ -34,7 +34,7 @@
 #include "atomrule.h"
 #include "defines.h"
 #include "program.h"
-#include "rulebuilder.h"
+#include "api.h"
 
 bool Atom::change = false;
 bool Atom::conflict = false;
