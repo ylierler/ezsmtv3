@@ -20,18 +20,6 @@
 namespace bp = boost::process;
 
 void logIterationResults(int roundNumber, SolverResult& results, chrono::milliseconds totalRoundDuration) {
-  // TODO
-  // if (VLOG_IS_ON(1) && !minimizationValues.empty()) {
-  //   cout << "Minimization: ";
-  // }
-
-  // if (!minimizationValues.empty()) {
-  //   for (auto minimization : minimizationValues) {
-  //     cout << minimization.second;
-  //   }
-  //   cout << " : ";
-  // }
-
   if (VLOG_IS_ON(1)) {
     cout << "Answer " << roundNumber << ": ";
   }
@@ -59,6 +47,17 @@ void logIterationResults(int roundNumber, SolverResult& results, chrono::millise
     cout << endl;
   }
 
+  if (VLOG_IS_ON(1) && !results.minimizationAtomAssignments.empty()) {
+    cout << "Minimization: ";
+  }
+
+  if (!results.minimizationAtomAssignments.empty()) {
+    for (auto minimization : results.minimizationAtomAssignments) {
+      cout << minimization.second;
+    }
+    cout << endl;
+  }
+
   VLOG(1) << "Finished round " << roundNumber << " in " << totalRoundDuration.count() << "ms";
   VLOG(1) << "  " << results.solveDuration.count() << "ms SMT Check Satisfiability";
   VLOG(1) << "  " << results.getValuesDuration.count() << "ms SMT Get Values";
@@ -69,12 +68,6 @@ void logIterationResults(int roundNumber, SolverResult& results, chrono::millise
 
 // call EZSMT and SMT solver
 void Solver::callSMTSolver(Param &params, Program &program) {
-
-  // Override -s option with --solver-command if provided
-  // if (!params.smtSolverCommand.empty()) {
-  //   solverCommand = params.smtSolverCommand;
-  // }
-
   list<TheoryStatement*> theoryStatements;
   for (auto pair : program.theoryStatements) {
     theoryStatements.push_back(pair.second);
@@ -84,15 +77,14 @@ void Solver::callSMTSolver(Param &params, Program &program) {
   this->logic.processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
-  // string programCheckSatFooter = getCheckSatString(program);
 
-  SMTProcess solverProcess(params.SMTsolver);
+  // Override -s option with --solver-command if provided
+  auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);
 
   solverProcess.Send(programBody);
   if (VLOG_IS_ON(3)) {
     cout << "Wrote program body:" << endl << programBody;
   }
-
 
   auto constraintVariables = logic.getConstraintVariables();
   list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
@@ -101,48 +93,34 @@ void Solver::callSMTSolver(Param &params, Program &program) {
 
   int i = 1;
   for (;; i++) {
-
-    // map<string, string> resultMinimizationValues; TODO
-
-    auto result = solverProcess.CheckSatAndGetAssignments(atoms, constraintVariables);
+    auto result = solverProcess.CheckSatAndGetAssignments(atoms, constraintVariables, program.minimizations);
 
     if (i == 1) {
-      LOG(INFO) << (result.isSatisfiable ? "SAT" : "UNSAT");
+      LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");
     }
 
-    if (!result.isSatisfiable) {
+    if (!result->isSatisfiable) {
       break;
     }
 
     // Only log timer results if SAT
     auto roundEnd = chrono::high_resolution_clock::now();
-    logIterationResults(i, result, chrono::duration_cast<chrono::milliseconds>(roundEnd - roundStart));
+    logIterationResults(i, *result, chrono::duration_cast<chrono::milliseconds>(roundEnd - roundStart));
     roundStart = chrono::high_resolution_clock::now();
-
-    // TODO
-    // if (!resultMinimizationValues.empty()) {
-    //   auto minimizationAssertion = getMinimizationAssertionString(resultMinimizationValues);
-    //   solverProcess.Send(minimizationAssertion);
-    // }
 
     if (params.answerSetsToEnumerate != 0 &&
         params.answerSetsToEnumerate == i) {
       break;
     }
 
-    auto answerSetNegation = getAnswerNegationString(result, params.includeConstraintsInEnumeration);
+    if (!result->minimizationAtomAssignments.empty()) {
+      auto minimizationAssertion = getMinimizationAssertionString(result->minimizationAtomAssignments);
+      solverProcess.Send(minimizationAssertion);
+    }
+
+    auto answerSetNegation = getAnswerNegationString(*result, params.includeConstraintsInEnumeration);
     solverProcess.Send(answerSetNegation);
   }
-}
-
-
-void Solver::writeToFile(string input, string outputFileName) {
-  ofstream outputStream;
-  outputStream.open(outputFileName);
-  outputStream << input;
-  outputStream.close();
-
-  VLOG(3) << "Wrote SMT-LIB file:" << endl << input << endl;
 }
 
 string Solver::getAnswerNegationString(SolverResult& result, bool includeConstraintVariables) {
@@ -175,47 +153,23 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
   return output.str();
 }
 
-string Solver::getMinimizationAssertionString(map<string,string> &minimizationResults) {
+string Solver::getMinimizationAssertionString(map<MinimizationStatement*,string> &minimizationResults) {
   ostringstream output;
   // TODO Support priorities
   output << "(assert (or ";
   for (auto minimization : minimizationResults) {
-    output << "(< " << minimization.first << " " << minimization.second << ") ";
+    output << "(< " << minimization.first->getSmtAtomName() << " " << minimization.second << ") ";
   }
   output << "))" << endl;
 
-  VLOG(3) << "Generated minimization assertion:" << endl << output.str();
   return output.str();
 }
-
-// TODO
-// string Solver::getCheckSatString(Program &program) {
-//   ostringstream output;
-//   output << "(check-sat)" << endl;
-
-//   output << "(get-value (";
-//   for (Atom *a : program.atoms) {
-//     if (a->showInOutputAnswerSet) {
-//       output << a->getSmtName() << " ";
-//     }
-//   }
-//   for (auto minimization : program.minimizations) {
-//     output << minimization->getSmtAtomName() << " ";
-//   }
-//   for (auto constraintVariable : this->logic.getConstraintVariables()) {
-//     output << constraintVariable->name << " ";
-//   }
-//   output << "))" << endl;
-
-//   return output.str();
-// }
 
 // FIXME this is copying strings
 string Solver::getProgramBodyString(Program &program) {
   ostringstream output;
 
   output << "(set-info :smt-lib-version 2.6)" << endl;
-  output << "(set-option :produce-models true)" << endl; // TODO don't produce models for performance?
   output << "(set-option :produce-assignments true)" << endl;
   output << "(set-logic " << logic.SMT_LOGIC_NAME() << ")" << endl;
 
@@ -257,8 +211,12 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
     solverCommand = "../tools/yices-smt2 ";
 
   VLOG(3) << "Starting child process for solver: " << solverCommand;
-
   process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
+}
+
+SMTProcess::SMTProcess(string customSolverCommand) {
+  VLOG(3) << "Starting child process for solver: " << customSolverCommand;
+  process = bp::child(customSolverCommand, bp::std_out > output, bp::std_in < input);
 }
 
 void SMTProcess::Send(string body) {
@@ -266,13 +224,13 @@ void SMTProcess::Send(string body) {
   input << body << endl;
 }
 
-SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<SymbolicTerm*> constraintVariables) {
-  SolverResult result;
+unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations) {
+  auto result = unique_ptr<SolverResult>(new SolverResult());
 
   auto solveStart = chrono::high_resolution_clock::now();
   Send("(check-sat)");
   auto solveEnd = chrono::high_resolution_clock::now();
-  result.solveDuration = chrono::duration_cast<chrono::milliseconds>(solveEnd - solveStart);
+  result->solveDuration = chrono::duration_cast<chrono::milliseconds>(solveEnd - solveStart);
 
   string satResult;
   std::getline(output, satResult);
@@ -282,40 +240,53 @@ SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<Symbo
   }
 
   if (satResult == "unsat") {
-    result.isSatisfiable = false;
+    result->isSatisfiable = false;
     return result;
   }
 
-  result.isSatisfiable = true;
+  result->isSatisfiable = true;
 
   auto getValuesStart = chrono::high_resolution_clock::now();
 
+  // Atoms
   list<string> atomNames;
   transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
   auto rawAtomAssignments = getRawAssignments(atomNames);
   for (Atom* atom : atoms) {
     string atomName = atom->getSmtName();
     if (rawAtomAssignments.find(atomName) != rawAtomAssignments.end()) {
-      result.atomAssignments[atom] = rawAtomAssignments[atomName] == "true" ? true : false;
+      result->atomAssignments[atom] = rawAtomAssignments[atomName] == "true" ? true : false;
     }
   }
 
+  // Constraint variables
   list<string> variableNames;
   transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
   auto rawVariableAssignments = getRawAssignments(variableNames);
   for (SymbolicTerm* variable : constraintVariables) {
     if (rawVariableAssignments.find(variable->name) != rawVariableAssignments.end()) {
-      result.constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];
+      result->constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];
+    }
+  }
+
+  // Minimization statements
+  list<string> minimizationAtomNames;
+  transform(minimizations.begin(), minimizations.end(), std::back_inserter(minimizationAtomNames), [](MinimizationStatement* m) { return m->getSmtAtomName(); });
+  auto rawMinimizationAssignments = getRawAssignments(minimizationAtomNames);
+  for (auto minimization : minimizations) {
+    string atomName = minimization->getSmtAtomName();
+    if (rawMinimizationAssignments.find(atomName) != rawMinimizationAssignments.end()) {
+      result->minimizationAtomAssignments[minimization] = rawMinimizationAssignments[atomName];
     }
   }
 
   auto getValuesEnd = chrono::high_resolution_clock::now();
-  result.getValuesDuration = chrono::duration_cast<chrono::milliseconds>(getValuesEnd - getValuesStart);
+  result->getValuesDuration = chrono::duration_cast<chrono::milliseconds>(getValuesEnd - getValuesStart);
 
   return result;
 }
 
-map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
+map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
   if (variableNames.empty()) {
     return map<string, string>();
   }

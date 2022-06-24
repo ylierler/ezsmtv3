@@ -71,8 +71,7 @@ class SymbolicExpressionParser {
       string::const_iterator searchStart(input.cbegin());
       while (regex_search(searchStart, input.cend(), match, r)) {
         searchStart = match.suffix().first;
-        tokens.push_back(match[0].str()); // TODO
-        VLOG(3) << "Found token: " << match[0].str();
+        tokens.push_back(match[0].str());
       }
     }
 
@@ -103,6 +102,7 @@ class SolverResult {
     bool isSatisfiable;
     map<Atom*, bool> atomAssignments;
     map<SymbolicTerm*, string> constraintVariableAssignments;
+    map<MinimizationStatement*, string> minimizationAtomAssignments;
 
     chrono::milliseconds solveDuration;
     chrono::milliseconds getValuesDuration;
@@ -119,7 +119,7 @@ private:
   string getProgramBodyString(Program &program);
   // string getCheckSatString(Program &program);
   string getAnswerNegationString(SolverResult& result, bool includeConstraintVariables);
-  string getMinimizationAssertionString(map<string,string> &minimizationResults);
+  string getMinimizationAssertionString(map<MinimizationStatement*,string> &minimizationResults);
   void writeToFile(string input, string outputFileName);
 
   // FIXME
@@ -130,15 +130,17 @@ private:
 class SMTProcess {
 public:
   SMTProcess(SMTSolverCommand solverCommand);
+  SMTProcess(string solverCommand);
+
   void Send(string body);
-  SolverResult CheckSatAndGetAssignments(list<Atom*> atoms, list<SymbolicTerm*> constraintVariables);
+  unique_ptr<SolverResult> CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations);
 private:
   SMTSolverCommand solverOption;
   boost::process::ipstream output;
   boost::process::opstream input;
   boost::process::child process;
 
-  map<string, string> getRawAssignments(list<string> variableNames);
+  map<string, string> getRawAssignments(list<string> &variableNames);
 
 };
 

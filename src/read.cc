@@ -732,6 +732,11 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   for (int i = 0; i < numOfLiterals; i++) {
     int literal, weight;
     line >> literal >> weight;
+
+    if (weight != 0) {
+      LOG(WARNING) << "Minimization statements currently don't support different weights. Ignoring weight " << weight;
+    }
+
     auto atom = getAtomFromLiteral(literal);
     minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight));
   }
