@@ -1,8 +1,10 @@
+#include <iostream>
 #include <sstream>
 #include <string.h>
 #include "catch2/catch_test_macros.hpp"
 
 using std::string;
+using namespace std;
 
 const int SUCCESS = 0;
 const int FAILURE = 1;
@@ -14,13 +16,15 @@ void assertEnumeratedAnswerSetsMatchExpected(string testName) {
     string outputPath = "temp.output";
 
     std::stringstream command;
-    command << "./ezsmtPlus --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -v 0 | sort > " << outputPath;
+    command << "./ezsmtPlus --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -v 0 > " << outputPath;
 
+    cout << "Running: " << command.str() << endl;
     int exitCode = system(command.str().c_str());
     REQUIRE(exitCode == SUCCESS);
 
     std::stringstream diffCommand;
-    diffCommand << "diff -w " << outputPath << " " << expectedPath;
+    // Diff ignoring whitespace and blank lines
+    diffCommand << "diff -w -B " << outputPath << " " << expectedPath;
 
     exitCode = system(diffCommand.str().c_str());
     REQUIRE(exitCode == SUCCESS);
