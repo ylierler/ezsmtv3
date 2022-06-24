@@ -63,6 +63,7 @@ public:
 
   int verboseLogLevel;
   int answerSetsToEnumerate;
+  bool includeConstraintsInEnumeration;
   std::string grounderCommand;
   std::string smtSolverCommand;
 

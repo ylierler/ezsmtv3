@@ -8,6 +8,83 @@
 #include "program.h"
 #include "smtlogics.h"
 #include <boost/process.hpp>
+#include <regex>
+
+class ISMTExpression {
+public:
+  virtual ~ISMTExpression() {};
+  virtual string ToString() { return ""; };
+};
+
+class SMTVariable : public ISMTExpression {
+public:
+    string content;
+    SMTVariable(string content) {
+      this->content = content;
+    }
+
+    string ToString() {
+      return content;
+    }
+};
+
+class SMTList : public ISMTExpression {
+  public:
+    list<ISMTExpression*> children;
+
+    string ToString() {
+      ostringstream output;
+      output << "(";
+      for (auto child : children) {
+        output << child->ToString() << " ";
+      }
+      output << ") ";
+      return output.str();
+    }
+};
+
+// https://stackoverflow.com/questions/15679672/recursive-parsing-for-lisp-like-syntax
+class SMTExpressionParser {
+  public:
+    SMTList* ParseListExpression(string input) {
+      readSymbols(input);
+      return parseList();
+    }
+  private:
+    list<string> symbols;
+
+    void readSymbols(string input) {
+      regex symbolsRegex("[()]|[^ ()]+|\\|[^ ]+\\|");
+      smatch match;
+      string::const_iterator searchStart(input.cbegin());
+      while (regex_search(searchStart, input.cend(), match, symbolsRegex)) {
+        cout << "readSymbols " << input;
+        searchStart = match.suffix().first;
+        symbols.push_back(match[0].str()); // TODO
+      }
+    }
+
+    SMTList* parseList() {
+      symbols.pop_front();
+      auto list = new SMTList();
+      while (symbols.front() != ")") {
+        auto member = parseExpression();
+        list->children.push_back(member);
+      }
+      symbols.pop_front();
+      return list;
+    }
+
+    ISMTExpression* parseExpression() {
+      if (symbols.front() == "(") {
+        return parseList();
+      } else {
+        string symbol = symbols.front();
+        symbols.pop_front();
+        return new SMTVariable(symbol);
+      }
+    }
+};
 
 class SolverResult {
   public:

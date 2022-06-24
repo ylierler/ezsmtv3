@@ -258,6 +258,8 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("solver,s", popts::value<string>()->default_value("cvc4"), "Backend SMT Solver [z3|cvc4|cvc5|yices]") //
     ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
       "Enumerate X answer sets. 0 or -e will enumerate all answer sets.")
+    ("enumerate-constraints,E", popts::value<bool>()->default_value(false)->implicit_value(true),
+      "Include constraint values when enumerating distinct answer sets.")
     ("solver-command", popts::value<string>(), //
       "Override the SMT solver command used. This will override the --solver "
       "option. The command must support reading the SMT-LIB program from "
@@ -300,6 +302,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       params.SMTsolver = YICES;
 
     params.answerSetsToEnumerate = vm["enumerate"].as<int>();
+    params.includeConstraintsInEnumeration = vm["enumerate-constraints"].as<bool>();
   } catch (const std::exception &e) {
     cout << "Error parsing arguments: " << e.what() << endl;
     showHelpMenu = true;

@@ -39,7 +39,7 @@ void logIterationResults(int roundNumber, SolverResult& results, Timer &roundTim
 
   for (auto assignment : results.atomAssignments) {
     if (assignment.second) {
-      cout << assignment.first->name << " ";
+      cout << assignment.first->atom_name() << " ";
     }
   }
   cout << endl;
@@ -100,8 +100,9 @@ void Solver::callSMTSolver(Param &params, Program &program) {
       break;
     }
 
-    auto answerSetNegation = getAnswerNegationString(result, true);
-    solverProcess.Send(answerSetNegation);
+    // Only log timer results if SAT
+    timer.stop();
+    logIterationResults(i, result, timer);
 
     // TODO
     // if (!resultMinimizationValues.empty()) {
@@ -109,13 +110,13 @@ void Solver::callSMTSolver(Param &params, Program &program) {
     //   solverProcess.Send(minimizationAssertion);
     // }
 
-    timer.stop();
-    logIterationResults(i, result, timer);
-
     if (params.answerSetsToEnumerate != 0 &&
         params.answerSetsToEnumerate == i) {
       break;
     }
+
+    auto answerSetNegation = getAnswerNegationString(result, params.includeConstraintsInEnumeration);
+    solverProcess.Send(answerSetNegation);
   }
 }
 
@@ -180,10 +181,13 @@ bool Solver::parseSolverResults(bp::ipstream &inputStream,
 }
 
 string Solver::getAnswerNegationString(SolverResult& result, bool includeConstraintVariables) {
-  // TODO Should I include negatives (false)?
+  if (result.atomAssignments.size() == 0) {
+    LOG(FATAL) << "Cannot create answer negation for empty set";
+  }
 
   ostringstream output;
   output << "(assert (not (and";
+
   for (pair<Atom*, bool> atomAssignment : result.atomAssignments) {
     string atomName = atomAssignment.first->getSmtName();
     output << " ";
@@ -193,15 +197,14 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
       output << "(not " << atomName << ")";
     }
   }
-  output << ")))" << endl;
 
-  if (includeConstraintVariables) {
-    output << "(assert (not (and";
+  if (includeConstraintVariables && result.constraintVariableAssignments.size() > 0) {
     for (pair<SymbolicTerm*, string> variableAssignment : result.constraintVariableAssignments) {
       output << " (= " << variableAssignment.first->name << " " << variableAssignment.second << ")";
     }
-    output << ")))";
   }
+
+  output << ")))" << endl;
 
   VLOG(3) << "Generated answer negation:" << endl << output.str();
   return output.str();
@@ -328,7 +331,7 @@ SolverResult SMTProcess::CheckSatAndGetAssignments(list<Atom*> atoms, list<Symbo
   transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
   auto rawVariableAssignments = getRawAssignments(variableNames);
   for (SymbolicTerm* variable : constraintVariables) {
-    if (rawAtomAssignments.find(variable->name) != rawAtomAssignments.end()) {
+    if (rawVariableAssignments.find(variable->name) != rawVariableAssignments.end()) {
       result.constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];
     }
   }
@@ -362,15 +365,15 @@ map<string, string> SMTProcess::getRawAssignments(list<string> variableNames) {
   string assignmentsLine = singleLineStream.str();
   map<string,string> rawAssignments;
 
-  regex r("\\((\\|[^ ]+\\||[^ ]+) ([^()]+)\\)");
-  smatch match;
-  string::const_iterator searchStart(assignmentsLine.cbegin());
-  while (regex_search(searchStart, assignmentsLine.cend(), match, r)) {
-    searchStart = match.suffix().first;
-    string variable = match[1].str();
-    string value = match[2].str();
+  SMTExpressionParser parser;
+  auto assignmentsList = parser.ParseListExpression(assignmentsLine);
+  for (auto a : assignmentsList->children) {
+    auto assignment = dynamic_cast<SMTList*>(a);
+    auto variable = dynamic_cast<SMTVariable*>(assignment->children.front());
+    auto value = dynamic_cast<ISMTExpression*>(assignment->children.back());
 
-    rawAssignments[variable] = value;
+    VLOG(2) << "Parsed assignment: " << variable->ToString() << "=" << value->ToString();
+    rawAssignments[variable->content] = value->ToString();
   }
 
   return rawAssignments;
