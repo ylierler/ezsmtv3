@@ -7,6 +7,7 @@
 #include <queue>
 #include <vector>
 #include <sstream>
+#include <glog/logging.h>
 
 using namespace std;
 
@@ -53,7 +54,7 @@ class SymbolicTerm : public ITheoryTerm {
       this->name = name;
     }
 
-    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) override {
       visitor(this);
     }
 };
@@ -76,7 +77,7 @@ class TupleTerm : public ITheoryTerm {
       this->type = type;
     }
 
-    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) override {
       visitor(this);
       for (ITheoryTerm* t : children) {
         t->traverseNestedTerms(visitor);
@@ -84,18 +85,18 @@ class TupleTerm : public ITheoryTerm {
     }
 };
 
-class CompoundTerm : public ITheoryTerm {
+class ExpressionTerm : public ITheoryTerm {
   public:
     int id;
     SymbolicTerm* operation;
     list<ITheoryTerm *> children;
 
-    CompoundTerm(int id, SymbolicTerm* operation) {
+    ExpressionTerm(int id, SymbolicTerm* operation) {
       this->id = id;
       this->operation = operation;
     }
 
-    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) override {
       visitor(this);
       for (ITheoryTerm* t : children) {
         t->traverseNestedTerms(visitor);
@@ -111,6 +112,12 @@ public:
 
   TheoryAtomElement(int id) {
     this->id = id;
+  }
+
+  void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+    for (auto term : terms) {
+      visitor(term);
+    }
   }
 };
 
@@ -129,6 +136,13 @@ public:
     this->leftElements = leftElements;
     this->operation = operation;
     this->rightTerm = rightTerm;
+  }
+
+  void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) {
+    for (auto element : leftElements) {
+      element->traverseNestedTerms(visitor);
+    }
+    rightTerm->traverseNestedTerms(visitor);
   }
 };
 

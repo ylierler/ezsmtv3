@@ -298,7 +298,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
     read.read(writeTempFile(grounded));
 
     SECTION("should parse binary operation") {
-      auto term = dynamic_cast<CompoundTerm*>(program->theoryTerms[4]);
+      auto term = dynamic_cast<ExpressionTerm*>(program->theoryTerms[4]);
       REQUIRE(term != nullptr);
       CHECK(term->id == 4);
       CHECK(term->operation == program->theoryTerms[3]);

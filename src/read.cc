@@ -36,6 +36,7 @@
 #include <limits.h>
 #include <list>
 #include <map>
+#include <regex>
 #include <sstream>
 #include <stdexcept>
 #include <string.h>
@@ -296,7 +297,7 @@ void Read::readTheoryTerms(list<string> &lines) {
               LOG(FATAL) << "Could not find symbolic operator theory term " << operationTerm << " referenced by line '" << line << "'";
             }
 
-            auto compoundTerm = new CompoundTerm(termId, operationTerm);
+            list<ITheoryTerm*> childTerms;
             for (int i = 0; i < numOfTerms; i++) {
               int childTermId;
               lineStream >> childTermId;
@@ -304,9 +305,36 @@ void Read::readTheoryTerms(list<string> &lines) {
               if (childTerm == nullptr) {
                 LOG(FATAL) << "Could not find child theory term " << childTermId << " referenced by line '" << line << "'";
               }
-              compoundTerm->children.push_back(childTerm);
+              childTerms.push_back(childTerm);
             }
-            program->theoryTerms[termId] = compoundTerm;
+
+            ITheoryTerm* newTerm;
+
+            bool isValidSymbolName = regex_match(operationTerm->name, regex("^[A-z_]$"));
+            if (isValidSymbolName) {
+              ostringstream symbolName;
+              symbolName << operationTerm->name;
+              symbolName << "(";
+              for (auto child : childTerms) {
+                auto childSymbolicTerm = dynamic_cast<SymbolicTerm*>(child);
+                if (!childSymbolicTerm) {
+                  LOG(FATAL) << "Constraint variables can only contain symbolic terms. Line: " << line;
+                }
+
+                symbolName << childSymbolicTerm->name;
+                if (child != childTerms.back()) {
+                  symbolName << ",";
+                }
+              }
+              symbolName << ")";
+              newTerm = new SymbolicTerm(termId, symbolName.str());
+            } else {
+              auto expressionTerm = new ExpressionTerm(termId, operationTerm);
+              expressionTerm->children = childTerms;
+              newTerm = expressionTerm;
+            }
+
+            program->theoryTerms[termId] = newTerm;
           }
           break;
       }

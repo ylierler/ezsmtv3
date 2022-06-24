@@ -10,22 +10,14 @@ void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
     for (auto statement : statements) {
         if (statement->symbolicTerm->name == "sum") {
             this->statements.push_back(statement);
-            for (auto element : statement->leftElements) {
-                for (auto term : element->terms) {
-                    term->traverseNestedTerms([&](ITheoryTerm* term) {
-                        if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
-                            symbolicTerms[s->id] = s;
-                        }
-                    });
-                }
-            }
-            statement->rightTerm->traverseNestedTerms([&](ITheoryTerm* term) {
-                if (SymbolicTerm* s = dynamic_cast<SymbolicTerm*>(term)) {
+
+            statement->traverseNestedTerms([&](ITheoryTerm* term) {
+                if (auto s = dynamic_cast<SymbolicTerm*>(term)) {
                     symbolicTerms[s->id] = s;
                 }
             });
         } else {
-            LOG(FATAL) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm;
+            LOG(WARNING) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm->name;
         }
     }
 }
@@ -40,7 +32,7 @@ void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
 void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
         if (statement->symbolicTerm->name != "sum")  {
-            LOG(FATAL) << "The EZSMTPLUS " << SMT_LOGIC_NAME() << " implementation does not support symbolic term " << statement->symbolicTerm;
+            LOG(WARNING) << "The EZSMTPLUS " << SMT_LOGIC_NAME() << " implementation does not support symbolic term " << statement->symbolicTerm->name;
         }
 
         output << "(assert (= " << statement->statementAtom->getSmtName() << " ";
@@ -87,7 +79,7 @@ string QF_LIA_logic::toString(ITheoryTerm* term) {
         if (t->type == PARENTHESES) {
             return string("(") + toString(*(t->children.begin())) + ")";
         }
-    } else if (auto t = dynamic_cast<CompoundTerm*>(term)) {
+    } else if (auto t = dynamic_cast<ExpressionTerm*>(term)) {
         string childTerms = std::reduce(t->children.begin(), t->children.end(), string(),
             [&](string current, ITheoryTerm* next) {
                 return current + " " + toString(next);

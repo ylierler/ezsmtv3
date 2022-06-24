@@ -83,9 +83,6 @@ void Solver::SolveProgram(Param &params, Program &program) {
   auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);
 
   solverProcess.Send(programBody);
-  if (VLOG_IS_ON(3)) {
-    cout << "Wrote program body:" << endl << programBody;
-  }
 
   auto constraintVariables = logic->getConstraintVariables();
   list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
