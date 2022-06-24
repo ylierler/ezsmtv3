@@ -1,11 +1,12 @@
-#include "smtlogics.h"
+#include "logic.h"
+#include "QF_LIA_logic.h"
 #include "glog/logging.h"
 #include "program.h"
 #include <numeric>
 
-string QF_LIA::SMT_LOGIC_NAME() { return "QF_LIA"; }
+string QF_LIA_logic::SMT_LOGIC_NAME() { return "QF_LIA"; }
 
-void QF_LIA::processTheoryStatements(list<TheoryStatement*> statements) {
+void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
     for (auto statement : statements) {
         if (statement->symbolicTerm->name == "sum") {
             this->statements.push_back(statement);
@@ -29,14 +30,14 @@ void QF_LIA::processTheoryStatements(list<TheoryStatement*> statements) {
     }
 }
 
-void QF_LIA::getDeclarationStatements(std::ostringstream &output) {
+void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
     for (const auto p : symbolicTerms) {
         auto term = p.second;
         output << "(declare-const " << term->name << " Int)" << endl;
     }
 }
 
-void QF_LIA::getAssertionStatements(std::ostringstream &output) {
+void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
         if (statement->symbolicTerm->name != "sum")  {
             LOG(FATAL) << "The EZSMTPLUS " << SMT_LOGIC_NAME() << " implementation does not support symbolic term " << statement->symbolicTerm;
@@ -53,7 +54,7 @@ void QF_LIA::getAssertionStatements(std::ostringstream &output) {
     }
 }
 
-list<SymbolicTerm*> QF_LIA::getConstraintVariables() {
+list<SymbolicTerm*> QF_LIA_logic::getConstraintVariables() {
     list<SymbolicTerm*> variables;
     for (auto pair : symbolicTerms) {
         variables.push_back(pair.second);
@@ -61,7 +62,7 @@ list<SymbolicTerm*> QF_LIA::getConstraintVariables() {
     return variables;
 }
 
-string QF_LIA::toString(TheoryAtomElement* element) {
+string QF_LIA_logic::toString(TheoryAtomElement* element) {
     if (element->literals.empty()) {
         if (element->terms.size() == 1) {
             return toString(*(element->terms.begin()));
@@ -77,7 +78,7 @@ string QF_LIA::toString(TheoryAtomElement* element) {
     LOG(FATAL) << "Not yet supported";
 }
 
-string QF_LIA::toString(ITheoryTerm* term) {
+string QF_LIA_logic::toString(ITheoryTerm* term) {
     if (auto t = dynamic_cast<NumericTerm*>(term)) {
         return to_string(t->value);
     } else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {

@@ -7,7 +7,8 @@
 #include "glog/logging.h"
 #include "param.h"
 #include "program.h"
-#include "smtlogics.h"
+#include "logics/logic.h"
+#include "logics/QF_LIA_logic.h"
 #include <boost/process.hpp>
 #include <chrono>
 #include <memory>
@@ -123,7 +124,7 @@ private:
   void writeToFile(string input, string outputFileName);
 
   // FIXME
-  QF_LIA logic;
+  ILogic* logic;
 };
 
 

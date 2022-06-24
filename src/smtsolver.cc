@@ -73,8 +73,8 @@ void Solver::callSMTSolver(Param &params, Program &program) {
     theoryStatements.push_back(pair.second);
   }
 
-  this->logic = QF_LIA();
-  this->logic.processTheoryStatements(theoryStatements);
+  this->logic = new QF_LIA_logic();
+  this->logic->processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
 
@@ -86,7 +86,7 @@ void Solver::callSMTSolver(Param &params, Program &program) {
     cout << "Wrote program body:" << endl << programBody;
   }
 
-  auto constraintVariables = logic.getConstraintVariables();
+  auto constraintVariables = logic->getConstraintVariables();
   list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
 
   auto roundStart = chrono::high_resolution_clock::now();
@@ -149,7 +149,6 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
 
   output << ")))" << endl;
 
-  VLOG(3) << "Generated answer negation:" << endl << output.str();
   return output.str();
 }
 
@@ -171,17 +170,17 @@ string Solver::getProgramBodyString(Program &program) {
 
   output << "(set-info :smt-lib-version 2.6)" << endl;
   output << "(set-option :produce-assignments true)" << endl;
-  output << "(set-logic " << logic.SMT_LOGIC_NAME() << ")" << endl;
+  output << "(set-logic " << logic->SMT_LOGIC_NAME() << ")" << endl;
 
   for (Atom *a : program.atoms) {
     output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
   }
-  logic.getDeclarationStatements(output);
+  logic->getDeclarationStatements(output);
 
   for (Clause *c : program.clauses) {
     output << "(assert " << c->toSmtLibString() << ")" << endl;
   }
-  logic.getAssertionStatements(output);
+  logic->getAssertionStatements(output);
 
   for (MinimizationStatement *m : program.minimizations) {
     output << "(declare-const " << m->getSmtAtomName() << " Int)" << endl;

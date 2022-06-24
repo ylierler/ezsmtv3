@@ -1,22 +1,12 @@
-#ifndef SMTLOGICS_H_
-#define SMTLOGICS_H_
+#ifndef QF_LIA_logic_H_
+#define QF_LIA_logic_H_
 
 
 #include <sstream>
 #include "program.h"
+#include "logic.h"
 
-class ILogic {
-public:
-  virtual ~ILogic() {};
-  virtual string SMT_LOGIC_NAME() = 0;
-  virtual void processTheoryStatements(list<TheoryStatement*> statements) = 0;
-
-  virtual void getDeclarationStatements(std::ostringstream &output) = 0;
-  virtual void getAssertionStatements(std::ostringstream &output) = 0;
-  virtual list<SymbolicTerm*> getConstraintVariables() = 0;
-};
-
-class QF_LIA : public ILogic {
+class QF_LIA_logic : public ILogic {
 public:
     string SMT_LOGIC_NAME() override;
     void processTheoryStatements(list<TheoryStatement*> statements) override;
@@ -32,4 +22,4 @@ private:
     string toString(ITheoryTerm* term);
 };
 
-#endif // SMTLOGICS_H_
+#endif // QF_LIA_logic_H_
