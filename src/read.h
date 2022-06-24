@@ -32,7 +32,6 @@
 class Read {
 public:
   Read(Program *p, Api *a, Param *params);
-  ~Read();
   int read(string fileName);
 
   long models; // number of models to compute
@@ -41,8 +40,6 @@ private:
   Atom *getOrCreateAtom(long n);
   Atom *getAtomFromLiteral(long n);
   Atom *getFalseAtom(long n);
-  int readBody(FILE *f, long size, bool pos, RuleType type);
-  int finishReading(FILE *f, long size);
 
   void readRuleLine(istringstream &);
   void readMinimizeLine(istringstream &line, int minimizationStatementId);
@@ -51,14 +48,6 @@ private:
   void readTheoryStatements(list<string> &lines);
   void readTheoryTerms(list<string> &lines);
   void readTheoryAtomElements(list<string> &lines);
-
-  int addBasicRule(FILE *f);
-  int addDisjunctionRule(FILE *f);
-  int addConstraintRule(FILE *f);
-  int addGenerateRule(FILE *f);
-  int addChoiceRule(FILE *f);
-  int addWeightRule(FILE *f);
-  int addOptimizeRule(FILE *f);
 
   map<long, Atom *> atoms;
   long size;
