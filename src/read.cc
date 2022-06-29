@@ -310,7 +310,7 @@ void Read::readTheoryTerms(list<string> &lines) {
 
             ITheoryTerm* newTerm;
 
-            bool isValidSymbolName = regex_match(operationTerm->name, regex("^[A-z_]$"));
+            bool isValidSymbolName = regex_match(operationTerm->name, regex("^[A-z_]+$"));
             if (isValidSymbolName) {
               ostringstream symbolName;
               symbolName << operationTerm->name;

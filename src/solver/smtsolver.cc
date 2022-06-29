@@ -122,6 +122,10 @@ void Solver::SolveProgram(Param &params, Program &program) {
       solverProcess.Send(minimizationAssertion);
     }
 
+    if (result->atomAssignments.empty()) {
+      break;
+    }
+
     auto answerSetNegation = getAnswerNegationString(*result, params.includeConstraintsInEnumeration);
     solverProcess.Send(answerSetNegation);
   }
@@ -167,7 +171,6 @@ string Solver::getMinimizationAssertionString(map<MinimizationStatement*,string>
   return output.str();
 }
 
-// FIXME this is copying strings
 string Solver::getProgramBodyString(Program &program) {
   ostringstream output;
 

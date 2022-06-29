@@ -195,7 +195,7 @@ string Atom::getSmtName() {
     return smtName.substr(LEVEL_RANKING_ATOM_PREFIX.length());
   }
 
-  if (regex_match(smtName, regex("[()]"))) {
+  if (regex_match(smtName, regex(".*[(),0-9]+.*"))) {
     return "|" + smtName + "|";
   } else {
     return smtName;

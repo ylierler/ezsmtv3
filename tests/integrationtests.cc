@@ -43,4 +43,7 @@ TEST_CASE("ezsmtplus enumerates all answer sets", "[integration]") {
     SECTION("empty answer set outputs blank line") {
         assertEnumeratedAnswerSetsMatchExpected("empty-answer-set");
     }
+    SECTION("non-tight program should return empty answer set") {
+        assertEnumeratedAnswerSetsMatchExpected("empty-answer-set");
+    }
 }
