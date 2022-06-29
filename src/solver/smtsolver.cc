@@ -85,13 +85,18 @@ void Solver::SolveProgram(Param &params, Program &program) {
   solverProcess.Send(programBody);
 
   auto constraintVariables = logic->getConstraintVariables();
-  list<Atom*> atoms(program.atoms.begin(), program.atoms.end());
+  list<Atom*> answerSetAtoms;
+  for (auto a : program.atoms) {
+    if (a->showInOutputAnswerSet) {
+      answerSetAtoms.push_back(a);
+    }
+  }
 
   auto roundStart = high_resolution_clock::now();
 
   int i = 1;
   for (;; i++) {
-    auto result = solverProcess.CheckSatAndGetAssignments(atoms, constraintVariables, program.minimizations);
+    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations);
 
     if (i == 1) {
       LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");
