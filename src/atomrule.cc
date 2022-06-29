@@ -26,6 +26,7 @@
 #include <iostream>
 //#include <regex>
 #include <limits.h>
+#include <regex>
 #include <sstream>
 #include <string>
 #ifdef USEDOUBLE
@@ -180,11 +181,24 @@ void Atom::printClean(FILE *file) {
     fprintf(file, "%d", id);
 }
 
+bool Atom::isLevelRankingConstraint() {
+  return name && string(name).find(LEVEL_RANKING_ATOM_PREFIX) != string::npos;
+}
+
 string Atom::getSmtName() {
-  if (name) {
-    return "|" + string(name) + "|";
+  if (!name) {
+    return "|" + to_string(id) + "|";
+  }
+
+  string smtName = name;
+  if (isLevelRankingConstraint()) {
+    return smtName.substr(LEVEL_RANKING_ATOM_PREFIX.length());
+  }
+
+  if (regex_match(smtName, regex("[()]"))) {
+    return "|" + smtName + "|";
   } else {
-    return "|" + std::to_string(id) + "|";
+    return smtName;
   }
 }
 
@@ -2308,48 +2322,6 @@ void Clause::printsmtcnf(FILE *file) {
     comma = 1;
   }
   fprintf(file, " 0\n");
-}
-
-// TODO move to smtsolver
-
-// DEPRECATED This is replaced by smtsolver.cc
-void Atom::printsmt(FILE *file) {
-  /*  std::string str;
-  std::string comma (",");
-  std::string leftp ("(");
-  std::string rightp (")");
-  std::string::size_type foundcomma = str.find(comma);
-  char * pch;
-  str.assign(atom_name());
-  fprintf(file,"(declare-fun |");
-  printClean(file);
-  fprintf(file,"| () Bool)\n");
-  if(strncmp("cspvar",atom_name(),6)==0){
-    pch = strtok (str,",");
-    while (pch != NULL)
-      {
-        printf ("%s\n",pch);
-        pch = strtok (NULL, ",");
-      }
-  }
-  else
-    fprintf(file, "%d",id);
-  */
-
-  char str[256];
-  char name[256];
-  char sth[256];
-  int l;
-  int u;
-
-  if (strncmp("cspvar", atom_name(), 6) == 0) {
-    strcpy(str, atom_name());
-    sscanf(str, "cspvar(%[^,],%d,%d,)", name, &l, &u);
-    //  cout<<name<<";"<<l<<";"<<u<<";"<<endl;
-    fprintf(file, "(assert(=|%s| true))\n", str);
-    fprintf(file, "(declare-fun |%s| () Int))\n", name);
-    fprintf(file, "(assert (<= %d |%s| %d))\n", l, name, u);
-  }
 }
 
 void Clause::printBCircuit(FILE *file, char *gatename) {

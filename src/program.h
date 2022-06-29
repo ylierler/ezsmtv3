@@ -48,6 +48,7 @@ public:
 const string NEVER_ATOM = "EZSMTPLUS_NEVER";
 const string MINIMIZATION_SMT_PREFIX = "EZSMTPLUS_MINIMIZATION";
 const string THEORY_ATOM_PREFIX = "EZSMTPLUS_THEORY";
+const string LEVEL_RANKING_ATOM_PREFIX = "EZSMTPLUX_LR";
 
 class MinimizationStatement {
 
@@ -69,6 +70,23 @@ public:
   }
 };
 
+class LevelRankingVariable {
+public:
+    LevelRankingVariable(int id, int lowerBound, int upperBound) {
+      this->id = id;
+      this->lowerBound = lowerBound;
+      this->upperBound = upperBound;
+    }
+
+    int id;
+    int lowerBound;
+    int upperBound;
+
+    string GetSmtName() {
+      return "lr" + to_string(id);
+    }
+};
+
 class Program {
 public:
   Program();
@@ -88,6 +106,7 @@ public:
   map<int, ITheoryTerm *> theoryTerms;
   map<int, TheoryAtomElement *> theoryAtomElements;
   map<int, TheoryStatement *> theoryStatements;
+  list<LevelRankingVariable> levelRankingVariables;
 
 
   // Vector which will have all the completions

@@ -99,6 +99,7 @@ public:
   static void setChangeTrue() { Atom::change = true; }
   static void setConflictTrue() { Atom::conflict = true; }
 
+  bool isLevelRankingConstraint();
   string getSmtName();
 
   // (allocated in head)

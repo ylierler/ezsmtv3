@@ -1,4 +1,5 @@
 #include "smtsolver.h"
+#include "program.h"
 #include "symbolicexpressionparser.h"
 #include "defines.h"
 #include "theory.h"
@@ -175,8 +176,19 @@ string Solver::getProgramBodyString(Program &program) {
   output << "(set-logic " << logic->SMT_LOGIC_NAME() << ")" << endl;
 
   for (Atom *a : program.atoms) {
-    output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
+    if (!a->isLevelRankingConstraint()) {
+      output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
+    }
   }
+
+  for (LevelRankingVariable levelRankingVar : program.levelRankingVariables) {
+    string lrVar = levelRankingVar.GetSmtName();
+    output << "(declare-const " << lrVar << " Int)" << endl;
+    output << "(assert (and ";
+    output << "(<= " << levelRankingVar.lowerBound << " " << lrVar << " " << levelRankingVar.upperBound << ") ";
+    output << "))" << endl;
+  }
+
   logic->getDeclarationStatements(output);
 
   for (Clause *c : program.clauses) {

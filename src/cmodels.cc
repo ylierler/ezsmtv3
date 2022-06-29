@@ -26,6 +26,7 @@
 #include "glog/vlog_is_on.h"
 #include "interpret.h"
 #include "print.h"
+#include "program.h"
 #include <ctype.h>
 #include <sstream>
 
@@ -1361,27 +1362,8 @@ inline void Cmodels::markNestedRule(NestedRule *cr) {
 }
 
 void Cmodels::createRankingFormula() {
-  // get the number of atoms in order to declare cspvar(x,0,NumOfAtom)
   long curAtomsSize = program.atoms.size();
   long cmSize = program.completions.size();
-
-  for (long indA = 0; indA < curAtomsSize; indA++) {
-    Atom *curAtom = program.atoms[indA];
-    if (!curAtom->name)
-      break;
-    if (strcmp(curAtom->name, "cspdomain(r)") == 0) {
-      api->set_name(curAtom, "cspdomain(mixed)");
-      break;
-    } else if (strcmp(curAtom->name, "cspdomain(fd)") == 0) {
-      break;
-    }
-  }
-
-  std::ostringstream ss;
-  ss.clear();
-  ss.str("");
-  ss << program.number_of_atoms;
-  string NumOfAtom = ss.str();
 
   for (long indA = 0; indA < curAtomsSize; indA++) {
     Atom *curAtom = program.atoms[indA];
@@ -1482,30 +1464,11 @@ void Cmodels::createRankingFormula() {
 
   // add constraint for condition 2 and 3
   if (param.sys == LEVEL_RANKING_STRONG)
-    createStrongRankingFormula(curAtomsSize, NumOfAtom);
+    createStrongRankingFormula(curAtomsSize);
 
-  // add cspvar(lr)  in out put
   for (int i = 0; i < LRVarIDs.size(); i++) {
     if (LRVarIDs[i] == 1) {
-      ss.clear();
-      ss.str("");
-      ss << i;
-      string varName("cspvar(lr");
-      varName += ss.str();
-      varName += ",1,";
-      varName += NumOfAtom;
-      varName += ")";
-
-      Atom *LRVar = api->new_atom();
-      api->set_name(LRVar, varName.c_str());
-      resetApi();
-      api->add_body(LRVar, true);
-      Clause *cl = new Clause();
-      cl->initClauseFromApi(api);
-      resetApi();
-      program.number_of_clauses++;
-      program.clauses.push_back(cl);
-      cl->finishClause();
+      program.levelRankingVariables.push_back(LevelRankingVariable(i, 1, program.number_of_atoms));
     }
   }
   return;
@@ -1516,18 +1479,6 @@ void Cmodels::createSCCRankingFormula() {
       new vector<list<Atom *> *>; // the list contains non-trivial SCCs
   long curAtomsSize = program.atoms.size();
   long cmSize = program.completions.size();
-
-  for (long indA = 0; indA < curAtomsSize; indA++) {
-    Atom *curAtom = program.atoms[indA];
-    if (!curAtom->name)
-      break;
-    if (strcmp(curAtom->name, "cspdomain(r)") == 0) {
-      api->set_name(curAtom, "cspdomain(mixed)");
-      break;
-    } else if (strcmp(curAtom->name, "cspdomain(fd)") == 0) {
-      break;
-    }
-  }
 
   // read in non-trivial SCCs from inLoop and store them in NTSCCs
   int maxloop = -1;
@@ -1551,13 +1502,6 @@ void Cmodels::createSCCRankingFormula() {
       (*NTSCCs)[curAtom->inLoop]->push_back(curAtom);
     }
   }
-
-  // get the number of atoms in order to declare cspvar(x,0,NumOfAtom)
-  std::ostringstream ss;
-  ss.clear();
-  ss.str("");
-  ss << program.number_of_atoms;
-  string NumOfAtom = ss.str();
 
   // get the number in a SCC in order to declare cspvar(x,0,NumofSCCAtoms[Loop])
   vector<int> NumofSCCAtoms;
@@ -1713,17 +1657,14 @@ void Cmodels::createSCCRankingFormula() {
         Clause *cl = new Clause();
         api->add_body(exta, false);
         Atom *rankingVar = api->new_atom();
-        ss.clear();
-        ss.str("");
-        string varName("required(ezcsp__eq(lr");
-        ss << curAtom->id;
-        varName += ss.str();
-        varName += ",1))";
+        string varName = LEVEL_RANKING_ATOM_PREFIX + "(= lr";
+        varName += to_string(curAtom->id);
+        varName += " 1)";
         api->set_name(rankingVar, varName.c_str());
         api->add_body(rankingVar, true);
 
         // add IDs of Level Ranking Variables to LRVarIDs, in order to add
-        // cspvar(lr) in output.
+        // level ranking variables to SMT program.
         if (curAtom->id >= LRVarIDs.size())
           LRVarIDs.resize(curAtom->id + 1);
         if (curAtom->inLoop == 0)
@@ -1743,44 +1684,24 @@ void Cmodels::createSCCRankingFormula() {
   if (param.sys == SCC_LEVEL_RANKING_STRONG)
     createStrongSCCRankingFormulaCondition3(NTSCCs);
 
-  // add cspvar(lr)  in out put
   for (int i = 0; i < LRVarIDs.size(); i++) {
     if (LRVarIDs[i] != -1 && LRVarIDs[i] != 0) {
-      ss.clear();
-      ss.str("");
-      ss << i;
-      string varName("cspvar(lr");
-      varName += ss.str();
-      varName += ",1,";
+      int upperBound = program.number_of_atoms;
 
-      if (param.mnmBd ==
-          true) { // smaller upper bound as the number of atoms in this SCC
-        ss.clear();
-        ss.str("");
-        if (LRVarIDs[i] == -2) // we use -2 to represent inLoop == 0.
-          ss << NumofSCCAtoms[0];
-        else if (NumofSCCAtoms[LRVarIDs[i]] == -1 ||
+      // smaller upper bound as the number of atoms in this SCC
+      if (param.mnmBd == true) {
+        if (LRVarIDs[i] == -2) {
+          upperBound = NumofSCCAtoms[0];
+        } else if (NumofSCCAtoms[LRVarIDs[i]] == -1 ||
                  NumofSCCAtoms[LRVarIDs[i]] == 0 ||
-                 NumofSCCAtoms[LRVarIDs[i]] == 1)
+                   NumofSCCAtoms[LRVarIDs[i]] == 1) {
           cout << "Error: Atom " << i << " is Not in NTSCCs." << endl;
-        else
-          ss << NumofSCCAtoms[LRVarIDs[i]];
-        varName += ss.str();
-      } else
-        varName += NumOfAtom; // maximal upper bound
+        } else {
+          upperBound = NumofSCCAtoms[LRVarIDs[i]];
+        }
+      }
 
-      varName += ")";
-
-      Atom *LRVar = api->new_atom();
-      api->set_name(LRVar, varName.c_str());
-      resetApi();
-      api->add_body(LRVar, true);
-      Clause *cl = new Clause();
-      cl->initClauseFromApi(api);
-      resetApi();
-      program.number_of_clauses++;
-      program.clauses.push_back(cl);
-      cl->finishClause();
+      program.levelRankingVariables.push_back(LevelRankingVariable(i, 1, upperBound));
     }
   }
 
@@ -1870,20 +1791,20 @@ Atom *Cmodels::createAuxAtom2(Atom *head, NestedRule *cr) {
       // if b is in heads of rules, we add level ranking variable
       idStream.clear();
       Atom *rankingVar = api->new_atom();
-      string varName("required(ezcsp__geq(ezcsp__pl(lr");
+      string varName = LEVEL_RANKING_ATOM_PREFIX + "(>= (- lr";
       idStream.str("");
       idStream << (*cr->head)->id;
       varName += idStream.str();
-      varName += ",-1),lr";
+      varName += " 1) lr";
       idStream.str("");
       idStream << (*b)->id;
       varName += idStream.str();
-      varName += "))";
+      varName += ")";
       api->set_name(rankingVar, varName.c_str());
       api->add_body(rankingVar, true);
 
       // mark the IDs of Level Ranking Variables in LRVarIDs, in order to add
-      // cspvar(lr) in output.
+      // level ranking variables in SMT program.
       if ((*cr->head)->id > (*b)->id && (*cr->head)->id >= LRVarIDs.size())
         LRVarIDs.resize((*cr->head)->id + 1);
       if ((*cr->head)->id <= (*b)->id && (*b)->id >= LRVarIDs.size())
@@ -1924,20 +1845,20 @@ void Cmodels::createAuxAtomSCC(NestedRule *cr, list<Atom *> *SCC) {
       recursive = true;
       idStream.clear();
       Atom *rankingVar = api->new_atom();
-      string varName("required(ezcsp__geq(ezcsp__pl(lr");
+      string varName = LEVEL_RANKING_ATOM_PREFIX + "(>= (- lr";
       idStream.str("");
       idStream << (*cr->head)->id;
       varName += idStream.str();
-      varName += ",-1),lr";
+      varName += " 1) lr";
       idStream.str("");
       idStream << (*b)->id;
       varName += idStream.str();
-      varName += "))";
+      varName += ")";
       api->set_name(rankingVar, varName.c_str());
       api->add_Cbody(rankingVar, true);
 
       // mark the IDs of Level Ranking Variables in LRVarIDs, in order to add
-      // cspvar(lr) in output.
+      // level ranking variables in SMT program.
       if ((*cr->head)->id > (*b)->id && (*cr->head)->id >= LRVarIDs.size())
         LRVarIDs.resize((*cr->head)->id + 1);
       if ((*cr->head)->id <= (*b)->id && (*b)->id >= LRVarIDs.size())
@@ -2017,7 +1938,7 @@ Atom *Cmodels::createAuxAtomHeadBody(Atom *head, NestedRule *cr) {
   return newa;
 }
 
-void Cmodels::createStrongRankingFormula(long curAtomsSize, string NumOfAtom) {
+void Cmodels::createStrongRankingFormula(long curAtomsSize) {
   // create constraints for strong level ranking condition 2 and 3.
   std::ostringstream idStream;
   idStream.clear();
@@ -2045,20 +1966,20 @@ void Cmodels::createStrongRankingFormula(long curAtomsSize, string NumOfAtom) {
           for (Atom **b = cr->pbody; b != cr->pend; b++) {
             idStream.clear();
             Atom *rankingVar = api->new_atom();
-            string varName("required(ezcsp__geq(ezcsp__pl(lr");
+            string varName = LEVEL_RANKING_ATOM_PREFIX + "(>= (+ lr";
             idStream.str("");
             idStream << (*b)->id;
             varName += idStream.str();
-            varName += ",1),lr";
+            varName += " 1) lr";
             idStream.str("");
             idStream << (*cr->head)->id;
             varName += idStream.str();
-            varName += "))";
+            varName += ")";
             api->set_name(rankingVar, varName.c_str());
             api->add_Cbody(rankingVar, true);
 
-            // mark the IDs of Level Ranking Variables in LRVarIDs, in order to
-            // add cspvar(lr) in output.
+            // mark the IDs of Level Ranking Variables in LRVarIDs, in order to add
+            // cspvar(lr) in output.
             if ((*cr->head)->id > (*b)->id &&
                 (*cr->head)->id >= LRVarIDs.size())
               LRVarIDs.resize((*cr->head)->id + 1);
@@ -2072,10 +1993,10 @@ void Cmodels::createStrongRankingFormula(long curAtomsSize, string NumOfAtom) {
           Atom *rankingVar = api->new_atom();
           idStream.clear();
           idStream.str("");
-          string varName("required(ezcsp__eq(lr");
+          string varName = LEVEL_RANKING_ATOM_PREFIX + "(= lr";
           idStream << curAtom->id;
           varName += idStream.str();
-          varName += ",1))";
+          varName += " 1)";
           api->set_name(rankingVar, varName.c_str());
           api->add_Cbody(rankingVar, true);
           // mark the IDs of Level Ranking Variables in LRVarIDs, in order to
@@ -2135,15 +2056,15 @@ void Cmodels::createStrongSCCRankingFormulaCondition3(
             if (intersect) {
               idStream.clear();
               Atom *rankingVar = api->new_atom();
-              string varName("required(ezcsp__geq(ezcsp__pl(lr");
+              string varName = LEVEL_RANKING_ATOM_PREFIX + "(>= (+ lr";
               idStream.str("");
               idStream << (*b)->id;
               varName += idStream.str();
-              varName += ",1),lr";
+              varName += " 1) lr";
               idStream.str("");
               idStream << (*cr->head)->id;
               varName += idStream.str();
-              varName += "))";
+              varName += ")";
               api->set_name(rankingVar, varName.c_str());
               api->add_Cbody(rankingVar, true);
 

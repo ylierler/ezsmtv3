@@ -44,9 +44,7 @@ public:
   Atom *false_atom; // atom that is false (used in constraints or later)
   Atom *true_atom;  // atom that is true introduced by cmodels
 
-  vector<int> LRVarIDs; // stores all the IDs of Level Ranking Variables in
-                        // order to add cspvar(lr) LRVarIDs[ID]=1, if the Level
-                        // Ranking Variable with this ID exists
+  vector<int> LRVarIDs;
 
   void *satMngMinimality;
   void *zchaffMng;
@@ -96,7 +94,7 @@ protected:
   inline void add_clause_from_compute(Atom *a, bool pos);
   void createCompletion();
   void createRankingFormula();
-  void createStrongRankingFormula(long curAtomsSize, string NumOfAtom);
+  void createStrongRankingFormula(long curAtomsSize);
   void createSCCRankingFormula();
   void createStrongSCCRankingFormulaCondition3(vector<list<Atom *> *> *NTSCCs);
   Result createClauses();
