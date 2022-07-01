@@ -240,26 +240,35 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   popts::options_description genericOptions("Generic Options");
   genericOptions.add_options()
     ("help,h", "Show this help menu") //
-    ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level: 0 = Minimal output, 1 = Default output, 2 = Debug output, 3 = Verbose debug output") //
+    ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     ("file,f", popts::value<string>(), "Input file") //
     ;
 
   popts::options_description cmodelsOptions("CModels Options");
   cmodelsOptions.add_options()
-    ("grounder-command", popts::value<string>(),
+    ("grounder-command", popts::value<string>(), //
                                "Override the grounder command used. The "
                                "command will be passed the input "
                                "file as an argument. It must output the "
                                "grounded program in ASPIF (Gringo "
-                               "5) format to stdout.");
+                               "5) format to stdout.")
+    ("level-ranking,l", popts::value<string>()->default_value("SCCLevelRanking"), //
+     "[levelRanking | levelRankingStrong | SCCLevelRanking | SCCLevelRankingStrong]\n"
+     "The type of level ranking formulas produced for non-tight programs.")
+    ("reduced-completion", popts::value<bool>()->default_value(false)->implicit_value(true), //
+     "Remove the part of Clark's completion that is captured by a level ranking formula.")
+    ("minimal-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
+     "Sets the upper bound of level ranking variables to the number of atoms inside the "
+     "Strongly Connected Component containing that variable. A bigger upper bound "
+     "(the total number of atoms) would be selected by default.");
 
   popts::options_description solverOptions("Solver Options");
   solverOptions.add_options()
-    ("solver,s", popts::value<string>()->default_value("cvc4"), "Backend SMT Solver [z3|cvc4|cvc5|yices]") //
-    ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0),
-      "Enumerate X answer sets. 0 or -e will enumerate all answer sets.")
-    ("enumerate-constraints,E", popts::value<bool>()->default_value(false)->implicit_value(true),
-      "Include constraint values when enumerating distinct answer sets.")
+    ("solver,s", popts::value<string>()->default_value("cvc4"), "[z3|cvc4|cvc5|yices]\nSMT Solver to use.") //
+    ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0), //
+      "Enumerate X answer sets. 0 or -e will enumerate all answer sets.") //
+    ("enumerate-extended,E", popts::value<bool>()->default_value(false)->implicit_value(true), //
+      "Enumerate extended answer sets (Include constraint values). Must be used with -e <number>.") //
     ("solver-command", popts::value<string>(), //
       "Override the SMT solver command used. This will override the --solver "
       "option. The command must support reading the SMT-LIB program from "
@@ -271,45 +280,63 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   popts::options_description allOptions;
   allOptions.add(genericOptions).add(cmodelsOptions).add(solverOptions);
 
-  try {
-    store(popts::command_line_parser(argc, argv)
-              .options(allOptions)
-              .positional(positionalArgs)
-              .run(),
-          vm);
-    notify(vm);
+  if (argc > 1) {
+    try {
+      store(popts::command_line_parser(argc, argv)
+                .options(allOptions)
+                .positional(positionalArgs)
+                .run(),
+            vm);
+      notify(vm);
 
-    params.verboseLogLevel = vm["verbose"].as<int>();
+      params.verboseLogLevel = vm["verbose"].as<int>();
 
-    params.file = vm["file"].as<string>().c_str();
-    params.numOfFiles = 1;
+      params.file = vm["file"].as<string>().c_str();
+      params.numOfFiles = 1;
 
-    params.grounderCommand = vm["grounder-command"].empty()
-                                 ? "../tools/gringo-5.5.1"
-                                 : vm["grounder-command"].as<string>();
+      params.grounderCommand = vm["grounder-command"].empty()
+                                  ? "../tools/gringo-5.5.1"
+                                  : vm["grounder-command"].as<string>();
 
-    params.smtSolverCommand =
-        vm["solver-command"].empty() ? "" : vm["solver-command"].as<string>();
+      params.smtSolverCommand =
+          vm["solver-command"].empty() ? "" : vm["solver-command"].as<string>();
 
-    auto solver = vm["solver"].as<string>();
-    if (solver == "z3")
-      params.SMTsolver = Z3;
-    if (solver == "cvc4")
-      params.SMTsolver = CVC4;
-    if (solver == "cvc5")
-      params.SMTsolver = CVC5;
-    if (solver == "yices")
-      params.SMTsolver = YICES;
+      auto solver = vm["solver"].as<string>();
+      if (solver == "z3")
+        params.SMTsolver = Z3;
+      if (solver == "cvc4")
+        params.SMTsolver = CVC4;
+      if (solver == "cvc5")
+        params.SMTsolver = CVC5;
+      if (solver == "yices")
+        params.SMTsolver = YICES;
 
-    params.answerSetsToEnumerate = vm["enumerate"].as<int>();
-    params.includeConstraintsInEnumeration = vm["enumerate-constraints"].as<bool>();
-  } catch (const std::exception &e) {
-    cout << "Error parsing arguments: " << e.what() << endl;
-    showHelpMenu = true;
+      auto levelRanking = vm["level-ranking"].as<string>();
+      if (levelRanking == "levelRanking") {
+        params.sys = LEVEL_RANKING;
+      } else if (levelRanking == "levelRankingStrong") {
+        params.sys = LEVEL_RANKING_STRONG;
+      } else if (levelRanking == "SCCLevelRanking") {
+        params.sys = SCC_LEVEL_RANKING;
+      } else if (levelRanking == "SCCLevelRankingStrong") {
+        params.sys = SCC_LEVEL_RANKING_STRONG;
+      } else {
+        throw new std::runtime_error("Could not find level ranking configuration for '" + levelRanking + "'");
+      }
+
+      params.reducedCompletion = vm["reduced-completion"].as<bool>();
+      params.minimalUpperBound = vm["minimal-upper-bound"].as<bool>();
+
+      params.answerSetsToEnumerate = vm["enumerate"].as<int>();
+      params.includeConstraintsInEnumeration = vm["enumerate-extended"].as<bool>();
+    } catch (const std::exception &e) {
+      cout << "Error parsing arguments: " << e.what() << endl;
+      showHelpMenu = true;
+    }
   }
 
-  if (showHelpMenu || vm.count("help")) {
-    cout << "Usage: " << argv[0] << " [options] <file> [<file>...]" << endl
+  if (argc == 1 || showHelpMenu || vm.count("help")) {
+    cout << "Usage: " << argv[0] << " [options] <file>" << endl
          << endl;
     cout << allOptions << endl;
     return 1;
@@ -372,12 +399,10 @@ int main(int argc, char *argv[]) {
   }
 
   if (error) {
-    ctable.usage();
     return 1;
   }
 
   if (params.numOfFiles == 0) {
-    ctable.usage();
     return 1;
   }
 

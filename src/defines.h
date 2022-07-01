@@ -65,8 +65,6 @@ typedef enum {
 
 typedef enum { CVC4, CVC5, Z3, YICES } SMTSolverCommand;
 
-typedef enum { FD, R, MIXED } LogicType;
-
 typedef enum { UNSAT = -1, UNKNOWN = 0, SAT = 1 } Result;
 typedef enum {
   TIGHT = 1,

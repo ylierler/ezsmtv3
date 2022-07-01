@@ -108,9 +108,9 @@ int Ctable::setSingleExecutionArgument(char *arg, char *option) {
     else if (strcmp(&arg[1], "levelRankingStrong") == 0)
       cmodels.param.sys = LEVEL_RANKING_STRONG;
     else if (strcmp(&arg[1], "reducedCompletion") == 0)
-      cmodels.param.rdcComp = true;
+      cmodels.param.reducedCompletion = true;
     else if (strcmp(&arg[1], "minimalUpperBound") == 0)
-      cmodels.param.mnmBd = true;
+      cmodels.param.minimalUpperBound = true;
     else if (strcmp(&arg[1], "cvc4") == 0)
       cmodels.param.SMTsolver = CVC4;
     else if (strcmp(&arg[1], "z3") == 0)
@@ -119,8 +119,6 @@ int Ctable::setSingleExecutionArgument(char *arg, char *option) {
       cmodels.param.SMTsolver = YICES;
     else if (strcmp(&arg[1], "PrintExtAS") == 0)
       cmodels.param.PrintExtAS = true;
-    else if (strcmp(&arg[1], "non-linear") == 0)
-      cmodels.param.NLLogic = true;
     else if (strcmp(&arg[1], "cdimacs") == 0)
       cmodels.param.sys = CASP_DIMACS_PRODUCE;
     else if (strcmp(&arg[1], "zc") == 0)

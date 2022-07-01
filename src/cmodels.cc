@@ -1427,7 +1427,7 @@ void Cmodels::createRankingFormula() {
       comp->initCompletionNbodyFromCompApi(api);
       resetCompApi();
       if (comp->pbody != comp->pend) {
-        if (param.rdcComp != true) {
+        if (param.reducedCompletion != true) {
           program.completions.push_back(comp);
           program.number_of_complitions++;
         } else {
@@ -1559,7 +1559,7 @@ void Cmodels::createSCCRankingFormula() {
       comp->initCompletionNbodyFromCompApi(api);
       resetCompApi();
       if (comp->pbody != comp->pend) {
-        if (param.rdcComp != true) {
+        if (param.reducedCompletion != true) {
           program.completions.push_back(comp);
           program.number_of_complitions++;
         } else {
@@ -1689,7 +1689,7 @@ void Cmodels::createSCCRankingFormula() {
       int upperBound = program.number_of_atoms;
 
       // smaller upper bound as the number of atoms in this SCC
-      if (param.mnmBd == true) {
+      if (param.minimalUpperBound == true) {
         if (LRVarIDs[i] == -2) {
           upperBound = NumofSCCAtoms[0];
         } else if (NumofSCCAtoms[LRVarIDs[i]] == -1 ||

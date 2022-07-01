@@ -27,14 +27,12 @@ public:
   bool manySet;
   char files[10][512];
   int numOfFiles;
-  bool NLLogic;
   int extmany;
   bool sort;
   SolverType sys;
-  bool rdcComp;
-  bool mnmBd;
+  bool reducedCompletion;
+  bool minimalUpperBound;
   SMTSolverCommand SMTsolver;
-  LogicType SMTLogic;
   bool PrintExtAS;
   bool wf;
   bool nowellfounded; // skip well founded computation
@@ -88,7 +86,6 @@ public:
     many = 1;
     manySet = false;
     extmany = 1;
-    NLLogic = false;
     loopFormula = true;
     loopFormula1 = false;
     temp = false;
