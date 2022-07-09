@@ -316,12 +316,14 @@ void Read::readTheoryTerms(list<string> &lines) {
               symbolName << operationTerm->name;
               symbolName << "(";
               for (auto child : childTerms) {
-                auto childSymbolicTerm = dynamic_cast<SymbolicTerm*>(child);
-                if (!childSymbolicTerm) {
-                  LOG(FATAL) << "Constraint variables can only contain symbolic terms. Line: " << line;
+                if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
+                  symbolName << symbolicTerm->name;
+                } else if (auto numericTerm = dynamic_cast<NumericTerm*>(child)) {
+                  symbolName << numericTerm->value;
+                } else {
+                  LOG(FATAL) << "Constraint variables can only contain numeric or symbolic terms. Line: " << line;
                 }
 
-                symbolName << childSymbolicTerm->name;
                 if (child != childTerms.back()) {
                   symbolName << ",";
                 }
