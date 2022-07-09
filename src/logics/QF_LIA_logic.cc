@@ -3,46 +3,54 @@
 #include "glog/logging.h"
 #include "program.h"
 #include <numeric>
+#include "smtstringhelpers.h"
 
 string QF_LIA_logic::SMT_LOGIC_NAME() { return "QF_LIA"; }
 
 void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
-    for (auto statement : statements) {
-        if (statement->symbolicTerm->name == "sum") {
-            this->statements.push_back(statement);
+    this->statements = statements;
 
-            statement->traverseNestedTerms([&](ITheoryTerm* term) {
-                if (auto s = dynamic_cast<SymbolicTerm*>(term)) {
-                    symbolicTerms[s->id] = s;
-                }
-            });
-        } else {
-            LOG(WARNING) << "The " << SMT_LOGIC_NAME() << " logic implementation does not support " << statement->symbolicTerm->name;
-        }
+    for (auto statement : statements) {
+        statement->traverseNestedTerms([&](ITheoryTerm* term) {
+            if (auto s = dynamic_cast<SymbolicTerm*>(term)) {
+                this->symbolicTerms[s->id] = s;
+            }
+        });
     }
 }
 
 void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
-    for (const auto p : symbolicTerms) {
+    for (const auto p : this->symbolicTerms) {
         auto term = p.second;
-        output << "(declare-const " << term->name << " Int)" << endl;
+        output << "(declare-const " << SMT::Var(term->name) << " Int)" << endl;
     }
 }
 
 void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
-        if (statement->symbolicTerm->name != "sum")  {
-            LOG(WARNING) << "The EZSMTPLUS " << SMT_LOGIC_NAME() << " implementation does not support symbolic term " << statement->symbolicTerm->name;
+        if (statement->symbolicTerm->name == "sum")  {
+            list<string> elements;
+            for (const auto element : statement->leftElements) {
+                elements.push_back(toString(element));
+            }
+            auto sumOfElements = SMT::Expr("+", elements, true);
+            auto sumStatement = SMT::Expr(statement->operation->name, {sumOfElements, SMT::TheoryTerm(statement->rightTerm)});
+
+            auto assertion = SMT::Assert(SMT::Expr("=", {SMT::ToString(statement->statementAtom), sumStatement}));
+            output << assertion;
         }
+        else if (statement->symbolicTerm->name == "dom") {
+            auto singleElement = statement->leftElements.front();
+            auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
+            NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
+            NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
 
-        output << "(assert (= " << statement->statementAtom->getSmtName() << " ";
-        output << "(" << statement->operation->name;
-
-        for (const auto element : statement->leftElements) {
-            output << " " << toString(element);
+            auto assertion = SMT::Assert(SMT::Expr("<=", {SMT::TheoryTerm(lowerBound), SMT::TheoryTerm(statement->rightTerm), SMT::TheoryTerm(upperBound)}));
+            output << assertion;
         }
-
-        output << " " << toString(statement->rightTerm) << ")))" << endl;
+        else {
+            LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the QF_LIA logic.";
+        }
     }
 }
 
@@ -56,40 +64,13 @@ list<SymbolicTerm*> QF_LIA_logic::getConstraintVariables() {
 
 string QF_LIA_logic::toString(TheoryAtomElement* element) {
     if (element->literals.empty()) {
-        if (element->terms.size() == 1) {
-            return toString(*(element->terms.begin()));
+        list<string> terms;
+        for (auto term : element->terms) {
+            terms.push_back(SMT::TheoryTerm(term));
         }
-        string output = "(+";
-        for (const auto term : element->terms) {
-            output += " " + toString(term);
-        }
-        output += ")";
-        return output;
+
+        return SMT::Expr("+", terms, true);
     }
 
     LOG(FATAL) << "Not yet supported";
-}
-
-string QF_LIA_logic::toString(ITheoryTerm* term) {
-    if (auto t = dynamic_cast<NumericTerm*>(term)) {
-        return to_string(t->value);
-    } else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {
-        return t->name;
-    } else if (auto t = dynamic_cast<TupleTerm*>(term)) {
-        if (t->type == PARENTHESES) {
-            return string("(") + toString(*(t->children.begin())) + ")";
-        }
-    } else if (auto t = dynamic_cast<ExpressionTerm*>(term)) {
-        string childTerms = std::reduce(t->children.begin(), t->children.end(), string(),
-            [&](string current, ITheoryTerm* next) {
-                return current + " " + toString(next);
-            });
-        return "(" + t->operation->name + childTerms + ")";
-    }
-
-    LOG(FATAL) << "Unsupported term type";
-}
-
-list<SymbolicTerm*> getNestedSymbolicTerms(ITheoryTerm* term) {
-
 }

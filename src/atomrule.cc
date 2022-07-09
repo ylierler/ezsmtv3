@@ -185,6 +185,7 @@ bool Atom::isLevelRankingConstraint() {
   return name && string(name).find(LEVEL_RANKING_ATOM_PREFIX) != string::npos;
 }
 
+// TODO
 string Atom::getSmtName() {
   if (!name) {
     return "|" + to_string(id) + "|";

@@ -19,7 +19,6 @@ private:
     list<TheoryStatement *> statements;
 
     string toString(TheoryAtomElement* elements);
-    string toString(ITheoryTerm* term);
 };
 
 #endif // QF_LIA_logic_H_

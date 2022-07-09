@@ -121,7 +121,6 @@ public:
   }
 };
 
-// TODO distinguish operators differently
 class TheoryStatement {
 public:
   Atom* statementAtom;

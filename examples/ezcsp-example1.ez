@@ -1,0 +1,9 @@
+cspdomain(fd).
+
+d(1..2).
+cspvar(v(X),10,20) :- d(X).
+required(v(1) >= v(2)).
+required(sum([v/1],>=,39)).
+
+cspvar(s,20,40).
+required(sum([v/1],==,s)).
