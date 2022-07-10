@@ -22,7 +22,7 @@ void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
 void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
     for (const auto p : this->symbolicTerms) {
         auto term = p.second;
-        output << "(declare-const " << SMT::Var(term->name) << " Int)" << endl;
+        output << SMT::DeclareConst(term->name, "Int");
     }
 }
 
@@ -34,7 +34,7 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
                 elements.push_back(toString(element));
             }
             auto sumOfElements = SMT::Expr("+", elements, true);
-            auto sumStatement = SMT::Expr(statement->operation->name, {sumOfElements, SMT::TheoryTerm(statement->rightTerm)});
+            auto sumStatement = SMT::Expr(statement->operation->name, {sumOfElements, SMT::ToString(statement->rightTerm)});
 
             auto assertion = SMT::Assert(SMT::Expr("=", {SMT::ToString(statement->statementAtom), sumStatement}));
             output << assertion;
@@ -45,7 +45,11 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
             NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
             NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
 
-            auto assertion = SMT::Assert(SMT::Expr("<=", {SMT::TheoryTerm(lowerBound), SMT::TheoryTerm(statement->rightTerm), SMT::TheoryTerm(upperBound)}));
+            auto assertion = SMT::Assert(SMT::Expr("<=", {
+                    SMT::ToString(lowerBound),
+                    SMT::ToString(statement->rightTerm),
+                    SMT::ToString(upperBound)
+                }));
             output << assertion;
         }
         else {
@@ -66,7 +70,7 @@ string QF_LIA_logic::toString(TheoryAtomElement* element) {
     if (element->literals.empty()) {
         list<string> terms;
         for (auto term : element->terms) {
-            terms.push_back(SMT::TheoryTerm(term));
+            terms.push_back(SMT::ToString(term));
         }
 
         return SMT::Expr("+", terms, true);

@@ -132,8 +132,8 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
     auto variable = dynamic_cast<Symbol*>(assignment->children.front());
     auto value = dynamic_cast<ISymbolicExpression*>(assignment->children.back());
 
-    VLOG(3) << "Parsed assignment: " << variable->ToString() << "=" << value->ToString();
-    rawAssignments[variable->content] = value->ToString();
+    VLOG(3) << "Parsed assignment: " << SMT::Unescape(variable->content) << "=" << value->ToString();
+    rawAssignments[SMT::Unescape(variable->content)] = value->ToString();
   }
 
   return rawAssignments;
