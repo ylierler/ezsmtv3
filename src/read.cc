@@ -171,6 +171,11 @@ void Read::readOutputLine(istringstream &line) {
     api->set_name(atom, atomName.c_str());
     api->set_compute(atom, true);
     atom->showInOutputAnswerSet = true;
+
+    api->begin_rule(BASICRULE);
+    api->add_head(atom);
+    api->end_rule();
+
   } else if (numOfLiterals == 1) {
     Atom *a = getOrCreateAtom(atomId);
     api->set_name(a, atomName.c_str());
@@ -205,7 +210,6 @@ void Read::readTheoryStatements(list<string> &lines) {
         int atomId;
         lineStream >> atomId;
         Atom *atom = getOrCreateAtom(atomId);
-        atom->showInOutputAnswerSet = true;
 
         stringstream name;
         name << THEORY_ATOM_PREFIX << "(" << atomId << ")";
