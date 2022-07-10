@@ -12,6 +12,11 @@ using namespace std;
 class SMT {
 public:
     static string Var(string name) {
+        bool alreadyEscaped = name.front() == '|' && name.back() == '|';
+        if (alreadyEscaped) {
+            return name;
+        }
+
         if (regex_match(name, regex(".*[(),0-9]+.*"))) {
             return "|" + name + "|";
         } else {

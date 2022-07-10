@@ -1,5 +1,6 @@
 #include "solver/smtprocess.h"
 #include "symbolicexpressionparser.h"
+#include "smtstringhelpers.h"
 
 namespace bp = boost::process;
 using namespace chrono;
@@ -103,7 +104,7 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
   stringstream getValueStatement;
   getValueStatement << "(get-value (";
   for (string variableName : variableNames) {
-    getValueStatement << variableName << " ";
+    getValueStatement << SMT::Var(variableName) << " ";
   }
   getValueStatement << "))";
 
