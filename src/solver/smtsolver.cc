@@ -19,6 +19,7 @@
 #include <sstream>
 #include <unistd.h>
 #include "solver/smtprocess.h"
+#include "smtstringhelpers.h"
 
 using namespace chrono;
 
@@ -136,35 +137,31 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
     LOG(FATAL) << "Cannot create answer negation for empty set";
   }
 
-  ostringstream output;
-  output << "(assert (not (and";
+  list<string> answerSetValueExpressions;
 
   for (pair<Atom*, bool> atomAssignment : result.atomAssignments) {
     string atomName = atomAssignment.first->getSmtName();
-    output << " ";
     if (atomAssignment.second) {
-      output << atomName;
+      answerSetValueExpressions.push_back(SMT::Var(atomName));
     } else {
-      output << "(not " << atomName << ")";
+      answerSetValueExpressions.push_back(SMT::Not(SMT::Var(atomName)));
     }
   }
 
   if (includeConstraintVariables && result.constraintVariableAssignments.size() > 0) {
     for (pair<SymbolicTerm*, string> variableAssignment : result.constraintVariableAssignments) {
-      output << " (= " << variableAssignment.first->name << " " << variableAssignment.second << ")";
+      answerSetValueExpressions.push_back(SMT::Expr("=", {SMT::Var(variableAssignment.first->name), variableAssignment.second}));
     }
   }
 
-  output << ")))" << endl;
-
-  return output.str();
+  return SMT::Assert(SMT::Not(SMT::And(answerSetValueExpressions)));
 }
 
 string Solver::getMinimizationAssertionString(map<MinimizationStatement*,string> &minimizationResults) {
   ostringstream output;
   output << "(assert (or ";
   for (auto minimization : minimizationResults) {
-    output << "(< " << minimization.first->getSmtAtomName() << " " << minimization.second << ") ";
+    output << "(< " << SMT::Var(minimization.first->getAtomName()) << " " << minimization.second << ") ";
   }
   output << "))" << endl;
 
@@ -180,16 +177,18 @@ string Solver::getProgramBodyString(Program &program) {
 
   for (Atom *a : program.atoms) {
     if (!a->isLevelRankingConstraint()) {
-      output << "(declare-const " << a->getSmtName() << " Bool)" << endl;
+      output << SMT::DeclareConst(a->getSmtName(), "Bool");
     }
   }
 
   for (LevelRankingVariable levelRankingVar : program.levelRankingVariables) {
     string lrVar = levelRankingVar.GetSmtName();
-    output << "(declare-const " << lrVar << " Int)" << endl;
-    output << "(assert (and ";
-    output << "(<= " << levelRankingVar.lowerBound << " " << lrVar << " " << levelRankingVar.upperBound << ") ";
-    output << "))" << endl;
+    output << SMT::DeclareConst(lrVar, "Int");
+    output << SMT::Assert(SMT::Expr("<=", {
+            to_string(levelRankingVar.lowerBound),
+            SMT::Var(lrVar),
+            to_string(levelRankingVar.upperBound)
+          }));
   }
 
   logic->getDeclarationStatements(output);
@@ -200,10 +199,10 @@ string Solver::getProgramBodyString(Program &program) {
   logic->getAssertionStatements(output);
 
   for (MinimizationStatement *m : program.minimizations) {
-    output << "(declare-const " << m->getSmtAtomName() << " Int)" << endl;
-    output << "(assert (= " << m->getSmtAtomName() << " (+";
+    output << "(declare-const " << SMT::Var(m->getAtomName()) << " Int)" << endl;
+    output << "(assert (= " << SMT::Var(m->getAtomName()) << " (+";
     for (MinimizationAtom *a : m->atoms) {
-      output << " (ite " << a->atom.getSmtName() << " " << a->weight << " 0)";
+      output << " (ite " << SMT::Var(a->atom.getSmtName()) << " " << a->weight << " 0)";
     }
     output << ")))" << endl;
   }
@@ -215,18 +214,13 @@ string Solver::toSMTString(Clause *clause) {
   ostringstream expression;
   Atom **a;
 
-  expression << "(or";
-
+  list<string> expressions;
   for (a = clause->nbody; a != clause->nend; a++) {
-    string atomName = (*a)->getSmtName();
-    expression << " (not " << atomName << ")";
+    expressions.push_back(SMT::Not(SMT::Var((*a)->getSmtName())));
   }
   for (a = clause->pbody; a != clause->pend; a++) {
-    string atomName = (*a)->getSmtName();
-    expression << " " << atomName;
+    expressions.push_back(SMT::Var((*a)->getSmtName()));
   }
 
-  expression << ")";
-
-  return expression.str();
+  return SMT::Or(expressions);
 }

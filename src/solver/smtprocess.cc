@@ -81,10 +81,10 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
 
   // Minimization statements
   list<string> minimizationAtomNames;
-  transform(minimizations.begin(), minimizations.end(), std::back_inserter(minimizationAtomNames), [](MinimizationStatement* m) { return m->getSmtAtomName(); });
+  transform(minimizations.begin(), minimizations.end(), std::back_inserter(minimizationAtomNames), [](MinimizationStatement* m) { return m->getAtomName(); });
   auto rawMinimizationAssignments = getRawAssignments(minimizationAtomNames);
   for (auto minimization : minimizations) {
-    string atomName = minimization->getSmtAtomName();
+    string atomName = minimization->getAtomName();
     if (rawMinimizationAssignments.find(atomName) != rawMinimizationAssignments.end()) {
       result->minimizationAtomAssignments[minimization] = rawMinimizationAssignments[atomName];
     }

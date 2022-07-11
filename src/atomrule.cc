@@ -89,6 +89,7 @@ void Atom::setComputeTrue0() {
     return;
   }
 }
+
 void Atom::setComputeFalse() {
   if (computeFalse)
     return;
@@ -185,22 +186,19 @@ bool Atom::isLevelRankingConstraint() {
   return name && string(name).find(LEVEL_RANKING_ATOM_PREFIX) != string::npos;
 }
 
-// TODO
 string Atom::getSmtName() {
   if (!name) {
-    return "|" + to_string(id) + "|";
+    return to_string(id);
   }
 
+  // Encode integer level ranking constraints in atom name
+  // so that they will be output in SMT assertions
   string smtName = name;
   if (isLevelRankingConstraint()) {
     return smtName.substr(LEVEL_RANKING_ATOM_PREFIX.length());
   }
 
-  if (regex_match(smtName, regex(".*[(),0-9]+.*"))) {
-    return "|" + smtName + "|";
-  } else {
-    return smtName;
-  }
+  return smtName;
 }
 
 void Atom::print() {

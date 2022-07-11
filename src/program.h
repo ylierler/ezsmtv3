@@ -62,10 +62,10 @@ public:
   int priority;
   list<MinimizationAtom *> atoms;
 
-  string getSmtAtomName()
+  string getAtomName()
   {
     stringstream name;
-    name << "|" << MINIMIZATION_SMT_PREFIX << "(" << id << "," << priority << ")|";
+    name << MINIMIZATION_SMT_PREFIX << "(" << id << "," << priority << ")";
     return name.str();
   }
 };

@@ -9,6 +9,7 @@
 
 using namespace std;
 
+
 class SMT {
 public:
     static string Var(string name) {
@@ -57,6 +58,18 @@ public:
         ostringstream output;
         output << "(declare-const " << Var(variableName) << " " << type << ")" << endl;
         return output.str();
+    }
+
+    static string Not(string expression) {
+        return Expr("not", {expression});
+    }
+
+    static string And(const list<string>& arguments) {
+        return Expr("and", arguments);
+    }
+
+    static string Or(const list<string>& arguments) {
+        return Expr("or", arguments);
     }
 
     static string ToString(Atom* atom) {
