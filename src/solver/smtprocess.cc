@@ -30,7 +30,10 @@ SMTProcess::SMTProcess(string customSolverCommand) {
 }
 
 void SMTProcess::Send(string body) {
-  VLOG(3) << "Sending to SMT process: " << body;
+  if (VLOG_IS_ON(3)) {
+    // Use cout because body might exceed the VLOG() max line length
+    cout << "Sending to SMT process: " << body << endl;
+  }
   input << body << endl;
 }
 
