@@ -43,7 +43,7 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
 
             auto sumStatement = SMT::Expr(operation, {sumOfElements, SMT::ToString(statement->rightTerm)});
 
-            auto assertion = SMT::Assert(SMT::Expr("=", {SMT::ToString(statement->statementAtom), sumStatement}));
+            auto assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), sumStatement}));
             output << assertion;
         }
         else if (statement->symbolicTerm->name == "dom") {

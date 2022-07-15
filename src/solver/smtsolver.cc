@@ -140,17 +140,16 @@ string Solver::getAnswerNegationString(SolverResult& result, bool includeConstra
   list<string> answerSetValueExpressions;
 
   for (pair<Atom*, bool> atomAssignment : result.atomAssignments) {
-    string atomName = atomAssignment.first->getSmtName();
     if (atomAssignment.second) {
-      answerSetValueExpressions.push_back(SMT::Var(atomName));
+      answerSetValueExpressions.push_back(SMT::Var(atomAssignment.first));
     } else {
-      answerSetValueExpressions.push_back(SMT::Not(SMT::Var(atomName)));
+      answerSetValueExpressions.push_back(SMT::Not(SMT::Var(atomAssignment.first)));
     }
   }
 
   if (includeConstraintVariables && result.constraintVariableAssignments.size() > 0) {
     for (pair<SymbolicTerm*, string> variableAssignment : result.constraintVariableAssignments) {
-      answerSetValueExpressions.push_back(SMT::Expr("=", {SMT::Var(variableAssignment.first->name), variableAssignment.second}));
+      answerSetValueExpressions.push_back(SMT::Expr("=", {SMT::Var(variableAssignment.first), variableAssignment.second}));
     }
   }
 
@@ -161,7 +160,7 @@ string Solver::getMinimizationAssertionString(map<MinimizationStatement*,string>
   ostringstream output;
   output << "(assert (or ";
   for (auto minimization : minimizationResults) {
-    output << "(< " << SMT::Var(minimization.first->getAtomName()) << " " << minimization.second << ") ";
+    output << "(< " << SMT::Var(minimization.first) << " " << minimization.second << ") ";
   }
   output << "))" << endl;
 
@@ -182,11 +181,11 @@ string Solver::getProgramBodyString(Program &program) {
   }
 
   for (LevelRankingVariable levelRankingVar : program.levelRankingVariables) {
-    string lrVar = levelRankingVar.GetSmtName();
+    string lrVar = SMT::Var(levelRankingVar);
     output << SMT::DeclareConst(lrVar, "Int");
     output << SMT::Assert(SMT::Expr("<=", {
             to_string(levelRankingVar.lowerBound),
-            SMT::Var(lrVar),
+            lrVar,
             to_string(levelRankingVar.upperBound)
           }));
   }
@@ -199,10 +198,10 @@ string Solver::getProgramBodyString(Program &program) {
   logic->getAssertionStatements(output);
 
   for (MinimizationStatement *m : program.minimizations) {
-    output << "(declare-const " << SMT::Var(m->getAtomName()) << " Int)" << endl;
-    output << "(assert (= " << SMT::Var(m->getAtomName()) << " (+";
+    output << "(declare-const " << SMT::Var(m) << " Int)" << endl;
+    output << "(assert (= " << SMT::Var(m) << " (+";
     for (MinimizationAtom *a : m->atoms) {
-      output << " (ite " << SMT::Var(a->atom.getSmtName()) << " " << a->weight << " 0)";
+      output << " (ite " << SMT::Var(&a->atom) << " " << a->weight << " 0)";
     }
     output << ")))" << endl;
   }
@@ -216,10 +215,10 @@ string Solver::toSMTString(Clause *clause) {
 
   list<string> expressions;
   for (a = clause->nbody; a != clause->nend; a++) {
-    expressions.push_back(SMT::Not(SMT::Var((*a)->getSmtName())));
+    expressions.push_back(SMT::Not(SMT::Var(*a)));
   }
   for (a = clause->pbody; a != clause->pend; a++) {
-    expressions.push_back(SMT::Var((*a)->getSmtName()));
+    expressions.push_back(SMT::Var(*a));
   }
 
   return SMT::Or(expressions);

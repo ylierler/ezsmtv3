@@ -107,7 +107,7 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
   stringstream getValueStatement;
   getValueStatement << "(get-value (";
   for (string variableName : variableNames) {
-    getValueStatement << SMT::Var(variableName) << " ";
+    getValueStatement << SMT::VarUnsafe(variableName) << " ";
   }
   getValueStatement << "))";
 

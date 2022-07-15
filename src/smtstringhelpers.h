@@ -6,23 +6,40 @@
 #include <sstream>
 #include <string>
 #include "theory.h"
+#include "program.h"
 
 using namespace std;
 
 
 class SMT {
 public:
-    static string Var(string name) {
-        bool alreadyEscaped = name.front() == '|' && name.back() == '|';
-        if (alreadyEscaped) {
-            return name;
+    static string Var(Atom* atom) {
+        if (!atom->name) {
+            return escape(to_string(atom->id));
         }
 
-        if (regex_match(name, regex(".*[(),0-9]+.*"))) {
-            return "|" + name + "|";
-        } else {
-            return name;
+        string smtName = atom->name;
+        if (atom->isLevelRankingConstraint()) {
+            return smtName.substr(LEVEL_RANKING_ATOM_PREFIX.length());
         }
+
+        return escape(smtName);
+    }
+
+    static string Var(LevelRankingVariable &variable) {
+        return escape(variable.GetSmtName());
+    }
+
+    static string Var(MinimizationStatement *statement) {
+        return escape(statement->getAtomName());
+    }
+
+    static  string Var(SymbolicTerm* term) {
+        return escape(term->name);
+    }
+
+    static string VarUnsafe(string name) {
+        return escape(name);
     }
 
     static string Unescape(string variableName) {
@@ -56,7 +73,7 @@ public:
 
     static string DeclareConst(string variableName, string type) {
         ostringstream output;
-        output << "(declare-const " << Var(variableName) << " " << type << ")" << endl;
+        output << "(declare-const " << escape(variableName) << " " << type << ")" << endl;
         return output.str();
     }
 
@@ -72,15 +89,11 @@ public:
         return Expr("or", arguments);
     }
 
-    static string ToString(Atom* atom) {
-        return Var(atom->name != nullptr ? atom->name : to_string(atom->id));
-    }
-
     static string ToString(ITheoryTerm* term) {
         if (auto t = dynamic_cast<NumericTerm*>(term)) {
             return to_string(t->value);
         } else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {
-            return Var(t->name);
+            return escape(t->name);
         } else if (auto t = dynamic_cast<TupleTerm*>(term)) {
             if (t->type == PARENTHESES) {
                 return string("(") + ToString(*(t->children.begin())) + ")";
@@ -95,6 +108,20 @@ public:
 
         LOG(FATAL) << "Unsupported term type";
     }
+private:
+    static string escape(string name) {
+        bool alreadyEscaped = name.front() == '|' && name.back() == '|';
+        if (alreadyEscaped) {
+            return name;
+        }
+
+        if (regex_match(name, regex(".*[(),0-9]+.*"))) {
+            return "|" + name + "|";
+        } else {
+            return name;
+        }
+    }
+
 };
 
 
