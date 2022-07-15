@@ -34,7 +34,14 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
                 elements.push_back(toString(element));
             }
             auto sumOfElements = SMT::Expr("+", elements, true);
-            auto sumStatement = SMT::Expr(statement->operation->name, {sumOfElements, SMT::ToString(statement->rightTerm)});
+
+            // HACK: SMT-LIB doesn't have a != operator
+            string operation = statement->operation->name;
+            if (operation == "!=") {
+                operation = "distinct";
+            }
+
+            auto sumStatement = SMT::Expr(operation, {sumOfElements, SMT::ToString(statement->rightTerm)});
 
             auto assertion = SMT::Assert(SMT::Expr("=", {SMT::ToString(statement->statementAtom), sumStatement}));
             output << assertion;
