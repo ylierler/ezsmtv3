@@ -18,7 +18,7 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
   else if (type == Z3)
     solverCommand = "z3 -smt2 -in";
   else if (type == YICES)
-    solverCommand = "yices-smt2 ";
+    solverCommand = "yices-smt2 --incremental";
 
   VLOG(3) << "Starting child process for solver: " << solverCommand;
   process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
