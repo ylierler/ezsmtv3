@@ -1,4 +1,4 @@
-# Ezsmt
+# EZSMT 3
 
 EZSMT is an constraint answer set programming solver extended from EZSMT. It takes a program written in a Gringo 5 compatible input language, translates it into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
 
