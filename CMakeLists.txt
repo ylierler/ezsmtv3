@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(ezsmt_plus)
+project(ezsmt)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -12,7 +12,7 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
-add_executable(ezsmtPlus "")
+add_executable(ezsmt "")
 add_executable(test "")
 
 add_subdirectory(src)

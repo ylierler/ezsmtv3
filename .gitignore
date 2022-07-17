@@ -41,7 +41,7 @@ tmp/
 
 *.grounded
 *.preparsed
-ezsmtPlus
+ezsmt
 *build*/
 .cache
 .dir-locals.el

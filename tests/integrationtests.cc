@@ -16,7 +16,7 @@ void assertEnumeratedAnswerSetsMatchExpected(string testName) {
     string outputPath = "temp.output";
 
     std::stringstream command;
-    command << "./ezsmtPlus --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -v 0 > " << outputPath;
+    command << "./ezsmt --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -v 0 > " << outputPath;
 
     cout << "Running: " << command.str() << endl;
     int exitCode = system(command.str().c_str());

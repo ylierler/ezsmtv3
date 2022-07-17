@@ -336,8 +336,9 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   }
 
   if (argc == 1 || showHelpMenu || vm.count("help")) {
-    cout << "Usage: " << argv[0] << " [options] <file>" << endl
-         << endl;
+    cout << "The EZSMT Constraint Answer Set Solver" << endl;
+    cout << "Version 3.0" << endl << endl;
+    cout << "Usage: " << argv[0] << " [options] <file>" << endl;
     cout << allOptions << endl;
     return 1;
   }

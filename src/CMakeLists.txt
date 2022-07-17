@@ -1,9 +1,9 @@
 add_subdirectory(include/glog)
-target_link_libraries(ezsmtPlus PRIVATE glog::glog ${Boost_LIBRARIES})
+target_link_libraries(ezsmt PRIVATE glog::glog ${Boost_LIBRARIES})
 target_link_libraries(test PRIVATE glog::glog ${Boost_LIBRARIES})
 
 
-target_sources(ezsmtPlus
+target_sources(ezsmt
   PUBLIC
     ctable.cc
     api.cc
