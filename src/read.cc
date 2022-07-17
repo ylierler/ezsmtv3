@@ -402,15 +402,15 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   int priority, numOfLiterals;
   line >> priority >> numOfLiterals;
 
+  if (priority != 0) {
+    LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
+  }
+
   auto minimizationStatement = new MinimizationStatement(minimizationStatementId, priority);
 
   for (int i = 0; i < numOfLiterals; i++) {
     int literal, weight;
     line >> literal >> weight;
-
-    if (weight != 0) {
-      LOG(WARNING) << "Minimization statements currently don't support different weights. Ignoring weight " << weight;
-    }
 
     auto atom = getAtomFromLiteral(literal);
     minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight));
