@@ -295,7 +295,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       params.numOfFiles = 1;
 
       params.grounderCommand = vm["grounder-command"].empty()
-                                  ? "../tools/gringo-5.5.1"
+                                  ? "gringo"
                                   : vm["grounder-command"].as<string>();
 
       params.smtSolverCommand =

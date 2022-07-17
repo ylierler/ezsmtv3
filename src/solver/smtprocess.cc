@@ -11,14 +11,14 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
   string solverCommand;
   if (type == CVC4)
     solverCommand =
-        "../tools/cvc4 --lang smt --output-lang smt --incremental";
+        "cvc4 --lang smt --output-lang smt --incremental";
   else if (type == CVC5)
     solverCommand =
-        "../tools/cvc5 --lang smt --output-lang smt --incremental";
+        "cvc5 --lang smt --output-lang smt --incremental";
   else if (type == Z3)
-    solverCommand = "../tools/z3-4.8.17 -smt2 -in";
+    solverCommand = "z3 -smt2 -in";
   else if (type == YICES)
-    solverCommand = "../tools/yices-smt2 ";
+    solverCommand = "yices-smt2 ";
 
   VLOG(3) << "Starting child process for solver: " << solverCommand;
   process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);

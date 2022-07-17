@@ -2,9 +2,10 @@
 
 EZSMT is an constraint answer set programming solver extended from EZSMT. It takes a program written in a Gringo 5 compatible input language, translates it into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
 
-EZSMT has been tested with the Z3 and CVC4 SMT Solvers, but it can interact with any SMT-LIB compatible solver that receives input from stdin.
+EZSMT has been tested with the Z3, CVC4, CVC5, and Yices 2 SMT Solvers, but it can interact with any SMT-LIB compatible solver that receives input from stdin.
 http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.4-x86_64-linux-opt
 https://github.com/Z3Prover/z3/releases/tag/z3-4.5.0
+https://yices.csl.sri.com/
 
 ## Quick Start
 
@@ -32,17 +33,18 @@ Build the project:
 cmake --build .
 ```
 
-Feedback loop: Build, test, run:
+Add ./tools to your path if you don't want to globally install them:
+
+``` sh
+# In <project_root>/build
+PATH="../tools:$PATH"
+```
+
+Build, test, run:
 
 ``` sh
 # In <project_root>/build
 cmake --build . && ./test && ./ezsmt
-```
-
-## Build For Release
-
-```
-
 ```
 
 ## Format All Code
