@@ -29,7 +29,7 @@
     };
 
     &dom/0 : dom_term, {=}, linear_term, any;
-    &sum/0 : linear_term, {<=,=,>=,<,>,!=}, linear_term, any;
+    &sum/0 : linear_term, {<=,=,>=,<,>,!=}, linear_term, any
 }.
 
 %%

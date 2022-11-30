@@ -20,4 +20,9 @@ files with extension .casp contain clingcon 3 encoding
 combines one of the instances of weighted sequence and clingcon 3 encoding from clingcon3_benchmarks
 
 
+4. At Yuliya's laptop
+instructions from https://anaconda.org/potassco/clingcon where used to install clingcon. As of 11/22 it is version 5. 
 
+conda activate clingcon
+
+to be used prior to running clingcon. Definition of csp language with &dom and &sum and &distinct are now part of the default of clingcon 5, so ``preamble'' should be removed when clingcon5 is run on clingcon3 encodings
