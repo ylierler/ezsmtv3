@@ -1,0 +1,160 @@
+#var $st(D,J) :	device(D) : job(J) : job_device(J,D) : max_value(MT) = 0..MT.
+
+
+#var $start(J) : job(J) : max_value(MT) = 0..MT.
+
+#linear [$start(J), -1*$st(D,J)] == 0 :-
+	job(J),
+	job_device(J,D).
+
+
+%----------------------
+% - overlap
+%----------------------
+
+bug2(J1,J2,L1):- on_instance(J1,I), on_instance(J2,I), J1 != J2,
+   job_device(J1,D), job_device(J2,D), job_len(J1,L1).
+bug3(J1,J2) :- #linear [$start(J1), -1*$start(J2)] 0, bug2(J1,J2,L1).
+bug4(J1,J2,L1) :- #linear [$start(J2), -1*$start(J1)] L1,  bug2(J1,J2,L1).
+:- bug2(J1,J2,L1), bug3(J1,J2), bug4(J1,J2,L1).
+%   #linear [$start(J1), -1*$start(J2)] 0,
+%   #linear [$start(J2), -1*$start(J1)] L1.
+
+%----------------------
+%     - order
+%----------------------
+
+#linear [$st(D2,J2), -1*$st(D1,J1)] L1 :- bug(D1,J1,D2,J2,L1).
+bug(D1,J1,D2,J2,L1) :-
+	job(J1),
+	job(J2),
+	device(D),
+	precedes(J1,J2),
+	job_device(J1,D1),
+	job_device(J2,D2),
+	job_len(J1,L1).
+
+
+
+%-------------------------------------
+%     - completion -- total-tardiness
+%-------------------------------------
+
+#var $td(J) : job(J) : max_value(MV) = 0..MV.
+
+
+#linear[$td(J)]== 0 :-
+        #linear [$st(D,J)] < Deadline - Len,
+	job(J),
+	device(D),
+	job_device(J,D),
+	deadline(J,Deadline),
+	job_len(J,Len).
+#linear[$td(J), -1*$st(D,J)] == Len - Deadline :- 
+        not #linear [$st(D,J)] < Deadline - Len,
+	job(J),
+	device(D),
+	job_device(J,D),
+	deadline(J,Deadline),
+	job_len(J,Len).
+
+
+%-------------------------------------
+%     - completion -- penalty
+%-------------------------------------
+#var $penalty(J) : job(J) : deadline(J,Deadline) : max_value(MV) = 0..MV.
+
+
+#linear [$penalty(J), -Weight*$td(J)] == 0 :-
+	job(J),
+	deadline(J,Deadline),	%% penalty is meaningful only if the job has a deadline
+	importance(J,Weight).
+
+#var $tot_penalty : max_value(MV) = 0..MV.
+
+#linear [$penalty(J): job(J) : deadline(J,Deadline), -1*$tot_penalty] == 0.
+
+$tot_penalty #<= K :- 
+	max_total_penalty(K).
+
+%----------------------
+%     - instance assignment
+%----------------------
+instance_of(D,1) :- device(D).
+instance_of(D,I+1) :- device(D), instance_of(D,I), instances(D,N), I < N.
+
+1 { on_instance(J,I) : instance_of(D,I) } 1 :- job(J), job_device(J,D).%, not checking_solution.
+
+
+bug5(D,J1,J2,Len1,Len2):-
+        on_instance(J1,I),
+	on_instance(J2,I), 	
+	device(D),
+	instances(D,N), N > 1,
+ 	job(J1),
+	job(J2),
+	job_device(J1,D),
+	job_device(J2,D),
+	J1 != J2,
+	job_len(J1,Len1),
+	job_len(J2,Len2).
+
+bug6(D,J1,J2,Len1,Len2)	:- not #linear [$st(D,J2), -1*$st(D,J1)] >= Len1,  bug5(D,J1,J2,Len1,Len2).
+bug7(D,J1,J2,Len1,Len2) :- not #linear [$st(D,J1), -1*$st(D,J2)] >= Len2,  bug5(D,J1,J2,Len1,Len2).
+:- bug5(D,J1,J2,Len1,Len2), bug6(D,J1,J2,Len1,Len2), bug7(D,J1,J2,Len1,Len2).
+
+:- on_instance(J,N),
+	device(D),
+	job(J),
+	job_device(J,D),
+	offline_instance(D,N),
+	must_schedule(J).
+
+
+%----------------------
+% - current schedule
+%----------------------
+
+already_started(J) :-
+	curr_job_start(J,S),
+	curr_time(CT),
+	CT > S.
+
+already_finished(J) :-
+	curr_job_start(J,S),
+	job_len(J,L),
+	curr_time(CT),
+	CT >= S + L.
+
+must_schedule(J) :-
+	job(J),
+	not must_not_schedule(J).
+
+must_not_schedule(J) :-
+	already_started(J),
+	not production_failed(J).
+
+rescheduled(J) :-
+	production_failed(J).
+
+production_failed(J) :-
+	already_started(J),
+	not already_finished(J),
+	job_device(J,D),
+	curr_on_instance(J,I),
+	offline_instance(D,I).
+
+$st(D,J) #>= CT :- 
+	device(D),
+	job_device(J,D),
+	curr_time(CT),
+	must_schedule(J).
+
+$st(D,J) #== T :- 
+	job_device(J,D),
+	curr_job_start(J,T),
+	must_not_schedule(J).
+
+:-  on_instance(J,I1), I1!= I,
+	curr_on_instance(J,I),
+	must_not_schedule(J).

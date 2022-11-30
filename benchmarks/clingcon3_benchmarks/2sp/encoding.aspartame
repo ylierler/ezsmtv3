@@ -1,0 +1,607 @@
+#const opt_binary  = 1. % used in oe_wsum_nary_opt.lp
+#const opt_ternary = 1. % used in oe_wsum_nary_opt_.lp
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LUA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#begin_lua
+
+math = require("math")
+
+t  = {}
+lb = {}
+ub = {}
+
+----------------------------------------------------------------------------------
+-- Integer Variable
+----------------------------------------------------------------------------------
+function setDom(V,LB,UB)
+   X = tostring(V)
+   if t[X] == nil then
+      t[X] = {}
+   end
+   for i = LB,UB do
+      table.insert(t[X], i)
+   end
+   return 1;
+end 
+
+function sortDom(V)
+   X = tostring(V)
+   table.sort(t[X])
+   return 1
+end
+
+function setBounds(V)
+   X = tostring(V)
+   lb[X] = t[X][1]
+   ub[X] = t[X][#t[X]]
+   return 1
+end
+
+function getDom(V)
+   X = tostring(V)
+   return t[X]
+end
+
+function getLB(V)
+   X = tostring(V)
+   return lb[X]
+end
+
+function getUB(V)
+   X = tostring(V)
+   return ub[X]
+end
+
+function isContiguous(V)
+   X = tostring(V)
+   return #t[X] == ub[X] - lb[X] + 1
+end
+
+function removeDom(V)
+   X = tostring(V)
+   t[X] = nil
+   return 1
+end
+
+function size(V)
+   X = tostring(V)
+   return #t[X]
+end
+
+function lower_bound(V,A)
+   X = tostring(V)
+   local first = 1
+   local last  = #t[X]
+   local count = last
+   local it
+   local step
+   while count > 0 do
+      it = first
+      step = math.floor(count / 2)
+      it = it + step
+      if t[X][it] < A then
+	 it = it + 1
+	 first = it
+	 count = count - step - 1
+      else 
+	 count = step
+      end
+   end
+   return first;
+end
+
+function upper_bound(V,A)
+   X = tostring(V)
+   local first = 1
+   local last  = #t[X]
+   local count = last
+   local it
+   local step
+   while count > 0 do
+      it = first
+      step = math.floor(count / 2)
+      it = it + step
+      if not (A  < t[X][it]) then
+	 it = it + 1
+	 first = it
+	 count = count - step - 1
+      else 
+	 count = step
+      end
+   end
+   return first;
+end
+
+function sizeLE(V,A)
+   X = tostring(V)
+   if A < lb[X] then
+      return 0
+   elseif A >= ub[X] then
+      return size(X)
+   elseif isContiguous(X) then
+      return A - lb[X] + 1
+   else
+      return upper_bound(X,A) - 1
+   end
+end
+
+-- X <= A
+function getSimpLE(V,A)
+   X = tostring(V)
+   if A < lb[X] then
+      return lb[X] - 1
+   elseif A >= ub[X] then
+      return ub[X]
+   elseif isContiguous(X) then
+      return A
+   end
+   return t[X][sizeLE(X,A)]
+end
+
+-- A*X <= B
+function getLE(V,A,B)
+   X = tostring(V)
+   local val
+   if A >= 0 then
+      local c = math.floor(B/A)
+      val = getSimpLE(X,c)
+   else
+      local c = math.ceil(B/A) - 1
+      val = getSimpLE(X,c)
+   end
+   return val
+end
+
+-- X > A
+function getSimpGT(V,A)
+   X = tostring(V)
+   if A < lb[X] then
+      return lb[X]
+   elseif A >= ub[X] then
+      return ub[X]+1
+   elseif isContiguous(X) then
+      return A+1
+   end
+   return t[X][upper_bound(X,A)]
+end
+
+-- Return the domain values D in Dom(Y) such that LB0 < B*Y <= UB0
+function getDomOpt(V,B,LB0,UB0)
+   Y = tostring(V)
+   local sIdx, eIdx
+   local y = {}
+   local lb = getLB(Y)
+   local ub = getUB(Y)
+   if B > 0 then
+      lb = math.max(lb, math.floor(LB0/B)+1)
+      ub = math.min(ub, math.floor(UB0/B))
+   else 
+      lb = math.max(lb, math.ceil(UB0/B))
+      ub = math.min(ub, math.ceil(LB0/B)-1)
+   end
+   sIdx = lower_bound(Y,lb)
+   if ub == getUB(Y) then
+      eIdx = size(Y)
+   else 
+      eIdx = upper_bound(Y,ub) - 1
+   end
+   if sIdx == 1 and eIdx == size(Y) then
+      return getDom(Y)
+   end
+   for i = sIdx, eIdx do 
+      table.insert(y, t[Y][i])
+   end   
+   return y
+end
+
+----------------------------------------------------------------------------------
+-- Weighted sum
+----------------------------------------------------------------------------------
+function isFunc(X)
+   if Val.type(X) == Val.FUNC then
+      return true
+   else 
+      return false
+   end
+end
+
+function flatten(X)
+   if not isFunc(X) then
+      print("Type error : flatten : " .. tostring(X))
+      return X
+   end
+   return X:args()
+end
+
+function parseExp(X)
+   if not isFunc(X) then
+      print("Type error : parseExp : " .. tostring(X))
+      return X
+   end
+
+   local exp = X
+   local e = {}
+   local x  -- flattened exp
+   local op -- operator
+   local a1 -- arg1
+   local a2 -- arg2
+
+   while (exp ~= nil) do
+      x = flatten(exp)
+      op = tostring(x[1]) -- mul or add
+      a1 = x[2]
+      a2 = x[3]
+      if op == "mul" then
+	 table.insert(e, 1, {exp, a1, a2}) -- a1:coefficient, a2:variable
+	 exp = nil
+      elseif op == "add" then
+	 x = flatten(a2)
+	 local b1 = x[2] -- coefficient
+	 local b2 = x[3] -- variable
+	 table.insert(e, 1, {a2, b1, b2})
+	 exp = a1
+      else 
+	 print("Type error : parseExp : " .. tostring(X))
+	 return X
+      end
+   end
+   return e
+end
+
+function convertGEtoLE(X)
+   if not isFunc(X) then
+      print("Type error : convertGEtoLE : " .. tostring(X))
+      return X
+   end
+
+   local x = flatten(X)
+   local cmp = x[1]           -- comparison operator
+   local exp = parseExp(x[2]) -- linear expression
+   local val = x[3]           -- bound
+
+   if tostring(cmp) == "le" then
+      return X
+   elseif tostring(cmp) ~= "ge" then
+      print("Type error : convertGEtoLE : invalid operator found " .. tostring(X))
+      return X
+   end
+
+   -- convert
+   local e = {}
+   local op_mul = Val.new(Val.ID,"mul")
+   local op_add = Val.new(Val.ID,"add")
+   local op_le  = Val.new(Val.ID,"le")
+   for i,v in ipairs(exp) do
+      if i == 1 then
+	 e = Val.new(Val.FUNC, "op", {op_mul, -v[2], v[3]})
+      else 
+	 e = Val.new(Val.FUNC, "op", {op_add, e, Val.new(Val.FUNC, "op", {op_mul, -v[2], v[3]})})
+      end
+   end
+   return Val.new(Val.FUNC, "op", {op_le, e, -val})
+end
+
+-- 1st key: domain size, 2nd key: coefficient
+function comp(a,b) 
+   local v1 = tostring(a[3]) -- variable name
+   local v2 = tostring(b[3]) -- variable name
+   local s1 = size(v1)
+   local s2 = size(v2)
+
+   if s1 > s2 then
+      return true
+   elseif s1 == s2 then
+      return a[2] < b[2]
+   end
+   return false
+end
+
+-- 1st key: coefficient, 2nd key: domain size
+function comp2(a,b) 
+   if a[2] < b[2] then
+      return true
+   elseif a[2] == b[2] then
+      local v1 = tostring(a[3]) -- variable name
+      local v2 = tostring(b[3]) -- variable name
+      return size(v1) > size(v2)
+   end
+   return false
+end
+
+function sortWsum(X)
+   if not isFunc(X) then
+      print("Type error : sortWsum : " .. tostring(X))
+      return X
+   end
+
+   local x = flatten(X)
+   local cmp = x[1]           -- comparison operator
+   local exp = parseExp(x[2]) -- linear expression
+   local val = x[3]           -- bound
+
+   if #exp == 1 then
+      return X
+   end
+   table.sort(exp, comp) -- Sorting
+
+   local e = exp[1][1]
+   for i = 2, #exp do 
+      e = Val.new(Val.FUNC, "op", {Val.new(Val.ID,"add"), e, exp[i][1]})
+   end
+   return Val.new(Val.FUNC, "op", {cmp, e, val})
+end
+
+
+----------------------------------------------------------------------------------
+-- PB
+----------------------------------------------------------------------------------
+
+function getPB(X)
+   if not isFunc(X) then
+      print("Type error : getPB : " .. tostring(X))
+      return X
+   end
+
+   local x = flatten(X)
+   local cmp = x[1]           -- comparison operator
+   local exp = parseExp(x[2]) -- linear expression
+   local val = x[3]           -- bound
+
+   if tostring(cmp) ~= "le" then
+      print("Type error : getPB : invalid operator found " .. tostring(X))
+      return X
+   end
+
+   local e = {}
+   for i,v in ipairs(exp) do
+--      print ("v1 " .. tostring(v[1]))
+--      print ("v2 " .. tostring(v[2]))
+--      print ("v3 " .. tostring(v[3]))
+      if getLB(v[3]) < 0 then
+	 return {}
+      end
+      if getUB(v[3]) > 1 then
+	 return {}
+      end
+      table.insert(e, Val.new(Val.FUNC, {i, v[2], v[3]}))
+   end
+   return e
+end
+
+----------------------------------------------------------------------------------
+-- Testing
+----------------------------------------------------------------------------------
+function show(x)
+   print(x)
+   for i,v in pairs(x) do 
+      print(i,v)
+      for i2,v2 in pairs(v) do 
+	 print(i2,v2)
+      end   
+   end
+   return 1
+end
+
+function show2(x)
+   for i,v in pairs(x) do 
+      print(i,v)
+   end
+   return 1
+end
+
+#end_lua.
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AUXILIARY PREDICATES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+var(V) :- var(int,V,_).
+
+lua :- @setDom(V,L,U) == 1, var(int,V,range(L,U)).
+lua :- @sortDom(V) == 1, var(V).
+lua :- @setBounds(V) == 1, var(V).
+
+lb(V,@getLB(V)) :- var(V).
+ub(V,@getUB(V)) :- var(V).
+
+constraint(I) :- constraint(I,_).
+
+simple_lit(V) :- constraint(I,V), var(bool,V).
+simple_lit(op(neg,V)) :- constraint(I,op(neg,V)), var(bool,V).
+simple_lit(op(le,op(mul,1,X),K)) :- constraint(I,op(le,op(mul,1,X),K)).
+simple_lit(op(ge,op(mul,1,X),K)) :- constraint(I,op(ge,op(mul,1,X),K)).
+
+non_simple_lit(I,L) :- constraint(I,L), not simple_lit(L).
+weighted_sum(I,@sortWsum(@convertGEtoLE(L))) :- non_simple_lit(I,L).
+
+simple_constraint(I) :- constraint(I), { weighted_sum(I,L) } 0.
+
+weighted_sum(L) :- weighted_sum(_,L).
+
+exp(E) :- weighted_sum(op(_,E,_)).
+%exp(E) :- weighted_sum(I,op(_,E,_)), not valid(I).
+exp(E1;E2) :- exp(op(add,E1,E2)).
+
+unary_exp(op(mul,A,V)) :- exp(op(mul,A,V)).
+binary_exp(op(add,op(mul,A,V),op(mul,B,W))) :- exp(op(add,op(mul,A,V),op(mul,B,W))).
+
+inf(op(mul,A,V),A*LB)  :- exp(op(mul,A,V)), A > 0, lb(V,LB).
+inf(op(mul,A,V),A*UB)  :- exp(op(mul,A,V)), A < 0, ub(V,UB).
+inf(op(add,E1,E2),A+B) :- exp(op(add,E1,E2)), inf(E1,A), inf(E2,B).
+
+sup(op(mul,A,V),A*UB)  :- exp(op(mul,A,V)), A > 0, ub(V,UB).
+sup(op(mul,A,V),A*LB)  :- exp(op(mul,A,V)), A < 0, lb(V,LB).
+sup(op(add,E1,E2),A+B) :- exp(op(add,E1,E2)), sup(E1,A), sup(E2,B).
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INTEGER VARIABLES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{ p(V,A) : A := @getDom(V) } :- var(V).
+
+:- p(V,A), not p(V,B), B := @getSimpGT(V,A), A < UB, ub(V,UB).
+:- not p(V,UB), var(V), ub(V,UB).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BOOLEAN VARIABLES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{ p(V,0) } :- var(bool,V).
+
+% END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LINEAR INEQUALITIES (UNARY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- wsum(op(le,op(mul,A,X),K)), Inf <= K, K < Sup, inf(op(mul,A,X),Inf), sup(op(mul,A,X),Sup),
+	not p(X,B) : A > 0, 
+	p(X,B)     : A < 0, 
+	B := @getLE(X,A,K).
+
+:- wsum(op(le,op(mul,A,X),K)), Inf > K, inf(op(mul,A,X),Inf).
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LINEAR INEQUALITIES (OPTIMIZED, 2-ARY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- wsum(op(le,op(add,op(mul,A,X),op(mul,B,Y)),K)),
+	not p(Y,C) : B > 0 : C := @getSimpLE(Y,D-1),
+            p(Y,D) : B < 0, 
+	not p(X,E) : A > 0,
+            p(X,E) : A < 0,
+	D := @getDomOpt(Y,B,K-Sup,K-Inf), inf(op(mul,A,X),Inf), sup(op(mul,A,X),Sup), 
+	E := @getLE(X,A,K-B*D).
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LINEAR INEQUALITIES (OPTIMIZED, 3-ARY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- wsum(op(le,op(add,op(add,op(mul,A,X),op(mul,B,Y)),op(mul,C,Z)),K)),
+	not p(Z,E) : C > 0 : E := @getSimpLE(Z,F-1),
+            p(Z,F) : C < 0, 
+	not p(Y,D) : B > 0 : D := @getSimpLE(Y,G-1),
+            p(Y,G) : B < 0,
+	not p(X,H) : A > 0,
+            p(X,H) : A < 0,
+	F := @getDomOpt(Z,C,K-SupZ,K-InfZ), inf(op(add,op(mul,A,X),op(mul,B,Y)),InfZ), sup(op(add,op(mul,A,X),op(mul,B,Y)),SupZ), 		
+	G := @getDomOpt(Y,B,(K-C*F)-SupY,(K-C*F)-InfY), inf(op(mul,A,X),InfY), sup(op(mul,A,X),SupY), 		
+	H := @getLE(X,A,(K-C*F)-B*G).
+	
+
+wsum(op(le,op(mul,B,Y),(K-C*D)-Inf)) :- 
+	wsum(op(le,op(add,op(add,op(mul,A,X),op(mul,B,Y)),op(mul,C,Z)),K)),
+	not p(Z,E) : C > 0 : E := @getSimpLE(Z,D-1),
+            p(Z,D) : C < 0,
+	D := @getDomOpt(Z,C,K-SupXY,K-InfXY), inf(op(add,op(mul,A,X),op(mul,B,Y)),InfXY), sup(op(add,op(mul,A,X),op(mul,B,Y)),SupXY),
+	(K-C*D)-Inf < Sup, inf(op(mul,A,X),Inf), sup(op(mul,B,Y),Sup).
+	
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LINEAR INEQUALITIES (OPTIMIZED, N-ARY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+wsum(op(le,X,K-B*D)) :- not unary_exp(X) : opt_binary == 1,
+	not binary_exp(X) : opt_ternary == 1,
+	wsum(op(le,op(add,X,op(mul,B,Y)),K)), 
+	not p(Y,C) : B > 0 : C := @getSimpLE(Y,D-1),
+	    p(Y,D) : B < 0,
+	D := @getDomOpt(Y,B,K-Sup,K-Inf), inf(X,Inf), sup(X,Sup).
+
+wsum(op(le,op(mul,B,Y),K-Inf)) :- 
+	wsum(op(le,op(add,X,op(mul,B,Y)),K)), 
+	K-Inf < Sup, inf(X,Inf), sup(op(mul,B,Y),Sup).
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SIMPLE LITERALS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+lit(I,neg(p(V,0))) :- constraint(I,V), var(bool,V).
+lit(I,pos(p(V,0))) :- constraint(I,op(neg,V)), var(bool,V).
+
+lit(I,pos(p(X,B))) :- constraint(I,op(le,op(mul,1,X),K)), LB <= K, K < UB, lb(X,LB), ub(X,UB), B := @getSimpLE(X,K).
+lit(I,neg(p(X,B))) :- constraint(I,op(ge,op(mul,1,X),K)), LB < K, K <= UB, lb(X,LB), ub(X,UB), B := @getLE(X,-1,-K).
+
+valid(I) :- constraint(I,op(le,op(mul,1,X),K)), ub(X,UB), K >= UB.
+valid(I) :- constraint(I,op(ge,op(mul,1,X),K)), lb(X,LB), K <= LB.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% EVALUATE CONSTRAINTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% CSP clause consisting of ONLY simple literals
+:- simple_constraint(I), not valid(I),
+	p(X,A)     : lit(I,neg(p(X,A))), 
+	not p(Y,B) : lit(I,pos(p(Y,B))).
+   
+%%% CSP clause including EXACTLY one non-simple literal
+wsum(L) :- weighted_sum(I,L), not valid(I),
+	p(X,A)     : lit(I,neg(p(X,A))), 
+	not p(Y,B) : lit(I,pos(p(Y,B))).
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OBJECTIVE FUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#maximize { p(V,_) : objective(minimize, V) }.
+#minimize { p(V,_) : objective(maximize, V) }.
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SHOW PREDICATES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#hide.
+#show p/2.
+
+% END
+%%% order encoding
+wsum(L) :- weighted_sum(L), not aggregate(L).
+
+%%% aggregate
+:- weighted_sum(L), aggregate(L),
+  not #sum [ not p(X,0)=A : pb(L,_,A,X) ] B, pb_bound(L,B).
+
+var(int,V,range(L,U)) :- int(V,L,U).
+
+weightedSum(L) :- weightedsum(L).
+weighted_sum(@sortWsum(@convertGEtoLE(L))) :- weightedSum(L).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A CASP program of 2 dimensional strip packing problem
+% @author Mutsunori Banbara
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% X-coordinates
+int(x(I), 0, W-X) :- r(I,X,Y), width(W).
+
+% Y-coordinates
+int(y(I), 0, ub-Y) :- r(I,X,Y).
+
+% Not-overlapping constraints
+1 { le(x(I),XI,x(J)),
+    le(x(J),XJ,x(I)),
+    le(y(I),YI,y(J)),
+    le(y(J),YJ,y(I)) } :- r(I,XI,YI), r(J,XJ,YJ), I < J.
+
+% Strip height
+int(height, lb, ub).
+
+% y(I) + I's height <= strip height
+le(y(I),Y,height) :- r(I,X,Y).
+
+% objective function
+objective(minimize, height).
+
+% X+C <= Y
+weightedsum(op(le,op(add,op(mul,1,X),op(mul,-1,Y)),-C)) :- le(X,C,Y).

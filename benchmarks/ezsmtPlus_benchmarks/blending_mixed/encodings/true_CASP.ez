@@ -1,0 +1,35 @@
+cspdomain(mixed).
+
+cspvar(q(X),0,100) :- subs(X).
+cspvar(p(X),0,1000) :- subs(X).
+cspvar(c(Y,X),0,20000) :- subs(X), comp(Y).
+
+%Due to the limitation of the machine used for weighing,
+%only integer amount is allowed for components.
+cspvardomain(c(Y,X), int) :- subs(X), comp(Y).
+
+
+% Decide whether a substance is used or not.
+{used(X)} :- subs(X).
+required( q(X)=0 ) :- not used(X), subs(X).
+required( q(X)>0 ) :- used(X), subs(X).
+
+% Expence for each substance = quantity * cost per unit + fixed cost.
+required( p(X)=Y*q(X)+Z ) :- subs(X), cost(X,Y), used(X), using_cost(Z).
+required( p(X)=0 ) :- subs(X), cost(X,Y), not used(X).
+
+% Amount of each component in each substance.
+required( c(Y,X)=q(X)*Z ) :- subs(X), comp(Y), tab(X,Y,Z).
+
+% For each component, the amount in the final product has to be
+% greater than the minimum requested.
+required(sum([c(Y)/2],>=,Z)) :- comp(Y), mi(Y,Z).
+
+% Sum of expenses cannot exceed the budget.
+required(sum([p/1],<=,X)) :- max_money(X).
+
+% Substances X and Y cannot be used together.
+:- used(X), used(Y), not_together(X,Y).
+
+% Requirements of minimum amount of some substances in the final product.
+required( Z*q(X)>=Y ) :- have_to_use(X,Y,Z).

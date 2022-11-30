@@ -1,0 +1,12 @@
+maxheight(1016).
+width(250).
+rectangle(1,184,167).
+rectangle(2,118,114).
+rectangle(3,152,167).
+rectangle(4,140,83).
+rectangle(5,86,70).
+rectangle(6,166,143).
+rectangle(7,160,120).
+rectangle(8,148,66).
+rectangle(9,141,87).
+rectangle(10,165,69).

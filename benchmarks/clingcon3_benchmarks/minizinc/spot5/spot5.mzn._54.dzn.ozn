@@ -1,0 +1,4 @@
+output ["p = ",show(p),";\n","objective = ",show(objective),";\n"];
+int: num_variables = 67;
+array [1..num_variables] of int: p;
+int: objective;

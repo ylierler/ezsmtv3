@@ -1,0 +1,7 @@
+output ["s = "++format(s)++";\n","objective = "++format(objective)++";\n"]++[(if t==1 then "% " else "" endif++""++format(o[i,t])++"")++if t==p then "\n" else " " endif | i in Custs, t in 1..p, ];
+int: p = 20;
+set of int: Custs = 1..10;
+set of int: Prods = 1..20;
+array [Prods] of int: s;
+array [Custs,0..p] of int: o;
+int: objective;

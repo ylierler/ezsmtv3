@@ -1,0 +1,4 @@
+
+Plan: ezcsp --mkatoms --gams:knitro EXPERIMENT/init2.ez pioneerBasic.ez loopFiles/init.ez EXPERIMENT/goalICAPS.ez plan.ez 
+Check for unexpected obs: ezcsp --mkatoms --gams:knitro EXPERIMENT/init2.ez pioneerBasic.ez loopFiles/hist0.ez check.ez 
+Diagnosis: ezcsp --mkatoms --gams:knitro EXPERIMENT/init1 EXPERIMENT/instICAPS.ez EXPERIMENT/obs1 pioneerBasic.ez diag-min.ez

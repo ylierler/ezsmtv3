@@ -1,0 +1,12 @@
+output ["sel = ",show(sel),";\n","def = ",show(def),";\n","loc = ",show(loc),";\n","place = ",show(place),";\n","succ = ",show(succ),";\n","blockValueForNull = ",show(blockValueForNull),";\n","locValueForNull = ",show(locValueForNull),";\n","objective = ",show(objective),";\n"];
+set of int: allDataInFunction = 0..65;
+set of int: allMatches = 0..190;
+int: locValueForNull = 34;
+int: blockValueForNull = 24;
+set of int: allBlocksInFunctionPlusNull = 0..24;
+array [allDataInFunction] of int: def;
+array [allDataInFunction] of int: loc;
+array [allMatches] of bool: sel;
+array [allMatches] of int: place;
+array [allBlocksInFunctionPlusNull] of int: succ;
+int: objective;

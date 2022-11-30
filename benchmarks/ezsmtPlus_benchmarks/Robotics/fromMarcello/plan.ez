@@ -1,0 +1,13 @@
+1{pl_o(A,S): action(agent, A) }1 :- step(S), not goal(S), S >= curr_step.
+
+o(A,S) :- pl_o(A,S).
+
+success :- goal(S), step(S), S <= n.
+:- not success. %Failure is not an option
+
+%For replanning from a history
+required(N == V) :- obs(N, V).
+
+% Reality check axioms
+:- fluent(inertial, F), step(I), obs(F,true,I), -h(F,I).
+:- fluent(inertial, F), step(I), obs(F,false,I), h(F,I).

@@ -1,0 +1,5 @@
+output ["objective = "++format(objective)++";\n","x = array2d(1.."++format(n)++", 1.."++format(m)++", "++format(x)++");\n"]++[(if k==1 then "% " else "" endif++""++format(x[i,k])++"")++if k==m then "\n" else " " endif | i in 1..n, k in 1..m, ];
+int: n = 4;
+int: m = 8;
+array [1..n,1..m] of int: x;
+int: objective;

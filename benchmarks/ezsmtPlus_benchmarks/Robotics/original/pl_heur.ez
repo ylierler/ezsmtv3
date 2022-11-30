@@ -1,0 +1,13 @@
+% planning heuristics
+
+%required(tend(I)==tstart(I)) :- step(I), I==n.
+% Minimize the time spent in a state following action stop(R,_)
+% Ideally, we would like epsilon=0, but the constraint solver is unable to solve the problem.
+% A slight relaxation works.
+#const pl_epsilon="0.01".
+required(tend(I2)>=tend(I1)+pl_epsilon) :-
+	step(I1), step(I2), I2 = I1 + 1, I1>=curr_step,
+	o(stop(R,_),I1).
+% Don't turn more than 180 degrees, since it is more efficient to go the other way
+required(v_final(dir(R),I)-v_initial(dir(R),I) >= -180) :- robot(R), step(I), I>=curr_step.
+required(v_final(dir(R),I)-v_initial(dir(R),I) <= 180) :- robot(R), step(I), I>=curr_step.

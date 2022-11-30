@@ -1,0 +1,208 @@
+step(0..n).
+
+cspdomain(r).
+
+robot(r).
+
+h(state(r,stopped),0).
+
+required(v_initial(x(R),0)==0) :- robot(R).
+required(v_initial(y(R),0)==0) :- robot(R).
+required(v_initial(dir(R),0)==0) :- robot(R).
+
+% Assumption on a non-observable numerical fluent
+required(v_initial(b_lvl(R),0)==1) :- robot(R), not ab(assumed_value,b_lvl(R)).
+
+required(tstart(0)==0).
+
+
+
+%%%%%%%%%% Pioneer robot params
+% a=50.15cm/s^2, t'=0.544s, Vm=27.29 cm/s
+pioneer_param(r,vm,"27.29"). % 27.29 cm/s
+pioneer_param(r,ap,"50.15"). % 50.15 cm/s^2
+pioneer_param(r,vm_a,"17.33"). % 17.33 deg/s
+% normal acceleration time
+%%%%%%%%%%%%%%%%%%pioneer_param(r,tp,"0.544"). % 0.544 s
+
+goal(I) :- 
+	robot(R), step(I), I==n,
+	h(state(R,stopped), I).
+required(v_final(x(R), I)==150) :- robot(R), step(I), I==n.
+required(v_final(y(R), I)==150) :- robot(R), step(I), I==n.
+% For this experiment, we only allow the planner to plan 90 degree turns
+required(v_final(dir(R), I)-v_initial(dir(R), I)==90) :- robot(R), step(I), o(stop(R,turn_l),I), I>=curr_step.
+required(v_final(dir(R), I)-v_initial(dir(R), I)==-90) :- robot(R), step(I), o(stop(R,turn_r),I), I>=curr_step.
+
+% planning heuristics
+
+%required(tend(I)==tstart(I)) :- step(I), I==n.
+% Minimize the time spent in a state following action stop(R,_)
+% Ideally, we would like epsilon=0, but the constraint solver is unable to solve the problem.
+% A slight relaxation works.
+#const pl_epsilon="0.01".
+required(tend(I2)>=tend(I1)+pl_epsilon) :-
+	step(I1), step(I2), I2 = I1 + 1, I1>=curr_step,
+	o(stop(R,_),I1).
+% Don't turn more than 180 degrees, since it is more efficient to go the other way
+required(180 <= v_initial(dir(R),I)-v_final(dir(R),I)) :- robot(R), step(I), I>=curr_step.
+required(v_final(dir(R),I)-v_initial(dir(R),I) <= 180) :- robot(R), step(I), I>=curr_step.
+
+
+
+robot(r).
+
+state(fwd).
+state(stopped).
+state(turn_l).
+state(turn_r).
+mov_state(S) :- state(S), S != stopped.
+
+fluent(inertial,state(R,S)) :- robot(R), state(S).
+
+fluent(numerical,x(R)) :- robot(R).
+fluent(numerical,y(R)) :- robot(R).
+fluent(numerical,dir(R)) :- robot(R).
+
+fluent(numerical,b_lvl(R)) :- robot(R).
+
+action(agent,start(R,S)) :- robot(R), mov_state(S).
+action(agent,stop(R,S)) :- robot(R), mov_state(S).
+
+action(exogenous,battery_drop(R)) :- robot(R).
+
+
+cspvar(v_initial(N,I)) :- fluent(numerical,N), step(I).
+cspvar(v_final(N,I)) :- fluent(numerical,N), step(I).
+
+cspvar(tstart(I)) :- step(I).
+required(tstart(I) >= 0) :- step(I).
+cspvar(tend(I)) :- step(I).
+required(tend(I) >= 0) :- step(I).
+required(tstart(I2)==tend(I1)) :- step(I1), step(I2), I2=I1+1.
+required(tend(I)>=tstart(I)) :- step(I).
+
+#const epsilon="0.001".	% accuracy in turning < and > into <=, >=
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% inter-state inertia for numerical fluent N
+required(v_initial(N,I2)==v_final(N,I1)) :- fluent(numerical,N), step(I1), step(I2), I2=I1+1, not ab(inter,N,I1).
+
+% intra-state inertia for numerical fluent N
+required(v_initial(N,I)==v_final(N,I)) :- fluent(numerical,N), step(I), not ab(intra,N,I).
+
+% inertia for Boolean fluent F
+h(F, I2) :- step(I1), step(I2), fluent(inertial, F), h(F, I1), not -h(F, I2), I2=I1+1.
+-h(F, I2) :- step(I1), step(I2), fluent(inertial, F), -h(F, I1), not h(F, I2), I2=I1+1.
+
+
+% A robot can't be in more than one state at once
+-h(state(R,S2), I) :- h(state(R,S1), I), robot(R), step(I), state(S1), state(S2), S1!=S2.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% discrete dynamic laws
+
+%%%% start(R,S)
+h(state(R,S),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R), mov_state(S),
+	o(start(R,S),I1).
+
+-o(start(R,S),I) :-
+	step(I), robot(R), mov_state(S),
+	-h(state(R,stopped),I).
+
+%%%% stop(R,S)
+h(state(R,stopped),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R), mov_state(S),
+	o(stop(R,S),I1).
+
+-o(stop(R,S),I) :-
+	step(I), robot(R), mov_state(S),
+	-h(state(R,S),I).
+
+% continuous dynamic laws
+
+% If the battery's charge drops, the resulting battery level is somewhere in [0,old-level)
+required(v_initial(b_lvl(R),I2)>=0) :- 
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(battery_drop(R),I1).
+required(v_initial(b_lvl(R),I2)<=v_final(b_lvl(R),I1)-epsilon) :- 
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(battery_drop(R),I1).
+ab(inter,b_lvl(R),I) :- 
+	step(I), robot(R),
+	o(battery_drop(R),I).
+
+% The battery's charge can only drop while the robot is moving
+-o(battery_drop(R),I) :- h(state(R,stopped),I), robot(R), step(I).
+
+
+
+% continuous state constraints
+%
+
+% x==h*cos(pi*DEG/180)
+% y==h*sin(pi*DEG/180)
+
+%%%% fwd
+% v_top*t
+% where v_top = b_lvl * vm
+required(v_final(x(R),I)==v_initial(x(R),I)+v_initial(b_lvl(R),I)*Vm*(tend(I)-tstart(I))*cos(pi*v_initial(dir(R),I)/180)) :-
+	step(I), robot(R),
+	h(state(R,fwd),I),
+	pioneer_param(R,vm,Vm).
+
+ab(intra,x(R),I) :- 
+	step(I), robot(R),
+	h(state(R,fwd),I).
+
+required(v_final(y(R),I)==v_initial(y(R),I)+v_initial(b_lvl(R),I)*Vm*(tend(I)-tstart(I))*sin(pi*v_initial(dir(R),I)/180)) :-
+	step(I), robot(R),
+	h(state(R,fwd),I),
+	pioneer_param(R,vm,Vm).
+
+ab(intra,y(R),I) :- 
+	step(I), robot(R),
+	h(state(R,fwd),I).
+
+%%%% nothing for stopped
+
+
+%%%% turn_l
+required(v_final(dir(R),I)==v_initial(dir(R),I)+v_initial(b_lvl(R),I)*Vm_a*(tend(I)-tstart(I))) :-
+	step(I), robot(R),
+	h(state(R,turn_l),I),
+	pioneer_param(R,vm_a,Vm_a).
+
+ab(intra,dir(R),I) :- 
+	step(I), robot(R),
+	h(state(R,turn_l),I).
+
+
+%%%% turn_r
+required(v_final(dir(R),I)==v_initial(dir(R),I)-v_initial(b_lvl(R),I)*Vm_a*(tend(I)-tstart(I))) :-
+	step(I), robot(R),
+	h(state(R,turn_r),I),
+	pioneer_param(R,vm_a,Vm_a).
+
+ab(intra,dir(R),I) :- 
+	step(I), robot(R),
+	h(state(R,turn_r),I).
+
+%%%%%%%%%%%%%%%%%% module for checking the observations
+
+o(A,I) :- hpd(A,I).
+
+% Reality check axioms
+:- fluent(inertial, F), step(I), obs(F,true,I), -h(F,I).
+:- fluent(inertial, F), step(I), obs(F,false,I), h(F,I).
+
+% Reality check axiom for numerical variable observations.
+% Only the value at the end of a state can be observed. 
+required(N == V) :- obs(N, V).

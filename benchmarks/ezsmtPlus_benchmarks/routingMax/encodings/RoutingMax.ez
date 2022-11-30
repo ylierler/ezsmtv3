@@ -1,0 +1,36 @@
+cspvar(at(X),0,T) :- node(X), critical(Y,T).
+
+cspdomain(fd).
+
+% reachtime is >= 0 
+required(at(X)>=0) :- node(X).
+
+% initial node is reached at 0.
+reach(X) :- init(X).
+required(at(X)==0) :- init(X).
+
+% nodes reached later than the delay
+reach(Y) :- reach(X), route(X,Y). 
+required(at(Y)-at(X)>=D) :- route(X,Y), edge(X,Y,D,P).
+
+% critical nodes have to be reached in time
+:- critical(X,T), not reach(X).
+required(at(X)<=T):- critical(X,T), reach(X).
+
+% any edge can be in the route
+{route(X,Y)} :- edge(X,Y,D,P). 
+
+% one incoming/outgoing edge for each node
+:- 2{route(X,Y):edge(X,Y,D,P)}, node(X). 
+:- 2{route(X,Y):edge(X,Y,D,P)}, node(Y).
+
+
+
+% at least k weight total profits
+%:-698 > #sum {P : edge(X,Y,D,P), route(X,Y)}.
+
+%sum up profits
+cspvar(p(X,Y),0,P) :- edge(X,Y,D,P).
+required(p(X,Y)==0) :-edge(X,Y,D,P), not route(X,Y).
+required(p(X,Y)==P) :-edge(X,Y,D,P), route(X,Y).
+required(sum([p/2], >=, 620)).

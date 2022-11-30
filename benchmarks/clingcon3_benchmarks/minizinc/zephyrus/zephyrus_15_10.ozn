@@ -1,0 +1,2 @@
+output ["objective = ",show(objective),";\n"];
+int: objective;

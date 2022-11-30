@@ -1,0 +1,5 @@
+output ((["objective = ",show(objective),";\n","heart = array2d(",show(N),", ",show(N),", [\n"]++[(show(heart[i,j])++if j==n /\ i==n then "" else ", " endif)++if j==n then "\n" else "" endif | i in N, j in 1..n, ])++["]);\n"])++[((if j==1 then "%%   " else "" endif++show(heart[i,j]))++" ")++if j==i then "\n" else "" endif | i in N, j in 1..i, ];
+int: n = 10;
+set of int: N = 1..10;
+array [N,N] of int: heart;
+int: objective = sum([heart[i,j] | i in N, j in 1..i, ]);

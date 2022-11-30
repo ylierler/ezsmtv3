@@ -1,0 +1,6 @@
+output (((((((["objective = "]++[show(objective)])++[";\nvehicle = "])++[show(vehicle)])++[";\narrivalTime = "])++[show(arrivalTime)])++[";\nsuccessor = "])++[show(successor)])++[";\n"];
+set of int: NODES = 1..108;
+array [NODES] of int: successor;
+array [NODES] of int: vehicle;
+array [NODES] of int: arrivalTime;
+int: objective;

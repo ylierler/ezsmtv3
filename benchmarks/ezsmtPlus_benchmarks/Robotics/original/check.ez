@@ -1,0 +1,11 @@
+%%%%%%%%%%%%%%%%%% module for checking the observations
+
+o(A,I) :- hpd(A,I).
+
+% Reality check axioms
+:- fluent(inertial, F), step(I), obs(F,true,I), -h(F,I).
+:- fluent(inertial, F), step(I), obs(F,false,I), h(F,I).
+
+% Reality check axiom for numerical variable observations.
+% Only the value at the end of a state can be observed. 
+required(N == V) :- obs(N, V).
