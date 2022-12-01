@@ -7,9 +7,17 @@ http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.4-x86_64-li
 https://github.com/Z3Prover/z3/releases/tag/z3-4.5.0
 https://yices.csl.sri.com/
 
+Note that EZSMT once built will be able to work with 
+  z3
+  cvc4
+  cvc5
+  yices-smt2
+installed globally on your system and invocable under listed names; alternatively, the executables of these systems under listed names can be placed into tools directory (this distribution comes with executables compatible with Mac -- as of 11/22) 
+ 
+
 ## Quick Start
 
-Clone the project and it's submodules:
+Clone the project and it's submodules; Note the importance of submodules with directive --recursive:
 
 ``` sh
 git clone <this repository> --recursive
@@ -17,6 +25,12 @@ git clone <this repository> --recursive
 
 Install the Boost libary, version 1.78+ using your favorite package manager.
 https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
+
+E.g., on Ubuntu 
+sudo apt-get install libboost-all-dev
+and on Mac
+brew install boost 
+
 
 Setup build pipeline using cmake:
 
