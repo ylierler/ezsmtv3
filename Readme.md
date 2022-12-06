@@ -11,12 +11,30 @@ https://yices.csl.sri.com/
 
 Clone the project and it's submodules:
 
-``` sh
+```sh
 git clone <this repository> --recursive
 ```
 
-Install the Boost libary, version 1.78+ using your favorite package manager.
-https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
+If you have already cloned the repository, you can use the following command to clone the submodules:
+
+```sh
+git submodule update --init --recursive
+```
+
+EZSMT expects the following dependencies to be installed on your system:
+
+- Boost 1.7X
+- Glog 0.6.0
+
+You must install these dependencies using your system package manager. For example:
+
+```sh
+# Ubuntu
+sudo apt install libboost-all-dev libgoogle-glog-dev
+
+# Mac
+brew install boost glog
+```
 
 Setup build pipeline using cmake:
 
@@ -28,27 +46,27 @@ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
 
 Build the project:
 
-``` sh
+```sh
 # In <project_root>/build
 cmake --build .
 ```
 
-Add ./tools to your path if you don't want to globally install them:
+Optional: Add ./tools to your path if you don't want to globally install them.
 
-``` sh
+```sh
 # In <project_root>/build
 PATH="../tools:$PATH"
 ```
 
 Build, test, run:
 
-``` sh
+```sh
 # In <project_root>/build
 cmake --build . && ./test && ./ezsmt
 ```
 
 ## Format All Code
 
-``` sh
+```sh
 clang-format -i src/*.cc src/*.h tests/*.cc
 ```

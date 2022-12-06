@@ -5,8 +5,9 @@ project(ezsmt)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
 find_package(Boost 1.74.0 COMPONENTS program_options REQUIRED)
+find_package(glog 0.6.0 REQUIRED)
+
 include_directories(${Boost_INCLUDE_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
