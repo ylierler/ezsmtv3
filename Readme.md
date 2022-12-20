@@ -2,7 +2,11 @@
 
 EZSMT is an constraint answer set programming solver extended from EZSMT. It takes a program written in a Gringo 5 compatible input language, translates it into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
 
-EZSMT has been tested with the Z3, CVC4, CVC5, and Yices 2 SMT Solvers, but it can interact with any SMT-LIB compatible solver that receives input from stdin.
+EZSMT has been tested with the following SMT Solvers, but it can interact with any SMT-LIB compatible solver that receives input from stdin.
+Z3 4.11.2
+CVC4
+CVC5 1.0.0
+Yices 2.6.4
 http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.4-x86_64-linux-opt
 https://github.com/Z3Prover/z3/releases/tag/z3-4.5.0
 https://yices.csl.sri.com/
