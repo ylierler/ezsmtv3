@@ -28,7 +28,7 @@ git submodule update --init --recursive
 EZSMT expects the following dependencies to be installed on your system:
 
 - Boost 1.7X
-- Glog 0.6.0
+- Glog 0.4.0
 
 You must install these dependencies using your system package manager. For example:
 
@@ -48,10 +48,10 @@ cd build
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
-Build the project:
+Build the project in <project_root> directory:
 
 ```sh
-# In <project_root>/build
+# In <project_root>
 cmake --build .
 ```
 
@@ -65,7 +65,7 @@ PATH="../tools:$PATH"
 Build, test, run:
 
 ```sh
-# In <project_root>/build
+# In <project_root>/buildPATH="../tools:$PATH"
 cmake --build . && ./test && ./ezsmt
 ```
 
