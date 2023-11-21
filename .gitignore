@@ -2,6 +2,9 @@
 .idea
 *.log
 tmp/
+.vscode
+*.output
+*.smt2
 
 # Prerequisites
 *.d

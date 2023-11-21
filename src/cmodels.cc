@@ -209,6 +209,8 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
   if (param.sort)
     findSameBodies();
 
+  // BY HERE NESTED RULES ARE CREATED
+
   // Report an error if the program is disjunctive.
   if (program.disj) {
     cerr << "Error: disjunctive programs are not supported." << endl;
@@ -232,22 +234,10 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
     param.verifyMethod = TIGHT;
   output.disj_output();
 
-  // output.timerCompletion.start();
-  // createCompletion();
-  // output.timerCompletion.stop();
-
-  //  cout<<"Completion..."<<endl;
-
-  if (program.tight) {
-    output.timerCompletion.start();
-    createCompletion();
-    output.timerCompletion.stop();
-  } else {
-    output.timerCompletion.start();
-    createCompletion();
-    output.timerCompletion.stop();
-  }
-
+  output.timerCompletion.start();
+  createCompletion();
+  output.timerCompletion.stop();
+ 
   // if we want to add SCC level ranking formula
   if (param.sys == SCC_LEVEL_RANKING or param.sys == SCC_LEVEL_RANKING_STRONG) {
     if (program.tight)
@@ -1248,7 +1238,16 @@ void Cmodels::createCompletion() {
 
     if (curAtom->Bneg && curAtom->nestedRules.size() > 0) {
       createFalseHeadClauses(curAtom);
-    } else if (curAtom->Bpos) {
+    } 
+    else if (curAtom->theoryStatement){
+      /* if this is a theory atom: we only have to build implications for each rule rather than "completion equivalence" */
+      for (list<NestedRule *>::iterator itrNRule =
+            curAtom->nestedRules.begin();
+            itrNRule != curAtom->nestedRules.end(); ++itrNRule) {
+        createNestedRuleBodyAClause(*itrNRule);
+      }
+    }
+    else if (curAtom->Bpos) {
       // do nothing and lets go to the other atom -
       // we take care of this in the end when we build clauses
     } else {

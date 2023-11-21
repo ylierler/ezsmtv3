@@ -15,7 +15,7 @@ public:
   SMTProcess(string solverCommand);
 
   void Send(string body);
-  unique_ptr<SolverResult> CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations);
+  unique_ptr<SolverResult> CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params);
 private:
   SMTSolverCommand solverOption;
   boost::process::ipstream output;

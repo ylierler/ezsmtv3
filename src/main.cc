@@ -182,6 +182,8 @@
 #include "interpret.h"
 #include "timer.h"
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <ctype.h>
 #include <exception>
 #include <fstream>
@@ -195,6 +197,7 @@
 #include <time.h>
 
 using namespace std;
+using namespace boost::algorithm;
 namespace popts = boost::program_options;
 
 void a_new_handler() {
@@ -241,8 +244,9 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   genericOptions.add_options()
     ("help,h", "Show this help menu") //
     ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
-    ("file,f", popts::value<string>(), "Input file") //
-    ;
+    // ("file,f", popts::value<string>(), "Input file") // for single input file
+    ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
+    ("debug-file,d", popts::value<string>()->default_value(""), "File that will be output for debugging or testing against other system");
 
   popts::options_description cmodelsOptions("CModels Options");
   cmodelsOptions.add_options()
@@ -291,8 +295,18 @@ int ParseArguments(int argc, char *argv[], Param &params) {
 
       params.verboseLogLevel = vm["verbose"].as<int>();
 
-      params.file = vm["file"].as<string>().c_str();
-      params.numOfFiles = 1;
+      // for single input file
+      // params.file = vm["file"].as<string>().c_str();
+      // params.numOfFiles = 1;
+      
+      // for multiple input files
+      params.numOfFiles = 0;
+      for (auto a : vm["file"].as<vector<string>>()){
+        params.file += a + " ";
+        params.numOfFiles++;
+      }
+      params.file = trim_copy(params.file);
+      params.debug_file = vm["debug-file"].as<string>().c_str();
 
       params.grounderCommand = vm["grounder-command"].empty()
                                   ? "gringo"
@@ -407,13 +421,22 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  vector<string> split_names;
+  split(split_names, params.file, is_space());
+  string grounded_file = split_names[0];
+  for (int i=1; i < split_names.size(); i++){
+    string temp = split_names[i];
+    temp = temp.substr(temp.find_last_of("/\\") + 1);
+    grounded_file += "_" + temp;
+  }
+
   string groundingCommand = params.grounderCommand + " " + params.file +
-                            " &> " + params.file + ".grounded";
+                            " > " + grounded_file + ".grounded";
 
   VLOG(2) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
 
-  params.file += ".grounded";
+  params.file = grounded_file + ".grounded";
 
   // Check errors from grounding output
   ifstream groundedProgram(params.file);

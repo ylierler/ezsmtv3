@@ -26,6 +26,7 @@ void assertEnumeratedAnswerSetsMatchExpected(string testName) {
     // Diff ignoring whitespace and blank lines
     diffCommand << "diff -w -B " << outputPath << " " << expectedPath;
 
+    cout << "Running: " << diffCommand.str() << endl;
     exitCode = system(diffCommand.str().c_str());
     REQUIRE(exitCode == SUCCESS);
 }

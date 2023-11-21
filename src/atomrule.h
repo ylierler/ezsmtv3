@@ -173,6 +173,7 @@ public:
   bool choiceruleSpecified; // when we create graph for checcking tightness
   // graph might become simpler and als some nontughtness may be eliminated
   //  (replacing {p}. p occurences by not not p everywhere
+  bool theoryStatement = false; // indicates if this is a theory statement
   bool inM;
   bool inMminus;
   int inLoopId;

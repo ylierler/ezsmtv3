@@ -210,6 +210,11 @@ void Read::readTheoryStatements(list<string> &lines) {
         int atomId;
         lineStream >> atomId;
         Atom *atom = getOrCreateAtom(atomId);
+        atom->theoryStatement = true;
+
+        string choiceRuleLine = "1 1 " + to_string(atomId) + " 0 0";
+        unique_ptr<istringstream> choiceRulelineStream(new istringstream(choiceRuleLine));
+        readRuleLine(*choiceRulelineStream);
 
         stringstream name;
         name << THEORY_ATOM_PREFIX << "(" << atomId << ")";

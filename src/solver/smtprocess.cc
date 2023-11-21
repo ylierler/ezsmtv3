@@ -37,7 +37,7 @@ void SMTProcess::Send(string body) {
   input << body << endl;
 }
 
-unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations) {
+unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
   auto solveStart = high_resolution_clock::now();
@@ -65,6 +65,21 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   list<string> atomNames;
   transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
   auto rawAtomAssignments = getRawAssignments(atomNames);
+  string valueString;
+
+  if (params.debug_file.length() > 0){
+    system(("rm -f " + params.debug_file).c_str());
+    for (auto atom_name: atomNames){
+      if (rawAtomAssignments[atom_name] == "true"){
+        valueString = ":- not " + atom_name + ".";
+      }
+      else{
+        valueString = ":- " + atom_name + ".";
+      }
+      system(("echo \"" + valueString + "\" >> " + params.debug_file).c_str());
+    }
+  }
+
   for (Atom* atom : atoms) {
     string atomName = atom->getSmtName();
     if (rawAtomAssignments.find(atomName) != rawAtomAssignments.end()) {
@@ -76,6 +91,12 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   list<string> variableNames;
   transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
   auto rawVariableAssignments = getRawAssignments(variableNames);
+  if (params.debug_file.length() > 0){
+    for (auto var_name: variableNames){
+      valueString = "&sum {" + var_name + "} = " + rawVariableAssignments[var_name] + ".";
+      system(("echo \"" + valueString + "\" >> " + params.debug_file).c_str());
+    }
+  }
   for (SymbolicTerm* variable : constraintVariables) {
     if (rawVariableAssignments.find(variable->name) != rawVariableAssignments.end()) {
       result->constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];
@@ -130,6 +151,7 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
 
   SymbolicExpressionParser parser;
   auto assignmentsList = parser.ParseSymbolList(assignmentsLine);
+  // cout << "to string: " << assignmentsList->ToString() << endl;
   for (auto a : assignmentsList->children) {
     auto assignment = dynamic_cast<SymbolList*>(a);
     auto variable = dynamic_cast<Symbol*>(assignment->children.front());

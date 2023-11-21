@@ -80,6 +80,8 @@ void Solver::SolveProgram(Param &params, Program &program) {
   this->logic->processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
+  string command = "echo \"" + programBody + "\" > " + "temp.smt2";
+  system(command.c_str());
 
   // Override -s option with --solver-command if provided
   auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);
@@ -98,7 +100,7 @@ void Solver::SolveProgram(Param &params, Program &program) {
 
   int i = 1;
   for (;; i++) {
-    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations);
+    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params);
 
     if (i == 1) {
       LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");
