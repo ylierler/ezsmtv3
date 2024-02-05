@@ -14,7 +14,7 @@ public:
     void getAssertionStatements(std::ostringstream &output) override;
     list<SymbolicTerm*> getConstraintVariables() override;
 
-private:
+protected:
     map<int, SymbolicTerm*> symbolicTerms;
     list<TheoryStatement *> statements;
 

@@ -76,10 +76,17 @@ void Solver::SolveProgram(Param &params, Program &program) {
     theoryStatements.push_back(pair.second);
   }
 
-  this->logic = new QF_LIA_logic();
+  if (params.logic == 1) {
+    this->logic = new QF_LRA_logic();
+  } else {
+    this->logic = new QF_LIA_logic();
+  }
+  
   this->logic->processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
+  // this approach fails when the programBody is large
+  // TODO: write a max amount of characters allowed each time to temp file until the end is reached
   string command = "echo \"" + programBody + "\" > " + "temp.smt2";
   system(command.c_str());
 

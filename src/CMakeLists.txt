@@ -17,6 +17,7 @@ target_sources(ezsmt
     solver/smtsolver.cc
     solver/smtprocess.cc
     logics/QF_LIA_logic.cc
+    logics/QF_LRA_logic.cc
     main.cc
 )
 
@@ -34,5 +35,6 @@ target_sources(test
     solver/smtsolver.cc
     solver/smtprocess.cc
     logics/QF_LIA_logic.cc
+    logics/QF_LRA_logic.cc
     # main.cc
 )

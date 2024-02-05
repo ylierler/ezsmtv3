@@ -41,6 +41,10 @@
 #include <stdexcept>
 #include <string.h>
 #include <string>
+#include <boost/algorithm/string.hpp>
+#include <typeinfo>
+
+using namespace boost::algorithm;
 
 Read::Read(Program *p, Api *a, Param *params) : program(p), api(a), params(params) {
   // atoms = 0;
@@ -261,7 +265,7 @@ void Read::readTheoryStatements(list<string> &lines) {
   }
 }
 
-void Read::readTheoryTerms(list<string> &lines) {
+void Read::readTheoryTerms(list<string> &lines, int logic) {
   for (string line : lines) {
     stringstream lineStream(line);
     int statementType;
@@ -281,7 +285,18 @@ void Read::readTheoryTerms(list<string> &lines) {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-          program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
+          if (logic == 1) {
+            try {
+              string floatString = trim_copy_if(symbolValue, is_any_of("\"\'"));
+              float floatValue = stof(floatString);
+              program->theoryTerms[termId] = new RealTerm(termId, floatValue);
+            }
+            catch (...) {
+              program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
+            }
+          } else {
+            program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
+          }
           break;
         }
         case COMPOUND_TERMS:
@@ -423,7 +438,7 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   program->minimizations.push_back(minimizationStatement);
 }
 
-int Read::read(string fileName) {
+int Read::read(string fileName, int logic) {
   int lineNumber = 0;
   list<string> lines;
 
@@ -473,7 +488,7 @@ int Read::read(string fileName) {
 
     VLOG(2) << "Reading theory components";
 
-    readTheoryTerms(lines);
+    readTheoryTerms(lines, logic);
     readTheoryAtomElements(lines);
     readTheoryStatements(lines);
 

@@ -43,7 +43,7 @@ Ctable::~Ctable() {}
 
 int Ctable::read() {
 
-  int result = reader.read(cmodels.param.file);
+  int result = reader.read(cmodels.param.file, cmodels.param.logic);
 
   // the program has just been read; no modifications on the program were
   // performed so we can safely set the value of

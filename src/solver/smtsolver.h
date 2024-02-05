@@ -7,6 +7,7 @@
 #include "program.h"
 #include "logics/logic.h"
 #include "logics/QF_LIA_logic.h"
+#include "logics/QF_LRA_logic.h"
 #include <chrono>
 #include <memory>
 #include <regex>

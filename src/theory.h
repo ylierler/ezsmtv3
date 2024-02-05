@@ -44,6 +44,21 @@ class NumericTerm : public ITheoryTerm {
     }
 };
 
+class RealTerm : public ITheoryTerm {
+  public:
+    int id;
+    float value;
+
+    RealTerm(int id, float value) {
+      this->id = id;
+      this->value = value;
+    }
+
+    void traverseNestedTerms(function<void(ITheoryTerm*)> visitor) override {
+      visitor(this);
+    }
+};
+
 class SymbolicTerm : public ITheoryTerm {
   public:
     int id;

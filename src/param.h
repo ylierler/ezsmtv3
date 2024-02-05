@@ -20,6 +20,7 @@ public:
   char config[100];
   std::string file;
   std::string debug_file;
+  int logic;
   char dirName[256];
   char cmodelsname[256];
   char dimacsFileName[512];

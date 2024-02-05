@@ -92,6 +92,8 @@ public:
     static string ToString(ITheoryTerm* term) {
         if (auto t = dynamic_cast<NumericTerm*>(term)) {
             return to_string(t->value);
+        } else if (auto t = dynamic_cast<RealTerm*>(term)) {
+            return to_string(t->value);
         } else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {
             return escape(t->name);
         } else if (auto t = dynamic_cast<TupleTerm*>(term)) {
