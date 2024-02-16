@@ -42,7 +42,6 @@
 #include <string.h>
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include <typeinfo>
 
 using namespace boost::algorithm;
 

@@ -1,0 +1,41 @@
+cspdomain(r).
+
+cspvar(speed(X), -5000 ,5000) :- step(X).
+{drop(X)} :- astep(X).
+{catch(X)} :- astep(X).
+cspvar(duration(X),0,1000) :- astep(X).
+{holding(X)} :- step(X).
+
+
+holding(0).
+required(speed(0)==0).
+step(0..99).
+astep(0..98). 
+required(pos(99)==50).    %required(pos(max_step)==50).
+required(pos(97)==0).     %required(pos(max_step-2)==0).
+
+:- drop(X), catch(X), astep(X).
+:- drop(X),  astep(X), not holding(X).
+:- catch(X), holding(X), astep(X).
+
+required(duration(X)==0) :- drop(X),  astep(X).
+required(duration(X)==0) :- catch(X),  astep(X).
+
+holding(Y) :- catch(X),  astep(X), Y= X+1.
+required(speed(Y)==0)  :- catch(X),  astep(X), Y= X+1.
+:- holding(Y), drop(X),  astep(X), Y= X+1.
+
+holding(Y) :- holding(X), not drop(X), astep(X), Y= X+1.
+:- holding(Y), not holding(X), not catch(X), astep(X), Y= X+1.
+
+%{required(speed(Y)==speed(X) - duration(X) *98/10)} :-  not holding(X), astep(X), Y= X+1. %Ezcsp can not pre-parse this rule correctly, so we pre-parse it by hand.
+{required(ezcsp__eq(speed(Y), ezcsp__mn(speed(X), ezcsp__dv(ezcsp__tm(duration(X), 98), 10))))} :-  not holding(X), astep(X), Y= X+1.
+required(speed(Y)==speed(X)) :-holding(X), astep(X), Y= X+1.
+required(speed(98)+speed(97)*95/100 ==0).%Bouncing at the second last step. We made this change because ezcsp does not support constraint variables in the body of a rule.
+
+
+
+required(pos(Y) ==pos(X)+duration(X)*(speed(Y)+speed(X))/2) :- not catch(X), not holding(X), astep(X), Y= X+1.
+required(pos(Y) ==pos(X)+duration(X)*(speed(Y)+speed(X))/2) :- drop(X), astep(X), Y= X+1.
+required(pos(Y) ==pos(X)):- holding(X), not drop(X), astep(X), Y= X+1.
+required(pos(Y) ==pos(X)):- catch(X), astep(X), Y= X+1.

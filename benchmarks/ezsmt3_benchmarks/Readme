@@ -1,0 +1,35 @@
+We also provide a collection of benchmarks.
+
+Three benchmarks, namely, Reverse Folding, Incremental Scheduling, and Weighted Sequence, come from the Third Answer Set Programming Competition (Calimeri et al. 2011). We obtain clingcon encoding of IS from (Banbara et al. 2017). We include a benchmark called Blending problem (Biavaschi 2017) and extend it to Blending_mixed, which contains variables over both integers and reals. Also, we use Bouncing Ball domain (Bartholomew 2016). It is important to remark that the encoding for BB domain results in a tight program. This domain uses nonlinear constraints over real numbers. In such a case ezsmt + is unable to handle nontight programs. Yet, it can process (non-)tight programs with integer nonlinear constraints (utilizing z3 or yices) or (non-)tight programs with linear constraints over real or mixed domain (using z3 or cvc4). Three more benchmarks, namely, RoutingMin, RoutingMax, and Travelling Salesperson are obtained from Liu, Janhunen, and Niemela (2012). The original TS benchmark is an optimization problem, and we turn it into a decision one. The Labyrinth benchmark is extended from the domain presented in the Fifth Answer Set Programming Competition (Calimeri et al. 2016). This extension allows us to add integer linear constraints into the problem encoding. Next benchmark, Robotics, comes from Young, Balduccini, and Israney (2017). Also, we present results on two benchmarks from Balduccini et al. (2017), namely, Car and Generator.
+
+References:
+[2011] Calimeri, F.; Ianni, G.; Ricca, F.; and et al. 2011.
+The third answer set programming competition: Pre-
+liminary report of the system competition track. In
+Proceedings of the International Conference on Logic
+Programming and Nonmonotonic Reasoning (LPNMR),
+388–403. Berlin, Heidelberg: Springer-Verlag.
+[2017] Biavaschi, S. 2017. Automated reasoning methods
+in hybrid systems. Annual Report of “Scuola Superiore
+dell’Università di Udine”.
+[2016] Bartholomew, M. 2016. Answer Set Programming
+Modulo Theories. Ph.D. Dissertation, Arizona State
+University.
+[2012] Liu, G.; Janhunen, T.; and Niemela, I. 2012. An-
+swer set programming via mixed integer programming.
+In Knowledge Representation and Reasoning Conference.
+2016] Calimeri, F.; Gebser, M.; Maratea, M.; and Ricca,
+F. 2016. Design and results of the fifth answer set
+programming competition. Artif. Intell. 231(C):151–
+181.
+[2017] Young, R.; Balduccini, M.; and Israney, A. 2017.
+Casp for robot control in hybrid domains. In In Work-
+shop on Answer Set Programming and Other Computing
+Paradigms (ASPOCP17).
+[2017] Balduccini, M.; Magazzeni, D.; Maratea, M.; and
+Leblanc, E. C. 2017. Casp solutions for planning in
+hybrid domains. Theory and Practice of Logic Program-
+ming 17(4):591–633.
+[2017] Banbara, M.; Kaufmann, B.; Ostrowski, M.; and
+Schaub, T. 2017. Clingcon: The next generation. CoRR
+abs/1705.04569.

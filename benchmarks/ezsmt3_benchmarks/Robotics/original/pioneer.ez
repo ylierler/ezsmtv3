@@ -1,0 +1,184 @@
+cspdomain(nlp).
+
+robot(r).
+
+state(in_accel).
+state(in_decel).
+state(stopped).
+state(cruising).
+
+fluent(inertial,state(R,S)) :- robot(R), state(S).
+
+fluent(numerical,x(R)) :- robot(R).
+fluent(numerical,y(R)) :- robot(R).
+fluent(numerical,dir(R)) :- robot(R).
+
+fluent(numerical,b_lvl(R)) :- robot(R).
+
+action(agent,start(R,accel)) :- robot(R).
+action(agent,stop(R,accel)) :- robot(R).
+action(agent,start(R,decel)) :- robot(R).
+action(agent,stop(R,decel)) :- robot(R).
+
+action(agent,start(R,turn_r)) :- robot(R).
+action(agent,stop(R,turn_r)) :- robot(R).
+action(agent,start(R,turn_l)) :- robot(R).
+action(agent,stop(R,turn_l)) :- robot(R).
+
+
+cspvar(v_initial(N,I)) :- fluent(numerical,N), step(I).
+cspvar(v_final(N,I)) :- fluent(numerical,N), step(I).
+
+cspvar(tstart(I)) :- step(I).
+required(tstart(I) >= 0) :- step(I).
+cspvar(tend(I)) :- step(I).
+required(tend(I) >= 0) :- step(I).
+required(tstart(I2)==tend(I1)) :- step(I1), step(I2), I2=I1+1.
+required(tend(I)>=tstart(I)) :- step(I).
+
+cspvar(stime(start(R,Type),I)) :-
+	robot(R), step(I),
+	o(start(R,Type),I).
+required(stime(start(R,Type),I)>=0) :-
+	robot(R), step(I),
+	o(start(R,Type),I).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% inter-state inertia for numerical fluent N
+required(v_initial(N,I2)==v_final(N,I1)) :- fluent(numerical,N), step(I1), step(I2), I2=I1+1, not ab(inter,N,I1).
+
+% intra-state inertia for numerical fluent N
+required(v_initial(N,I)==v_final(N,I)) :- fluent(numerical,N), step(I), not ab(intra,N,I).
+
+% inertia for Boolean fluent F
+h(F, I2) :- step(I1), step(I2), fluent(inertial, F), h(F, I1), not -h(F, I2), I2=I1+1.
+-h(F, I2) :- step(I1), step(I2), fluent(inertial, F), -h(F, I1), not h(F, I2), I2=I1+1.
+
+
+% A robot can't be in more than one state at once
+-h(state(R,S2), I) :- h(state(R,S1), I), robot(R), step(I), state(S1), state(S2), S1!=S2.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% discrete dynamic laws
+
+%%%% start(accel)
+h(state(R,in_accel),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(start(R,accel),I1).
+
+-o(start(R,accel),I) :-
+	step(I), robot(R),
+	-h(state(R,stopped),I).
+
+%%%% stop(accel)
+h(state(R,cruising),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(stop(R,accel),I1).
+
+-o(stop(R,accel),I) :-
+	step(I), robot(R),
+	-h(state(R,in_accel),I).
+
+%%%% start(decel)
+h(state(R,in_decel),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(start(R,decel),I1).
+
+-o(start(R,decel),I) :-
+	step(I), robot(R),
+	-h(state(R,cruising),I).
+
+%%%% stop(decel)
+h(state(R,stopped),I2) :-
+	step(I1), step(I2), I2 = I1 + 1,
+	robot(R),
+	o(stop(R,decel),I1).
+
+-o(stop(R,decel),I) :-
+	step(I), robot(R),
+	-h(state(R,in_decel),I).
+
+
+% continuous state constraints
+%
+
+%%%% in_accel
+% 1/2*a*t^2
+required(v_final(x(R),I)==v_initial(x(R),I)+0.5*Ap*(tend(I)-tstart(I))*(tend(I)-tstart(I))) :-
+	step(I), robot(R),
+	h(state(R,in_accel),I),
+	pioneer_param(R,ap,Ap).
+
+ab(intra,x(R),I) :- 
+	step(I), robot(R),
+	h(state(R,in_accel),I).
+
+%%%% in_decel
+% -1/2*a*t^2
+required(v_final(x(R),I)==v_initial(x(R),I)-0.5*Ap*(tend(I)-tstart(I))*(tend(I)-tstart(I))) :-
+	step(I), robot(R),
+	h(state(R,in_decel),I),
+	pioneer_param(R,ap,Ap).
+
+ab(intra,x(R),I) :- 
+	step(I), robot(R),
+	h(state(R,in_decel),I).
+
+%%%% cruising
+% v_top*t
+% where v_top = b_lvl * vm
+required(v_final(x(R),I)==v_initial(x(R),I)+v_initial(b_lvl(R),I)*Vm*(tend(I)-tstart(I))) :-
+	step(I), robot(R),
+	h(state(R,cruising),I),
+	pioneer_param(R,vm,Vm).
+
+ab(intra,x(R),I) :- 
+	step(I), robot(R),
+	h(state(R,cruising),I).
+
+%%%% nothing for stopped
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%% CHARACTERIZATION OF DURATIVE ACTIONS %%%%%%%%%%%%%%%%%%%%%%%%%
+
+required(stime(start(R,Type),I)==tend(I)) :-
+	step(I),
+	o(start(R,Type),I).
+
+
+%%% Triggering of stop(R,accel)
+1{ o(stop(R,Type),I2) : step(I2) : I2 > I1 : I2 < n }1 :-
+	step(I1), robot(R),
+	o(start(R,Type),I1).
+
+% accel/decel cannot stop if it isn't in progress
+-o(stop(R,accel),I) :-
+	step(I), robot(R),
+	o(stop(R,accel),I),
+	-h(state(R,in_accel),I).
+-o(stop(R,decel),I) :-
+	step(I),
+	robot(R),
+	o(stop(R,decel),I),
+	-h(state(R,in_decel),I).
+
+% total duration is v_top / a
+% where v_top = b_lvl * vm
+% --> t = b_lvl * vm / ap
+required(tend(I2)-stime(start(R,Type),I1)==v_initial(b_lvl(R),I1)*Vm/Ap) :-
+	step(I1), step(I2), I2 > I1,
+	robot(R),
+	o(start(R,Type),I1),
+	not o_before(stop(R,Type),I2),
+	pioneer_param(R,ap,Ap),
+	pioneer_param(R,vm,Vm).
+
+o_before(stop(R,Type),I2) :-
+	step(I1), step(I2), I2 > I1,
+	robot(R),
+	o(stop(R,Type),I1).

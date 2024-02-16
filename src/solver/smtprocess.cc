@@ -37,6 +37,29 @@ void SMTProcess::Send(string body) {
   input << body << endl;
 }
 
+// convert assignments of answer set to float in real logic 
+string prepareDebugAssignmentReal(string str){
+  regex re("\\((.*)\\)");
+  smatch match;
+
+  std::regex_search(str, match, re);
+  string new_string = match[1];
+
+  if (new_string.length() == 0){
+    return str;
+  }
+
+  vector<string> strs;
+  boost::split(strs, new_string, boost::is_any_of(" "));
+
+  if (strs.size() == 3){
+    float num = stof(strs[1]) / stof(strs[2]);
+    return to_string(num);
+  } else {
+    return str;
+  }
+}
+
 unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
@@ -67,16 +90,17 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   auto rawAtomAssignments = getRawAssignments(atomNames);
   string valueString;
 
+  // prepare debug file
   if (params.debug_file.length() > 0){
     system(("rm -f " + params.debug_file).c_str());
-    for (auto atom_name: atomNames){
-      if (rawAtomAssignments[atom_name] == "true"){
-        valueString = ":- not " + atom_name + ".";
+    for (auto atomName: atomNames){
+      if (rawAtomAssignments[atomName] == "true"){
+        valueString = ":- not " + atomName + ".";
       }
       else{
-        valueString = ":- " + atom_name + ".";
+        valueString = ":- " + atomName + ".";
       }
-      system(("echo \"" + valueString + "\" >> " + params.debug_file).c_str());
+      system(("echo '" + valueString + "' >> " + params.debug_file).c_str());
     }
   }
 
@@ -91,12 +115,19 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   list<string> variableNames;
   transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
   auto rawVariableAssignments = getRawAssignments(variableNames);
+
+  // prepare debug file
   if (params.debug_file.length() > 0){
-    for (auto var_name: variableNames){
-      valueString = "&sum {" + var_name + "} = " + rawVariableAssignments[var_name] + ".";
-      system(("echo \"" + valueString + "\" >> " + params.debug_file).c_str());
+    for (auto varName: variableNames){
+      string varAssignment = rawVariableAssignments[varName];
+      if (params.logic == 1){
+        varAssignment = "\"" + prepareDebugAssignmentReal(varAssignment) + "\"";
+      }
+      valueString = "&sum {" + varName + "} = " + varAssignment + ".";
+      system(("echo '" + valueString + "' >> " + params.debug_file).c_str());
     }
   }
+
   for (SymbolicTerm* variable : constraintVariables) {
     if (rawVariableAssignments.find(variable->name) != rawVariableAssignments.end()) {
       result->constraintVariableAssignments[variable] = rawVariableAssignments[variable->name];

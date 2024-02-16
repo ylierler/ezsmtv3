@@ -1,0 +1,11 @@
+%
+% ezcsp --grounder gringo-3.0.5 --mkatoms --gams:knitro EXPERIMENT/init1 EXPERIMENT/instICAPS.ez EXPERIMENT/obs1 pioneerBasic.ez diag-min.ez
+%
+
+#const n=6.
+#const curr_step=0.
+
+% unexpected observation. It should have been 150
+obs(v_final(x(r), 2),"80").
+obs(v_final(y(r), 2),"0").
+&sum {tend(2)}="40.33404215".

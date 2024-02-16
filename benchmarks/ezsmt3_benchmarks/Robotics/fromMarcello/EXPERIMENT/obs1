@@ -1,0 +1,8 @@
+o(start(r,fwd),0).
+required(tend(0)=="34.83751626").
+o(stop(r,fwd),1).
+required(tend(1)=="40.33404215").
+% unexpected observation. It should have been 150
+obs(v_final(x(r), 2),"80").
+obs(v_final(y(r), 2),"0").
+required(tend(2)=="40.33404215").

@@ -1,0 +1,327 @@
+robot(r)
+h(state(r,stopped),0)
+required(ezcsp__eq(tstart(0),0))
+pioneer_param(r,vm,"27.29")
+pioneer_param(r,ap,"50.15")
+pioneer_param(r,vm_a,"17.33")
+required(ezcsp__eq(tend(0),"0.0"))
+required(ezcsp__eq(tend(1),"5.496519"))
+o(start(r,fwd),0)
+required(ezcsp__eq(tend(2),"34.496067"))
+o(stop(r,fwd),1)
+obs(v_final(x(r),1),"150")
+obs(v_final(y(r),1),"0")
+cspdomain(nlp)
+state(fwd)
+state(stopped)
+state(turn_l)
+state(turn_r)
+step(0)
+step(1)
+step(2)
+step(3)
+step(4)
+step(5)
+step(6)
+required(ezcsp__eq(v_initial(x(r),0),0))
+required(ezcsp__eq(v_initial(y(r),0),0))
+required(ezcsp__eq(v_initial(dir(r),0),0))
+required(ezcsp__eq(v_initial(b_lvl(r),0),1))
+mov_state(turn_r)
+mov_state(turn_l)
+mov_state(fwd)
+fluent(inertial,state(r,turn_r))
+fluent(inertial,state(r,turn_l))
+fluent(inertial,state(r,stopped))
+fluent(inertial,state(r,fwd))
+fluent(numerical,x(r))
+fluent(numerical,y(r))
+fluent(numerical,dir(r))
+fluent(numerical,b_lvl(r))
+action(agent,start(r,fwd))
+action(agent,start(r,turn_l))
+action(agent,start(r,turn_r))
+action(agent,stop(r,fwd))
+action(agent,stop(r,turn_l))
+action(agent,stop(r,turn_r))
+action(exogenous,battery_drop(r))
+cspvar(v_initial(b_lvl(r),6))
+cspvar(v_initial(b_lvl(r),5))
+cspvar(v_initial(b_lvl(r),4))
+cspvar(v_initial(b_lvl(r),3))
+cspvar(v_initial(b_lvl(r),2))
+cspvar(v_initial(b_lvl(r),1))
+cspvar(v_initial(b_lvl(r),0))
+cspvar(v_initial(dir(r),6))
+cspvar(v_initial(dir(r),5))
+cspvar(v_initial(dir(r),4))
+cspvar(v_initial(dir(r),3))
+cspvar(v_initial(dir(r),2))
+cspvar(v_initial(dir(r),1))
+cspvar(v_initial(dir(r),0))
+cspvar(v_initial(y(r),6))
+cspvar(v_initial(y(r),5))
+cspvar(v_initial(y(r),4))
+cspvar(v_initial(y(r),3))
+cspvar(v_initial(y(r),2))
+cspvar(v_initial(y(r),1))
+cspvar(v_initial(y(r),0))
+cspvar(v_initial(x(r),6))
+cspvar(v_initial(x(r),5))
+cspvar(v_initial(x(r),4))
+cspvar(v_initial(x(r),3))
+cspvar(v_initial(x(r),2))
+cspvar(v_initial(x(r),1))
+cspvar(v_initial(x(r),0))
+cspvar(v_final(b_lvl(r),6))
+cspvar(v_final(b_lvl(r),5))
+cspvar(v_final(b_lvl(r),4))
+cspvar(v_final(b_lvl(r),3))
+cspvar(v_final(b_lvl(r),2))
+cspvar(v_final(b_lvl(r),1))
+cspvar(v_final(b_lvl(r),0))
+cspvar(v_final(dir(r),6))
+cspvar(v_final(dir(r),5))
+cspvar(v_final(dir(r),4))
+cspvar(v_final(dir(r),3))
+cspvar(v_final(dir(r),2))
+cspvar(v_final(dir(r),1))
+cspvar(v_final(dir(r),0))
+cspvar(v_final(y(r),6))
+cspvar(v_final(y(r),5))
+cspvar(v_final(y(r),4))
+cspvar(v_final(y(r),3))
+cspvar(v_final(y(r),2))
+cspvar(v_final(y(r),1))
+cspvar(v_final(y(r),0))
+cspvar(v_final(x(r),6))
+cspvar(v_final(x(r),5))
+cspvar(v_final(x(r),4))
+cspvar(v_final(x(r),3))
+cspvar(v_final(x(r),2))
+cspvar(v_final(x(r),1))
+cspvar(v_final(x(r),0))
+cspvar(tstart(6))
+cspvar(tstart(5))
+cspvar(tstart(4))
+cspvar(tstart(3))
+cspvar(tstart(2))
+cspvar(tstart(1))
+cspvar(tstart(0))
+required(ezcsp__geq(tstart(6),0))
+required(ezcsp__geq(tstart(5),0))
+required(ezcsp__geq(tstart(4),0))
+required(ezcsp__geq(tstart(3),0))
+required(ezcsp__geq(tstart(2),0))
+required(ezcsp__geq(tstart(1),0))
+required(ezcsp__geq(tstart(0),0))
+cspvar(tend(6))
+cspvar(tend(5))
+cspvar(tend(4))
+cspvar(tend(3))
+cspvar(tend(2))
+cspvar(tend(1))
+cspvar(tend(0))
+required(ezcsp__geq(tend(6),0))
+required(ezcsp__geq(tend(5),0))
+required(ezcsp__geq(tend(4),0))
+required(ezcsp__geq(tend(3),0))
+required(ezcsp__geq(tend(2),0))
+required(ezcsp__geq(tend(1),0))
+required(ezcsp__geq(tend(0),0))
+required(ezcsp__eq(tstart(6),tend(5)))
+required(ezcsp__eq(tstart(5),tend(4)))
+required(ezcsp__eq(tstart(4),tend(3)))
+required(ezcsp__eq(tstart(3),tend(2)))
+required(ezcsp__eq(tstart(2),tend(1)))
+required(ezcsp__eq(tstart(1),tend(0)))
+required(ezcsp__geq(tend(6),tstart(6)))
+required(ezcsp__geq(tend(5),tstart(5)))
+required(ezcsp__geq(tend(4),tstart(4)))
+required(ezcsp__geq(tend(3),tstart(3)))
+required(ezcsp__geq(tend(2),tstart(2)))
+required(ezcsp__geq(tend(1),tstart(1)))
+required(ezcsp__geq(tend(0),tstart(0)))
+h(state(r,fwd),1)
+h(state(r,stopped),2)
+h(state(r,stopped),3)
+-h(state(r,fwd),2)
+-h(state(r,stopped),1)
+-h(state(r,fwd),3)
+h(state(r,stopped),4)
+h(state(r,stopped),5)
+-h(state(r,fwd),4)
+-h(state(r,fwd),5)
+h(state(r,stopped),6)
+-h(state(r,fwd),6)
+-h(state(r,turn_r),6)
+-h(state(r,turn_l),6)
+-h(state(r,turn_r),5)
+-h(state(r,turn_l),5)
+-h(state(r,turn_r),4)
+-h(state(r,turn_l),4)
+-h(state(r,turn_r),3)
+-h(state(r,turn_l),3)
+-h(state(r,turn_r),1)
+-h(state(r,turn_l),1)
+-h(state(r,turn_r),2)
+-h(state(r,turn_l),2)
+-h(state(r,turn_r),0)
+-h(state(r,turn_l),0)
+-h(state(r,fwd),0)
+ab(intra,x(r),1)
+ab(intra,y(r),1)
+required(ezcsp__eq(v_initial(b_lvl(r),6),v_final(b_lvl(r),5)))
+required(ezcsp__eq(v_initial(b_lvl(r),5),v_final(b_lvl(r),4)))
+required(ezcsp__eq(v_initial(b_lvl(r),4),v_final(b_lvl(r),3)))
+required(ezcsp__eq(v_initial(b_lvl(r),3),v_final(b_lvl(r),2)))
+required(ezcsp__eq(v_initial(b_lvl(r),2),v_final(b_lvl(r),1)))
+required(ezcsp__eq(v_initial(b_lvl(r),1),v_final(b_lvl(r),0)))
+required(ezcsp__eq(v_initial(dir(r),6),v_final(dir(r),5)))
+required(ezcsp__eq(v_initial(dir(r),5),v_final(dir(r),4)))
+required(ezcsp__eq(v_initial(dir(r),4),v_final(dir(r),3)))
+required(ezcsp__eq(v_initial(dir(r),3),v_final(dir(r),2)))
+required(ezcsp__eq(v_initial(dir(r),2),v_final(dir(r),1)))
+required(ezcsp__eq(v_initial(dir(r),1),v_final(dir(r),0)))
+required(ezcsp__eq(v_initial(y(r),6),v_final(y(r),5)))
+required(ezcsp__eq(v_initial(y(r),5),v_final(y(r),4)))
+required(ezcsp__eq(v_initial(y(r),4),v_final(y(r),3)))
+required(ezcsp__eq(v_initial(y(r),3),v_final(y(r),2)))
+required(ezcsp__eq(v_initial(y(r),2),v_final(y(r),1)))
+required(ezcsp__eq(v_initial(y(r),1),v_final(y(r),0)))
+required(ezcsp__eq(v_initial(x(r),6),v_final(x(r),5)))
+required(ezcsp__eq(v_initial(x(r),5),v_final(x(r),4)))
+required(ezcsp__eq(v_initial(x(r),4),v_final(x(r),3)))
+required(ezcsp__eq(v_initial(x(r),3),v_final(x(r),2)))
+required(ezcsp__eq(v_initial(x(r),2),v_final(x(r),1)))
+required(ezcsp__eq(v_initial(x(r),1),v_final(x(r),0)))
+required(ezcsp__eq(v_initial(b_lvl(r),6),v_final(b_lvl(r),6)))
+required(ezcsp__eq(v_initial(b_lvl(r),5),v_final(b_lvl(r),5)))
+required(ezcsp__eq(v_initial(b_lvl(r),4),v_final(b_lvl(r),4)))
+required(ezcsp__eq(v_initial(b_lvl(r),3),v_final(b_lvl(r),3)))
+required(ezcsp__eq(v_initial(b_lvl(r),2),v_final(b_lvl(r),2)))
+required(ezcsp__eq(v_initial(b_lvl(r),1),v_final(b_lvl(r),1)))
+required(ezcsp__eq(v_initial(b_lvl(r),0),v_final(b_lvl(r),0)))
+required(ezcsp__eq(v_initial(dir(r),6),v_final(dir(r),6)))
+required(ezcsp__eq(v_initial(dir(r),5),v_final(dir(r),5)))
+required(ezcsp__eq(v_initial(dir(r),4),v_final(dir(r),4)))
+required(ezcsp__eq(v_initial(dir(r),3),v_final(dir(r),3)))
+required(ezcsp__eq(v_initial(dir(r),2),v_final(dir(r),2)))
+required(ezcsp__eq(v_initial(dir(r),1),v_final(dir(r),1)))
+required(ezcsp__eq(v_initial(dir(r),0),v_final(dir(r),0)))
+required(ezcsp__eq(v_initial(y(r),6),v_final(y(r),6)))
+required(ezcsp__eq(v_initial(y(r),5),v_final(y(r),5)))
+required(ezcsp__eq(v_initial(y(r),4),v_final(y(r),4)))
+required(ezcsp__eq(v_initial(y(r),3),v_final(y(r),3)))
+required(ezcsp__eq(v_initial(y(r),2),v_final(y(r),2)))
+required(ezcsp__eq(v_initial(y(r),0),v_final(y(r),0)))
+required(ezcsp__eq(v_initial(x(r),6),v_final(x(r),6)))
+required(ezcsp__eq(v_initial(x(r),5),v_final(x(r),5)))
+required(ezcsp__eq(v_initial(x(r),4),v_final(x(r),4)))
+required(ezcsp__eq(v_initial(x(r),3),v_final(x(r),3)))
+required(ezcsp__eq(v_initial(x(r),2),v_final(x(r),2)))
+required(ezcsp__eq(v_initial(x(r),0),v_final(x(r),0)))
+-o(start(r,fwd),1)
+-o(start(r,turn_l),1)
+-o(start(r,turn_r),1)
+-o(stop(r,fwd),0)
+-o(stop(r,fwd),2)
+-o(stop(r,fwd),3)
+-o(stop(r,fwd),4)
+-o(stop(r,fwd),5)
+-o(stop(r,fwd),6)
+-o(stop(r,turn_l),0)
+-o(stop(r,turn_l),2)
+-o(stop(r,turn_l),1)
+-o(stop(r,turn_l),3)
+-o(stop(r,turn_l),4)
+-o(stop(r,turn_l),5)
+-o(stop(r,turn_l),6)
+-o(stop(r,turn_r),0)
+-o(stop(r,turn_r),2)
+-o(stop(r,turn_r),1)
+-o(stop(r,turn_r),3)
+-o(stop(r,turn_r),4)
+-o(stop(r,turn_r),5)
+-o(stop(r,turn_r),6)
+-o(battery_drop(r),6)
+-o(battery_drop(r),5)
+-o(battery_drop(r),4)
+-o(battery_drop(r),3)
+-o(battery_drop(r),2)
+-o(battery_drop(r),0)
+required(ezcsp__eq(v_final(x(r),1),ezcsp__pl(v_initial(x(r),1),ezcsp__tm(ezcsp__tm(ezcsp__tm(v_initial(b_lvl(r),1),"27.29"),ezcsp__mn(tend(1),tstart(1))),ezcsp__cos(ezcsp__dv(ezcsp__tm(pi,v_initial(dir(r),1)),180))))))
+required(ezcsp__eq(v_final(y(r),1),ezcsp__pl(v_initial(y(r),1),ezcsp__tm(ezcsp__tm(ezcsp__tm(v_initial(b_lvl(r),1),"27.29"),ezcsp__mn(tend(1),tstart(1))),ezcsp__sin(ezcsp__dv(ezcsp__tm(pi,v_initial(dir(r),1)),180))))))
+required(ezcsp__eq(v_final(y(r),1),"0"))
+required(ezcsp__eq(v_final(x(r),1),"150"))
+v_initial(b_lvl(r), 2)=0.99999998
+v_initial(dir(r), 3)=0.00000000
+v_initial(dir(r), 2)=0.00000000
+v_initial(dir(r), 1)=0.00000000
+v_initial(dir(r), 0)=0.00000000
+v_initial(b_lvl(r), 6)=0.99999998
+v_initial(b_lvl(r), 5)=0.99999998
+v_initial(b_lvl(r), 4)=0.99999998
+v_initial(b_lvl(r), 3)=0.99999998
+v_initial(dir(r), 4)=0.00000000
+v_initial(b_lvl(r), 1)=0.99999998
+v_initial(b_lvl(r), 0)=1.00000000
+v_final(y(r), 6)=0.00000000
+v_final(y(r), 5)=0.00000000
+v_final(y(r), 4)=0.00000000
+v_final(y(r), 3)=0.00000000
+v_final(y(r), 2)=0.00000000
+v_final(y(r), 1)=0.00000000
+v_initial(x(r), 5)=150.00000000
+v_initial(y(r), 6)=0.00000000
+v_initial(y(r), 5)=0.00000000
+v_initial(y(r), 4)=0.00000000
+v_initial(y(r), 3)=0.00000000
+v_initial(y(r), 2)=0.00000000
+v_initial(y(r), 1)=0.00000000
+v_initial(y(r), 0)=0.00000000
+v_initial(x(r), 6)=150.00000000
+v_final(y(r), 0)=0.00000000
+v_initial(x(r), 4)=150.00000000
+v_initial(x(r), 3)=150.00000000
+v_initial(x(r), 2)=150.00000000
+v_initial(x(r), 1)=0.00000000
+v_initial(x(r), 0)=0.00000000
+v_initial(dir(r), 6)=0.00000000
+v_initial(dir(r), 5)=0.00000000
+tstart(2)=5.49651900
+v_final(b_lvl(r), 3)=0.99999998
+v_final(b_lvl(r), 2)=0.99999998
+v_final(b_lvl(r), 1)=0.99999998
+v_final(b_lvl(r), 0)=0.99999999
+tstart(6)=34.96498848
+tstart(5)=34.75499193
+tstart(4)=34.58918550
+tstart(3)=34.49606701
+v_final(b_lvl(r), 4)=0.99999998
+tstart(1)=0.00000000
+tstart(0)=0.00000000
+tend(6)=35.21414523
+tend(5)=34.96498848
+tend(4)=34.75499193
+tend(3)=34.58918549
+tend(2)=34.49606700
+tend(1)=5.49651900
+v_final(dir(r), 5)=0.00000000
+v_final(x(r), 6)=150.00000000
+v_final(x(r), 5)=150.00000000
+v_final(x(r), 4)=150.00000000
+v_final(x(r), 3)=150.00000000
+v_final(x(r), 2)=150.00000000
+v_final(x(r), 1)=150.00000000
+v_final(x(r), 0)=0.00000000
+v_final(dir(r), 6)=0.00000000
+tend(0)=0.00000000
+v_final(dir(r), 4)=0.00000000
+v_final(dir(r), 3)=0.00000000
+v_final(dir(r), 2)=0.00000000
+v_final(dir(r), 1)=0.00000000
+v_final(dir(r), 0)=0.00000000
+v_final(b_lvl(r), 6)=0.99999998
+v_final(b_lvl(r), 5)=0.99999998
+::endmodel

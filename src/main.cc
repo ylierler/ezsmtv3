@@ -479,5 +479,8 @@ int main(int argc, char *argv[]) {
   ctable.cmodels.output.timerAll.stop();
   ctable.cmodels.output.print();
 
+  string delCommand = "rm " + grounded_file + ".grounded";
+  system(delCommand.c_str());
+
   return 0;
 }

@@ -1,0 +1,36 @@
+step(0..n).
+
+robot(r).
+
+h(state(r,stopped),0).
+
+required(v_initial(x(R),0)==0) :- robot(R).
+required(v_initial(y(R),0)==0) :- robot(R).
+required(v_initial(dir(R),0)==0) :- robot(R).
+
+% Assumption on a non-observable numerical fluent
+required(v_initial(b_lvl(R),0)==1) :- robot(R), not ab(assumed_value,b_lvl(R)).
+
+required(tstart(0)==0).
+
+
+
+%%%%%%%%%% Pioneer robot params
+% a=50.15cm/s^2, t'=0.544s, Vm=27.29 cm/s
+pioneer_param(r,vm,"27.29"). % 27.29 cm/s
+pioneer_param(r,ap,"50.15"). % 50.15 cm/s^2
+pioneer_param(r,vm_a,"17.33"). % 17.33 deg/s
+% normal acceleration time
+%%%%%%%%%%%%%%%%%%pioneer_param(r,tp,"0.544"). % 0.544 s
+hpd(start(r,fwd),0).
+required(tend(0)=="34.83751626").
+hpd(stop(r,fwd),1).
+required(tend(1)=="40.33404215").
+% unexpected observation. It should have been 150
+obs(v_final(x(r), 2),"80").
+obs(v_final(y(r), 2),"0").
+required(tend(2)=="40.33404215").
+
+ab(assumed_value,b_lvl(r))
+o(start(r,fwd),0)
+o(stop(r,fwd),1)
