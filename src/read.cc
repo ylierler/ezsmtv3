@@ -493,5 +493,8 @@ int Read::read(string fileName, int logic) {
 
     VLOG(2) << "Done reading";
 
+    string delCommand = "rm " + fileName;
+    system(delCommand.c_str());
+
     return 0;
 };

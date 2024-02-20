@@ -5,7 +5,7 @@ import glob
 import subprocess
 from typing import List
 
-BENCHMARK_FOLDER = "ezsmtPlus_benchmarks"
+BENCHMARK_FOLDER = "benchmarks"
 
 def check_sat(end_sys: str) -> bool:
     """
@@ -42,15 +42,16 @@ def main():
         os.remove("output.txt")
 
     for folder in glob.glob(f"{BENCHMARK_FOLDER}/*"):
-        if not folder.endswith("generator"):
+        if not folder.endswith("Robotics"):
             continue
         for script in glob.glob(f"{folder}/encodings/*.con"):
-            for instance in glob.glob(f"{folder}/instances/*"):        
+            for instance in glob.glob(f"{folder}/instances_lp/*"):        
                 # end_systems =["ezsmt", "clingcon"]                                # for ezsmt and clingcon
                 end_systems = ["ezsmt", "clingoLP"]                                 # for ezsmt and clingLP
                 
                 end_sys = end_systems[0]
-                command = f"{end_sys} {script} {instance}"
+                # command = f"{end_sys} {script} {instance}"
+                command = f"{end_sys} {folder}/encodings/ezsmt.lp {script} {instance}"
                 command += f" -d debug.lp"
                 command += f" -q 1"                                                 # for ezsmt and clingLP
                 print(command)
@@ -60,7 +61,7 @@ def main():
                 
                 end_sys = end_systems[1]
                 # command = f"{end_sys} {script} {instance}"                        # for ezsmt and clingcon
-                command = f"{end_sys} 0 --show-lp-solution {script} {instance}"     # for ezsmt and clingLP
+                command = f"{end_sys} 0 --show-lp-solution {script} {instance}"     # for ezsmt and clingoLP
                 
                 if ez_sat:
                     command += " debug.lp"
