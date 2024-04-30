@@ -11,7 +11,6 @@ class QF_LRA_logic : public QF_LIA_logic {
 public:
     string SMT_LOGIC_NAME() override;
     void getDeclarationStatements(std::ostringstream &output) override;
-    void getAssertionStatements(std::ostringstream &output) override;
 };
 
 #endif // QF_LRA_logic_H_

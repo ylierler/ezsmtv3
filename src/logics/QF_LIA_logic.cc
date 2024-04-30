@@ -15,6 +15,13 @@ void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
             if (auto s = dynamic_cast<SymbolicTerm*>(term)) {
                 this->symbolicTerms[s->id] = s;
             }
+            else if (auto s = dynamic_cast<ExpressionTerm*>(term)) {
+                for (auto childTerm: s->children){
+                    if (auto child = dynamic_cast<SymbolicTerm*>(childTerm)) {
+                        this->symbolicTerms[child->id] = child;
+                    }
+                }
+            }
         });
     }
 }
@@ -60,7 +67,7 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
             output << assertion;
         }
         else {
-            LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the QF_LIA logic.";
+            LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the logic.";
         }
     }
 }

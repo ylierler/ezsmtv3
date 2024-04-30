@@ -23,9 +23,9 @@
     @ : 0, binary, left
     };
 
-    %&dom/0 : dom_term, {=}, linear_term, any;
-    &sum/0 : linear_term, {<=,=,>=,<,>,!=}, linear_term, any;
-    &show/0 : show_term, directive;
+    &dom/0 : dom_term, {=}, linear_term, any;
+    &sum/0 : linear_term, {<=,=,>=,<,>,!=}, linear_term, any
+    %&show/0 : show_term, directive
     %&distinct/0 : linear_term, any;
     %&minimize/0 : minimize_term, directive
 }.

@@ -1,3 +1,20 @@
+step(0..3).
+
+duration(moving,30).
+uplimit(1).
+downlimit(0).
+
+maxintval(RT) :- duration(moving,RT).
+
+% start the clock at 0 for simplicity
+&sum {start(0)}=0.
+
+% initial state
+&sum {v_initial(d,0)}=0.
+&sum {v(v,0)}=0.
+hold_s(inprogr(moving),0).
+holds(running,0).
+
 #theory lp {
     lin_term {
     - : 2, unary;
@@ -80,11 +97,9 @@ ab(v,I) :-
 % fluents: quant: start(I), end(I), v
 %cspvar(start(I),0,MI) :- step(I), maxintval(MI).
 %cspvar(end(I),0,MI) :- step(I), maxintval(MI).
-start(I) :- step(I).
 &sum {start(I)}>=0 :- step(I).
-end(I) :- step(I).
 &sum {end(I)}>=0 :- step(I).
-v(v,I) :- step(I).
+&sum {v(v,I)}>=0 :- step(I).
 
 % start(I+1) == end(I) for every step I
 &sum {start(I2); -1*end(I1)}=0 :- step(I1), step(I2), I2=I1+1.
@@ -105,11 +120,11 @@ hold_s(F,I2) :-
 	not holds(F,I2).
 
 % fluents: quant: v_initial(d), v_final(d)
-v_initial(d,I) :- step(I).
+&sum {v_initial(d,I)}>=0 :- step(I).
 %required(v_initial(d,I)>=0) :- step(I).
 %required(v_initial(d,I)<=TC) :- step(I), tankcap(TC).
 
-v_final(d,I) :- step(I).
+&sum {v_final(d,I)}>=0 :- step(I).
 %required(v_final(d,I)>=0) :- step(I).
 %required(v_final(d,I)<=TC) :- step(I), tankcap(TC).
 
@@ -130,7 +145,6 @@ v_final(d,I) :- step(I).
 % fluents: bool: inprogr(moving), quant: stime(moving) d
 fluent(inprogr(moving)).
 
-stime(moving).
 &sum {stime(moving)}>=0.
 
 % actions: start(moving), end(moving)

@@ -215,6 +215,7 @@ void Read::readTheoryStatements(list<string> &lines) {
         Atom *atom = getOrCreateAtom(atomId);
         atom->theoryStatement = true;
 
+        // treat all theory statement atoms as a choice rule atom
         string choiceRuleLine = "1 1 " + to_string(atomId) + " 0 0";
         unique_ptr<istringstream> choiceRulelineStream(new istringstream(choiceRuleLine));
         readRuleLine(*choiceRulelineStream);
@@ -338,6 +339,8 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
               ostringstream symbolName;
               symbolName << operationTerm->name;
               symbolName << "(";
+              int length = 0;
+              int childTermsLength = childTerms.size();            
               for (auto child : childTerms) {
                 if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
                   symbolName << symbolicTerm->name;
@@ -347,8 +350,13 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
                   LOG(FATAL) << "Constraint variables can only contain numeric or symbolic terms. Line: " << line;
                 }
 
-                if (child != childTerms.back()) {
+                // if (child != childTerms.back()) {
+                //   symbolName << ",";
+                // }
+
+                if (length < childTermsLength - 1) {
                   symbolName << ",";
+                  length += 1;
                 }
               }
               symbolName << ")";

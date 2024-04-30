@@ -1,26 +1,3 @@
-#theory lp {
-    lin_term {
-    - : 2, unary;
-    * : 1, binary, left;
-    + : 0, binary, left;
-    - : 0, binary, left
-    };
-    bounds{
-    - : 4, unary;
-    * : 3, binary, left;
-    / : 2, binary, left;
-    + : 1, binary, left;
-    - : 1, binary, left;
-    .. : 0, binary, left
-    };
-
-    &lp/0   : lin_term, {<=,>=,>,<,=,!=}, bounds, any;
-    &sum/0   : lin_term, {<=,>=,>,<,=,!=}, bounds, any
-    %&objective/1 : lin_term, head;
-    %&minimize/0 : lin_term, head;
-    %&maximize/0 : lin_term, head;
-    %&dom/0 : bounds, {=}, lin_term, head
-}.
 
 %%%%%%%%%%%%%%%%%% general
 %
@@ -28,9 +5,7 @@
 % fluents: quant: start(I), end(I)
 %cspvar(start(I),0,MI) :- step(I), maxintval(MI).
 %cspvar(end(I),0,MI) :- step(I), maxintval(MI).
-start(I) :- step(I).
 &sum {start(I)}>=0 :- step(I).
-end(I) :- step(I).
 &sum {end(I)}>=0 :- step(I).
 
 % start(I+1) == end(I) for every step I
@@ -52,11 +27,9 @@ hold_s(F,I2) :-
 	not holds(F,I2).
 
 % fluents: quant: v_initial(fuel_level), v_final(fuel_level)
-v_initial(fuel_level,I) :- step(I).
 &sum {v_initial(fuel_level,I)}>=0 :- step(I).
 &sum {v_initial(fuel_level,I)}<=TC :- step(I), tankcap(TC).
 
-v_final(fuel_level,I) :- step(I).
 &sum {v_final(fuel_level,I)}>=0 :- step(I).
 &sum {v_final(fuel_level,I)}<=TC :- step(I), tankcap(TC).
 
@@ -70,7 +43,6 @@ v_final(fuel_level,I) :- step(I).
 %
 
 % sum of the increments
-v(contrib(fuel_level,incr),I) :- step(I).
 &sum {v(contrib(fuel_level,incr),I)}>=0 :- step(I).
 incr(I,v(contrib(fuel_level,incr,SRC),I)) :-
 	step(I),
@@ -79,7 +51,6 @@ incr(I,v(contrib(fuel_level,incr,SRC),I)) :-
 &sum {incr(I,v(contrib(fuel_level,incr,SRC),I)): step(I), v(contrib(fuel_level,incr,SRC),I); -1*v(contrib(fuel_level,incr),I)}=0 :- step(I).
 
 % sum of the decrements
-v(contrib(fuel_level,decr),I) :- step(I).
 &sum {v(contrib(fuel_level,decr),I)}>=0 :- step(I).
 decr(I,v(contrib(fuel_level,decr,SRC),I)) :-
 	step(I),
@@ -102,9 +73,7 @@ fluent(generating).
 hold_s(generating,0).	% this should really be specified in the problem instance. Being lazy here...
 
 %cspvar(stime(generate),0,MI) :- maxintval(MI).
-stime(generate).
 &sum {stime(generate)}>=0.
-v(contrib(fuel_level,decr,generate),I) :- step(I).
 &sum {v(contrib(fuel_level,decr,generate),I)}>=0 :- step(I).
 
 % actions: start(generate), end(generate)
@@ -310,9 +279,7 @@ completed(generate) :-
 fluent(inprogr(refuel(TK))) :- refuel_tank(TK).
 
 %cspvar(stime(refuel(TK)),0,MI) :- maxintval(MI), refuel_tank(TK).
-stime(refuel(TK)) :- refuel_tank(TK).
 &sum {stime(refuel(TK))}>=0 :- refuel_tank(TK).
-v(contrib(fuel_level,incr,refuel(TK)),I) :- step(I), refuel_tank(TK).
 &sum {v(contrib(fuel_level,incr,refuel(TK)),I)}>=0 :- step(I), refuel_tank(TK).
 
 % actions: start(refuel(Tank)), end(refuel(Tank))
@@ -359,7 +326,6 @@ hold_s(inprogr(refuel(TK)),I2) :-
 	step(I1), step(I2), I2=I1+1, refuel_tank(TK),
 	occurs(end(refuel(TK)),I1).
 
-
 % contrib(fuel_level,refuel(TK)) is 0 by default
 &sum {v(contrib(fuel_level,incr,refuel(TK)),I)}=0 :-
 	step(I), refuel_tank(TK),
@@ -374,12 +340,12 @@ ab(contrib(fuel_level,incr,refuel(TK)),I) :-
 	step(I), refuel_tank(TK),
 	holds(inprogr(refuel(TK)),I).
 
-% start the clock at 0 for simplicity
+%% start the clock at 0 for simplicity
 &sum {start(0)}=0.
 
 
 
 % initial state
-hold_s(inprogr(generate),0).
-hold_s(inprogr(refuel(TK)),0) :- refuel_tank(TK).
-&sum {v_initial(fuel_level,0)}=LV :- tanklv(LV).
+%hold_s(inprogr(generate),0).
+%hold_s(inprogr(refuel(TK)),0) :- refuel_tank(TK).
+%&sum {v_initial(fuel_level,0)}=LV :- tanklv(LV).

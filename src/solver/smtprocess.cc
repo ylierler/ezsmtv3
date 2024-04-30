@@ -173,7 +173,12 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
     singleLineStream << line;
 
     // This is a hacky workaround to handle z3's multiline output
-    if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
+    if (line.find("(/") < line.length()) {
+      if (line[line.length() - 3] == ')' && line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
+        break;
+      }
+    }
+    else if (line[line.length() - 2] == ')' && line[line.length() - 1] == ')') {
       break;
     }
   }
