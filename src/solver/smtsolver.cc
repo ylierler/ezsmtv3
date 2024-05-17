@@ -210,7 +210,12 @@ string Solver::getProgramBodyString(Program &program) {
     output << "(declare-const " << SMT::Var(m) << " Int)" << endl;
     output << "(assert (= " << SMT::Var(m) << " (+";
     for (MinimizationAtom *a : m->atoms) {
-      output << " (ite " << SMT::Var(&a->atom) << " " << a->weight << " 0)";
+      if (a->weight < 0) {
+        output << " (ite " << SMT::Var(&a->atom) << " (- " << -(a->weight) << " ) 0)";
+      }
+      else {
+        output << " (ite " << SMT::Var(&a->atom) << " " << a->weight << " 0)";
+      }
     }
     output << ")))" << endl;
   }

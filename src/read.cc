@@ -36,6 +36,7 @@
 #include <limits.h>
 #include <list>
 #include <map>
+#include <numeric>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -49,6 +50,7 @@ Read::Read(Program *p, Api *a, Param *params) : program(p), api(a), params(param
   // atoms = 0;
   size = 0;
   models = 1;
+  m_values[-1] = 1;
 }
 
 //
@@ -156,7 +158,7 @@ void Read::readRuleLine(istringstream &line) {
       api->add_body(a, literal > 0, weight);
     }
   } else {
-    throw std::runtime_error("Unsupported body type. Line: " + line.str());
+    throw runtime_error("Unsupported body type. Line: " + line.str());
   }
 
   api->end_rule();
@@ -184,7 +186,7 @@ void Read::readOutputLine(istringstream &line) {
     api->set_name(a, atomName.c_str());
     a->showInOutputAnswerSet = true;
   } else if (numOfLiterals > 1) {
-    throw std::runtime_error(
+    throw runtime_error(
         "Output line with multiple literals not implemented yet. Line: " +
         line.str());
   }
@@ -429,20 +431,58 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   int priority, numOfLiterals;
   line >> priority >> numOfLiterals;
 
-  if (priority != 0) {
-    LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
+  int literal, weight;
+  list<int> weights;
+  list<tuple<int, int>> literalWeights;
+  for (int i = 0; i < numOfLiterals; i++) {
+    line >> literal >> weight;
+    weights.push_back(weight);
+    tuple<int, int> lw(literal, weight);
+    literalWeights.push_back(lw);
   }
 
-  auto minimizationStatement = new MinimizationStatement(minimizationStatementId, priority);
+  m_values[priority] = 1 + accumulate(weights.begin(), weights.end(), 0.0);
+  cout << "m_values[" << priority << "]: " << m_values[priority] << endl;
+  f_values[priority] = 1;
+  for (auto m: m_values) {
+    if (m.first < priority) {
+      cout << "m.second: " << m.second << endl;
+      f_values[priority] *= m.second;
+    } 
+  }
 
-  for (int i = 0; i < numOfLiterals; i++) {
-    int literal, weight;
-    line >> literal >> weight;
+  cout << "f_values[" << priority << "]: " << f_values[priority] << endl;
+  
+  int normalized_priority = 0;
+  auto minimizationStatement = new MinimizationStatement(minimizationStatementId, normalized_priority);
+  size_t len_minimizations = program->minimizations.size();
+  cout << len_minimizations << endl;
+  
+  if (len_minimizations > 0) {
+    minimizationStatement = program->minimizations.front();
+  }
+
+  for (auto lw: literalWeights) {
+    literal = get<0>(lw);
+    weight = get<1>(lw) * f_values[priority];
+    cout << "literal: " << literal << ", weight: " << weight << endl;
+
+  // if (priority != 0) {
+  //   LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
+  // }
+
+  // auto minimizationStatement = new MinimizationStatement(minimizationStatementId, priority);
+
+  // for (int i = 0; i < numOfLiterals; i++) {
+  //   int literal, weight;
+  //   line >> literal >> weight;
 
     auto atom = getAtomFromLiteral(literal);
     minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight));
   }
-  program->minimizations.push_back(minimizationStatement);
+  if (len_minimizations <= 0) {
+    program->minimizations.push_back(minimizationStatement);
+  }
 }
 
 int Read::read(string fileName, int logic) {
@@ -455,7 +495,7 @@ int Read::read(string fileName, int logic) {
 
     string line;
     int minimizationStatementId = 0;
-    while (std::getline(fileStream, line)) {
+    while (getline(fileStream, line)) {
       VLOG(3) << "Reading line: " << line;
       lineNumber++;
       lines.push_back(line);
