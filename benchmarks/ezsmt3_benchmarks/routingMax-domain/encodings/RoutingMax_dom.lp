@@ -25,7 +25,7 @@
 }.
 
 % reachtime is >= 0 and <= maxTime
-maxTime(M) :- M = #sum {D : edge(X,Y,D,P)}.
+maxTime(M) :- M = #sum {D,X,Y,P : edge(X,Y,D,P)}.
 &dom {0..M} = at(X) :- node(X), maxTime(M).
 
 % initial node is reached at 0.

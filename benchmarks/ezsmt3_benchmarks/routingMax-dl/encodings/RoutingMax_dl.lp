@@ -1,5 +1,5 @@
 % reachtime is >= 0 and <= maxTime
-maxTime(M) :- M = #sum {D,X,Y : edge(X,Y,D,P)}.
+maxTime(M) :- M = #sum {D,X,Y,P : edge(X,Y,D,P)}.
 
 &diff { 0 - at(X) } <= 0 :- node(X).
 &diff { at(X) - 0} <= M :- node(X),maxTime(M).

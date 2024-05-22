@@ -433,30 +433,32 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
 
   int literal, weight;
   list<int> weights;
-  list<tuple<int, int>> literalWeights;
+  list<tuple<int, int, Atom*>> literalWeights;
   for (int i = 0; i < numOfLiterals; i++) {
     line >> literal >> weight;
     weights.push_back(weight);
-    tuple<int, int> lw(literal, weight);
+    Atom *a = getAtomFromLiteral(literal);
+    tuple<int, int, Atom*> lw(literal, weight, a);
     literalWeights.push_back(lw);
   }
 
+  program->lw_collections.push_front(literalWeights);
+
   m_values[priority] = 1 + accumulate(weights.begin(), weights.end(), 0.0);
-  cout << "m_values[" << priority << "]: " << m_values[priority] << endl;
+  // cout << "m_values[" << priority << "]: " << m_values[priority] << endl;
   f_values[priority] = 1;
   for (auto m: m_values) {
     if (m.first < priority) {
-      cout << "m.second: " << m.second << endl;
+      // cout << "m.second: " << m.second << endl;
       f_values[priority] *= m.second;
     } 
   }
 
-  cout << "f_values[" << priority << "]: " << f_values[priority] << endl;
+  // cout << "f_values[" << priority << "]: " << f_values[priority] << endl;
   
   int normalized_priority = 0;
   auto minimizationStatement = new MinimizationStatement(minimizationStatementId, normalized_priority);
   size_t len_minimizations = program->minimizations.size();
-  cout << len_minimizations << endl;
   
   if (len_minimizations > 0) {
     minimizationStatement = program->minimizations.front();
@@ -465,7 +467,7 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   for (auto lw: literalWeights) {
     literal = get<0>(lw);
     weight = get<1>(lw) * f_values[priority];
-    cout << "literal: " << literal << ", weight: " << weight << endl;
+    // cout << "literal: " << literal << ", weight: " << weight << endl;
 
   // if (priority != 0) {
   //   LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
@@ -533,16 +535,16 @@ int Read::read(string fileName, int logic) {
                << " Got exception message: " << e.what();
   }
 
-    VLOG(2) << "Reading theory components";
+  VLOG(2) << "Reading theory components";
 
-    readTheoryTerms(lines, logic);
-    readTheoryAtomElements(lines);
-    readTheoryStatements(lines);
+  readTheoryTerms(lines, logic);
+  readTheoryAtomElements(lines);
+  readTheoryStatements(lines);
 
-    VLOG(2) << "Done reading";
+  VLOG(2) << "Done reading";
 
-    string delCommand = "rm " + fileName;
-    system(delCommand.c_str());
+  string delCommand = "rm " + fileName;
+  system(delCommand.c_str());
 
-    return 0;
+  return 0;
 };

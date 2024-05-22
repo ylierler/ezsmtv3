@@ -60,7 +60,7 @@ string prepareDebugAssignmentReal(string str){
   }
 }
 
-unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params) {
+unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params, list<list<tuple<int, int, Atom*>>> &lw_collections) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
   auto solveStart = high_resolution_clock::now();
@@ -143,6 +143,19 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
     if (rawMinimizationAssignments.find(atomName) != rawMinimizationAssignments.end()) {
       result->minimizationAtomAssignments[minimization] = rawMinimizationAssignments[atomName];
     }
+  }
+
+  // Roll back to original weights
+  for (auto literalWeights: lw_collections) {
+    int weightsSum = 0;
+    for (auto lw: literalWeights){
+      int weight = get<1>(lw);
+      auto a = get<2>(lw);
+      if (result->atomAssignments[a]) {
+        weightsSum += weight;
+      }
+    }
+    result->minimizationAtomAssignmentsOriginalWeights.push_back(weightsSum);
   }
 
   auto getValuesEnd = high_resolution_clock::now();

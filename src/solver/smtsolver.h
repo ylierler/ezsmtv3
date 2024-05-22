@@ -19,6 +19,7 @@ class SolverResult {
     map<Atom*, bool> atomAssignments;
     map<SymbolicTerm*, string> constraintVariableAssignments;
     map<MinimizationStatement*, string> minimizationAtomAssignments;
+    list<int> minimizationAtomAssignmentsOriginalWeights;
 
     chrono::milliseconds solveDuration;
     chrono::milliseconds getValuesDuration;

@@ -51,13 +51,13 @@ void logIterationResults(int roundNumber, SolverResult& results, milliseconds to
     cout << endl;
   }
 
-  if (VLOG_IS_ON(1) && !results.minimizationAtomAssignments.empty()) {
-    cout << "Minimization: ";
+  if (VLOG_IS_ON(1) && !results.minimizationAtomAssignmentsOriginalWeights.empty()) {
+    cout << "Minimization:";
   }
 
-  if (!results.minimizationAtomAssignments.empty()) {
-    for (auto minimization : results.minimizationAtomAssignments) {
-      cout << minimization.second;
+  if (!results.minimizationAtomAssignmentsOriginalWeights.empty()) {
+    for (auto weightsSum: results.minimizationAtomAssignmentsOriginalWeights) {
+      cout << " " << weightsSum;
     }
     cout << endl;
   }
@@ -107,7 +107,7 @@ void Solver::SolveProgram(Param &params, Program &program) {
 
   int i = 1;
   for (;; i++) {
-    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params);
+    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params, program.lw_collections);
 
     if (i == 1) {
       LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");
