@@ -50,7 +50,7 @@ Read::Read(Program *p, Api *a, Param *params) : program(p), api(a), params(param
   // atoms = 0;
   size = 0;
   models = 1;
-  m_values[-1] = 1;
+  mValues[-1] = 1;
 }
 
 //
@@ -442,19 +442,20 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
     literalWeights.push_back(lw);
   }
 
-  program->lw_collections.push_front(literalWeights);
+  program->lwCollections.push_front(literalWeights);
 
-  m_values[priority] = 1 + accumulate(weights.begin(), weights.end(), 0.0);
-  // cout << "m_values[" << priority << "]: " << m_values[priority] << endl;
-  f_values[priority] = 1;
-  for (auto m: m_values) {
+  int weightsSum = accumulate(weights.begin(), weights.end(), 0.0);
+  mValues[priority] = 1 + weightsSum < 0 ? -(weightsSum) : weightsSum;
+  // cout << "mValues[" << priority << "]: " << mValues[priority] << endl;
+  fValues[priority] = 1;
+  for (auto m: mValues) {
     if (m.first < priority) {
       // cout << "m.second: " << m.second << endl;
-      f_values[priority] *= m.second;
+      fValues[priority] *= m.second;
     } 
   }
 
-  // cout << "f_values[" << priority << "]: " << f_values[priority] << endl;
+  // cout << "fValues[" << priority << "]: " << fValues[priority] << endl;
   
   int normalized_priority = 0;
   auto minimizationStatement = new MinimizationStatement(minimizationStatementId, normalized_priority);
@@ -466,7 +467,7 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
 
   for (auto lw: literalWeights) {
     literal = get<0>(lw);
-    weight = get<1>(lw) * f_values[priority];
+    weight = get<1>(lw) * fValues[priority];
     // cout << "literal: " << literal << ", weight: " << weight << endl;
 
   // if (priority != 0) {

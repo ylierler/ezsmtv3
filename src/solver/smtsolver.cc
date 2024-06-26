@@ -107,7 +107,7 @@ void Solver::SolveProgram(Param &params, Program &program) {
 
   int i = 1;
   for (;; i++) {
-    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params, program.lw_collections);
+    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params, program.lwCollections);
 
     if (i == 1) {
       LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");

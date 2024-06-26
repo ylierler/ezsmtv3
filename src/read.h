@@ -50,7 +50,7 @@ private:
   void readTheoryAtomElements(list<string> &lines);
 
   map<long, Atom *> atoms;
-  map<int, int> m_values, f_values;
+  map<int, int> mValues, fValues;
   long size;
   long linenumber;
   Program *const program;
