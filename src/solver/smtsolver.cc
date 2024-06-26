@@ -77,7 +77,7 @@ void Solver::SolveProgram(Param &params, Program &program) {
   }
 
   if (params.logic == 1) {
-    this->logic = new QF_LRA_logic();
+    this->logic = new QF_LRA_logic(params.mixed);
   } else {
     this->logic = new QF_LIA_logic();
   }
@@ -85,10 +85,11 @@ void Solver::SolveProgram(Param &params, Program &program) {
   this->logic->processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
-  // this approach fails when the programBody is large
-  // TODO: write a max amount of characters allowed each time to temp file until the end is reached
-  string command = "echo \"" + programBody + "\" > " + "temp.smt2";
-  system(command.c_str());
+  
+  ofstream outputFile;
+  outputFile.open("temp.smt2");
+  outputFile << programBody;
+  outputFile.close();
 
   // Override -s option with --solver-command if provided
   auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);

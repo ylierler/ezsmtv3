@@ -6,7 +6,14 @@
 #include "smtstringhelpers.h"
 
 
-string QF_LRA_logic::SMT_LOGIC_NAME() { return "QF_LRA"; }
+string QF_LRA_logic::SMT_LOGIC_NAME() {
+    // if both types ints and reals are present, return IRA logic
+    // happens in case of non-tight program, where level ranking variables are integers
+    if (mixed) {
+        return "AUFLIRA";
+    }
+    return "QF_LRA";
+}
 
 void QF_LRA_logic::getDeclarationStatements(std::ostringstream &output) {
     for (const auto p : this->symbolicTerms) {
