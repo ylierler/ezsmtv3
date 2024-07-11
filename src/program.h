@@ -107,7 +107,9 @@ public:
   map<int, TheoryAtomElement *> theoryAtomElements;
   map<int, TheoryStatement *> theoryStatements;
   list<LevelRankingVariable> levelRankingVariables;
+
   list<list<tuple<int, int, Atom*>>> lwCollections;
+  map<string, string> typeMap;
 
 
   // Vector which will have all the completions

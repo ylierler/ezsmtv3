@@ -247,7 +247,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
     ("debug-file,d", popts::value<string>()->default_value(""), "File that will be output for debugging or testing against other system")
-    ("logic,q", popts::value<int>()->default_value(0), "QF Logic to use: 0 -> QF_LIA; 1 -> QF_LRA");
+    ("logic,l", popts::value<int>()->default_value(0), "Logic to use: 0 -> QF_LIA; 1 -> QF_LRA");
 
   popts::options_description cmodelsOptions("CModels Options");
   cmodelsOptions.add_options()
@@ -257,7 +257,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
                                "file as an argument. It must output the "
                                "grounded program in ASPIF (Gringo "
                                "5) format to stdout.")
-    ("level-ranking,l", popts::value<string>()->default_value("SCCLevelRanking"), //
+    ("level-ranking,L", popts::value<string>()->default_value("SCCLevelRanking"), //
      "[levelRanking | levelRankingStrong | SCCLevelRanking | SCCLevelRankingStrong]\n"
      "The type of level ranking formulas produced for non-tight programs.")
     ("reduced-completion", popts::value<bool>()->default_value(false)->implicit_value(true), //

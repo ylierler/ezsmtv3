@@ -27,12 +27,14 @@
 
 #include "api.h"
 #include "param.h"
+#include "theory.h"
 #include <stdio.h>
 
 class Read {
 public:
   Read(Program *p, Api *a, Param *params);
   int read(string fileName, int logic);
+  void saveTypes(list<ITheoryTerm*> childTerms);
 
   long models; // number of models to compute
 

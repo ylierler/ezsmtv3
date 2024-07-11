@@ -267,6 +267,20 @@ void Read::readTheoryStatements(list<string> &lines) {
   }
 }
 
+void Read::saveTypes(list<ITheoryTerm*> childTerms) {
+  size_t childTermsLength = childTerms.size();
+  if (childTermsLength == 2) {
+    auto variable = dynamic_cast<SymbolicTerm*>(childTerms.front());
+    auto type = dynamic_cast<SymbolicTerm*>(childTerms.back());
+    string typeName = type->name;
+    transform(typeName.begin(), typeName.end(), typeName.begin(), ::tolower);
+    program->typeMap[variable->name] = typeName;
+  }
+  else {
+    LOG(WARNING) << "length of type specification must be 2, i.e. variable and data-type";
+  }
+}
+
 void Read::readTheoryTerms(list<string> &lines, int logic) {
   for (string line : lines) {
     stringstream lineStream(line);
@@ -334,6 +348,12 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
               childTerms.push_back(childTerm);
             }
 
+            // read the types of variables for mixed logic
+            if (operationTerm->name == "type") {
+              saveTypes(childTerms);
+              break;
+            }
+
             ITheoryTerm* newTerm;
 
             bool isValidSymbolName = regex_match(operationTerm->name, regex("^[A-z_]+$"));
@@ -342,7 +362,7 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
               symbolName << operationTerm->name;
               symbolName << "(";
               int length = 0;
-              int childTermsLength = childTerms.size();            
+              int childTermsLength = childTerms.size();
               for (auto child : childTerms) {
                 if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
                   symbolName << symbolicTerm->name;
