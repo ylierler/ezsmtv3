@@ -1,9 +1,6 @@
 #ifndef QF_LRA_logic_H_
 #define QF_LRA_logic_H_
 
-
-#include <sstream>
-#include "program.h"
 #include "QF_LIA_logic.h"
 
 class QF_LRA_logic : public QF_LIA_logic {

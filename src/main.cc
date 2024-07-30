@@ -234,6 +234,43 @@ void SetupLogging(char *executableName, int verbosity) {
   google::InitGoogleLogging(executableName);
 }
 
+int findLogic(list<string> files) {
+  for (auto f: files) {
+    ifstream file(f);
+    string line;
+    
+    if (file.is_open()) {
+      while (getline(file, line))  {
+        string searchText1 = "&logic(";
+        int index1 = line.find(searchText1);
+        if (index1 == string::npos || index1 != 0) {
+          continue;
+        }
+
+        string searchText2 = ").";
+        int index2 = line.find(searchText2);
+        if (index2 == string::npos) {
+          continue;
+        }
+
+        size_t searchText1Length = searchText1.size();
+        string logic =  line.substr(searchText1Length, index2 - searchText1Length);
+
+        if (logic == "qf_lia" || logic == "qflia") {
+          return 0;
+        }
+        else if (logic == "qf_lra" || logic == "qflra") {
+          return 1;
+        }
+        else if (logic == "qf_idl" || logic == "qfidl") {
+          return 2;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
 int ParseArguments(int argc, char *argv[], Param &params) {
   bool showHelpMenu = false;
   popts::variables_map vm;
@@ -302,13 +339,20 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       
       // for multiple input files
       params.numOfFiles = 0;
+      list<string> files;
       for (auto a : vm["file"].as<vector<string>>()){
+        files.push_back(a);
         params.file += a + " ";
         params.numOfFiles++;
       }
       params.file = trim_copy(params.file);
       params.debug_file = vm["debug-file"].as<string>().c_str();
       params.logic = vm["logic"].as<int>();
+
+      int logic = findLogic(files);
+      if (logic != -1) {
+        params.logic = logic;
+      }
 
       params.grounderCommand = vm["grounder-command"].empty()
                                   ? "gringo"

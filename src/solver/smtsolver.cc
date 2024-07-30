@@ -77,11 +77,11 @@ void Solver::SolveProgram(Param &params, Program &program) {
   }
 
   if (params.logic == 1) {
-    // if (program.typeMap.size()) {
-    //   params.mixed = true;
-    // }
     this->logic = new QF_LRA_logic(params.mixed, program.typeMap);
   } 
+  else if (params.logic == 2) {
+    this->logic = new QF_IDL_logic();
+  }
   else {
     this->logic = new QF_LIA_logic();
   }

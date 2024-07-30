@@ -351,6 +351,9 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
             // read the types of variables for mixed logic
             if (operationTerm->name == "type") {
               saveTypes(childTerms);
+              if (logic != 1 && program->typeMap.size()) {
+                LOG(WARNING) << "LRA logic should be invoked for type specification!! Ignoring type specifications...";
+              }
               break;
             }
 
