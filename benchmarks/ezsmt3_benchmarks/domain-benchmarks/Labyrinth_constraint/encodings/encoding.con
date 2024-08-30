@@ -16,8 +16,7 @@
     .. : 0, binary, left
     };
 
-    &lp/0   : lin_term, {<=,>=,>,<,=,!=}, bounds, any;
-    %&dom/0 : bounds, {=}, lin_term, head;
+    &dom/0 : bounds, {=}, lin_term, head;
     &sum/0   : lin_term, {<=,>=,>,<,=,!=}, bounds, any
     %&objective/1 : lin_term, head;
     %&minimize/0 : lin_term, head;
@@ -76,14 +75,10 @@ push(Y,s,T) :- cpush(Y,T), not push(Y,n,T).
 
 
 %%cost constraint
-&sum {cost(T)} >= 0 :-step(T), push(X,e,T).
-&sum {cost(T)} <= 10 :- step(T), push(X,e,T).
-&sum {cost(T)} >= 0 :-step(T), push(X,w,T).
-&sum {cost(T)} <= 10 :- step(T), push(X,w,T).
-&sum {cost(T)} >= 0 :-step(T), push(Y,n,T).
-&sum {cost(T)} <= 10 :- step(T), push(Y,n,T).
-&sum {cost(T)} >= 0 :-step(T), push(Y,s,T).
-&sum {cost(T)} <= 10 :- step(T), push(Y,s,T).
+&dom {0..10} = cost(T) :- step(T), push(X,e,T).
+&dom {0..10} = cost(T) :- step(T), push(X,w,T).
+&dom {0..10} = cost(T) :- step(T), push(Y,n,T).
+&dom {0..10} = cost(T) :- step(T), push(Y,s,T).
 &sum {cost(T)} =C :-step(T), push(X,e,T),weight(X,e,C).
 &sum {cost(T)} =C :-step(T), push(X,w,T),weight(X,w,C).
 &sum {cost(T)} =C :-step(T), push(Y,n,T),weight(Y,n,C).
