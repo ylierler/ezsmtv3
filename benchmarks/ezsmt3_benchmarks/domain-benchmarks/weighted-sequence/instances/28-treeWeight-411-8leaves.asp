@@ -1,0 +1,17 @@
+leafWeightCardinality(1,36,28).
+leafWeightCardinality(2,33,38).
+leafWeightCardinality(3,24,93).
+leafWeightCardinality(4,24,98).
+leafWeightCardinality(5,67,80).
+leafWeightCardinality(6,78,15).
+leafWeightCardinality(7,1,91).
+leafWeightCardinality(8,6,56).
+innerNode(1).
+innerNode(2).
+innerNode(3).
+innerNode(4).
+innerNode(5).
+innerNode(6).
+innerNode(7).
+num(8).
+max_total_weight(411).
