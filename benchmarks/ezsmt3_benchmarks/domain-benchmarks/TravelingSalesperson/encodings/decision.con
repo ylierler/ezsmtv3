@@ -46,7 +46,7 @@ cost(X,Y,C) :- edgewt(Y,X,C), { edgewt(X,Y,D) : edgewt(X,Y,D) } 0.
 
 % Weight constraint on the Hamiltonian cycle
 %:- W+1 [ cycle(X,Y) : cost(X,Y,C) = C ], maxweight(W).
-&dom {0..C} :- cost(X,Y,C).
+&dom {0..C} = c(X,Y) :- cost(X,Y,C).
 &sum {c(X,Y)} =0 :-cost(X,Y,C), not cycle(X,Y).
 &sum {c(X,Y)} =C :-cost(X,Y,C), cycle(X,Y).
 :- &sum {c(X,Y):cost(X,Y,C)} > W, maxweight(W).

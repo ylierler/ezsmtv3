@@ -248,16 +248,14 @@ step(1..T+1) :- time(T).
 
 index(I) :- fold(I,X,Y).
 
-&sum {tfoldx(S,I)} >= 0 :- step(S), index(I), length(N).
-&sum {tfoldx(S,I)} <= 2*N :- step(S), index(I), length(N).
+&dom {0..M} = tfoldx(S,I) :- step(S), index(I), length(N), M=2*N.
 
 label_order(tfoldx(S,I),1) :-
 	step(S),
 	index(I),
 	length(N).
 
-&sum {tfoldy(S,I)} >= 0 :- step(S), index(I), length(N).
-&sum {tfoldy(S,I)} <= 2*N :- step(S), index(I), length(N).
+&dom {0..M} = tfoldy(S,I) :- step(S), index(I), length(N), M=2*N.
 
 label_order(tfoldy(S,I),1) :-
 	step(S),
