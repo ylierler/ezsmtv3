@@ -256,13 +256,13 @@ int findLogic(list<string> files) {
         size_t searchText1Length = searchText1.size();
         string logic =  line.substr(searchText1Length, index2 - searchText1Length);
 
-        if (logic == "qf_lia" || logic == "qflia") {
+        if (logic == "qf_lia" || logic == "qflia" || logic == "lia") {
           return 0;
         }
-        else if (logic == "qf_lra" || logic == "qflra") {
+        else if (logic == "qf_lra" || logic == "qflra" || logic == "lra") {
           return 1;
         }
-        else if (logic == "qf_idl" || logic == "qfidl") {
+        else if (logic == "qf_idl" || logic == "qfidl" || logic == "idl") {
           return 2;
         }
       }
@@ -477,7 +477,7 @@ int main(int argc, char *argv[]) {
   }
 
   string groundingCommand = params.grounderCommand + " " + params.file +
-                            " > " + grounded_file + ".grounded";
+                            " > " + grounded_file + ".grounded 2>&1";
 
   VLOG(2) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());

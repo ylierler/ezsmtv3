@@ -54,17 +54,28 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
             output << assertion;
         }
         else if (statement->symbolicTerm->name == "dom") {
-            auto singleElement = statement->leftElements.front();
-            auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
-            NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
-            NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
-
-            auto assertion = SMT::Assert(SMT::Expr("<=", {
-                    SMT::ToString(lowerBound),
-                    SMT::ToString(statement->rightTerm),
-                    SMT::ToString(upperBound)
-                }));
-            output << assertion;
+            string expression = "or";
+            for (auto singleElement: statement->leftElements){
+                if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
+                    auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
+                    NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
+                    NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
+                    expression += " " + SMT::Expr("<=", {
+                        SMT::ToString(lowerBound),
+                        SMT::ToString(statement->rightTerm),
+                        SMT::ToString(upperBound)
+                    });
+                }
+                else if (dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
+                    auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front());
+                    expression += " " + SMT::Expr("=", {
+                        SMT::ToString(statement->rightTerm),
+                        SMT::ToString(numericTerm)
+                    });
+                }
+            }
+            expression = "(" + expression + ")";
+            output << SMT::Assert(expression);
         }
         else {
             LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the logic.";
