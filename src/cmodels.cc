@@ -243,7 +243,7 @@ Result Cmodels::preprocessing(bool &emptyprogram) {
     if (program.tight)
       VLOG(1) << "Program is tight, no level ranking formula is added.";
     else {
-      param.mixed = true;
+      param.mixed_logic = true;
       output.timerCompletion.start();
       createSCCRankingFormula();
       output.timerCompletion.stop();

@@ -301,7 +301,7 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-          if (logic == 1) {
+          if (logic == 1 || logic == 2) {
             try {
               string floatString = trim_copy_if(symbolValue, is_any_of("\"\'"));
               float floatValue = stof(floatString);
@@ -351,8 +351,9 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
             // read the types of variables for mixed logic
             if (operationTerm->name == "type") {
               saveTypes(childTerms);
-              if (logic != 1 && program->typeMap.size()) {
-                LOG(WARNING) << "LRA logic should be invoked for type specification!! Ignoring type specifications...";
+              if (logic != 2 && program->typeMap.size()) {
+                LOG(WARNING) << "LIRA logic required for type specification!! Ignoring type specifications...";
+                program->typeMap.clear();
               }
               break;
             }

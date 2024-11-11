@@ -200,10 +200,18 @@ using namespace std;
 using namespace boost::algorithm;
 namespace popts = boost::program_options;
 
+std::map<int, string> logicType = {
+  {0, "LIA"},
+  {1, "LRA"},
+  {2, "LIRA"},
+  {3, "IDL"}
+};
+
 void a_new_handler() {
   cerr << "operator new failed: out of memory" << endl;
   exit(23);
 }
+
 static void timeOutHandler(int sig) {
   // ctable.cmodels.output.PrintStats();
   // switch (sig) {
@@ -256,14 +264,17 @@ int findLogic(list<string> files) {
         size_t searchText1Length = searchText1.size();
         string logic =  line.substr(searchText1Length, index2 - searchText1Length);
 
-        if (logic == "qf_lia" || logic == "qflia" || logic == "lia") {
+        if (logic == "lia") {
           return 0;
         }
-        else if (logic == "qf_lra" || logic == "qflra" || logic == "lra") {
+        else if (logic == "lra") {
           return 1;
         }
-        else if (logic == "qf_idl" || logic == "qfidl" || logic == "idl") {
+        else if (logic == "lira") {
           return 2;
+        }
+        else if (logic == "idl") {
+          return 3;
         }
       }
     }
@@ -283,8 +294,8 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
-    ("debug-file,d", popts::value<string>()->default_value(""), "File that will be output for debugging or testing against other system")
-    ("logic,l", popts::value<int>()->default_value(0), "Logic to use: 0 -> QF_LIA; 1 -> QF_LRA");
+    ("debug-file,d", popts::value<string>()->default_value(""), "Produces a file with constraints for debugging and testing against other system")
+    ("logic,l", popts::value<int>()->default_value(0), "Logic to use: 0 -> LIA; 1 -> LRA; 2 -> LIRA; 3 -> IDL");
 
   popts::options_description cmodelsOptions("CModels Options");
   cmodelsOptions.add_options()
@@ -332,6 +343,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       notify(vm);
 
       params.verboseLogLevel = vm["verbose"].as<int>();
+      SetupLogging(argv[0], params.verboseLogLevel);
 
       // for single input file
       // params.file = vm["file"].as<string>().c_str();
@@ -352,7 +364,10 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       int logic = findLogic(files);
       if (logic != -1) {
         params.logic = logic;
+        VLOG(2) << logicType[logic] << " logic specified in program. Ignoring logic declared in command line..." << endl;
       }
+
+      VLOG(1) << "Using " << logicType[params.logic] << " logic..." << endl;
 
       params.grounderCommand = vm["grounder-command"].empty()
                                   ? "gringo"
@@ -412,8 +427,6 @@ int main(int argc, char *argv[]) {
   if (exit == 1) {
     return 1;
   }
-
-  SetupLogging(argv[0], params.verboseLogLevel);
 
   Timer mainTimer;
 

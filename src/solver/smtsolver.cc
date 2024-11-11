@@ -76,10 +76,10 @@ void Solver::SolveProgram(Param &params, Program &program) {
     theoryStatements.push_back(pair.second);
   }
 
-  if (params.logic == 1) {
-    this->logic = new QF_LRA_logic(params.mixed, program.typeMap);
+  if (params.logic == 1 || params.logic == 2) {
+    this->logic = new QF_LRA_logic(params.mixed_logic, program.typeMap);
   } 
-  else if (params.logic == 2) {
+  else if (params.logic == 3) {
     this->logic = new QF_IDL_logic();
   }
   else {

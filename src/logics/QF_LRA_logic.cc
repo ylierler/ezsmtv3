@@ -10,7 +10,7 @@
 mixed is true in case of non-tight program, where level ranking variables are integers
 typeMap is the map with custom specified types for IRA logic*/
 string QF_LRA_logic::SMT_LOGIC_NAME() {
-    if (mixed or typeMap.size()) {
+    if (mixed_logic or typeMap.size()) {
         return "AUFLIRA";
     }
     return "QF_LRA";

@@ -21,7 +21,7 @@ public:
   std::string file;
   std::string debug_file;
   int logic;
-  bool mixed;
+  bool mixed_logic;
   char dirName[256];
   char cmodelsname[256];
   char dimacsFileName[512];
@@ -105,7 +105,7 @@ public:
     cm_wfm = false;
     sort = false;
     nowellfounded = false;
-    mixed = false;
+    mixed_logic = false;
   }
   void finish() {
     if (sys == SIMO)
