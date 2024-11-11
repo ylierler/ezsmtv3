@@ -33,6 +33,51 @@ void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
     }
 }
 
+// fix for unary symbols and boundValue=0 for multiplication
+int getValue(ExpressionTerm* expression, int boundValue=0, string symbol="+") {
+    for (auto child: expression->children) {
+        if (dynamic_cast<NumericTerm*>(child)) {
+            NumericTerm* num = dynamic_cast<NumericTerm*>(child);
+            if (symbol == "+") {
+                boundValue += num->value;
+            }
+            else if (symbol == "-") {
+                boundValue -= num->value;
+            }
+            else if (symbol == "*") {
+                boundValue *= num->value;
+            }
+        }
+        else if (dynamic_cast<SymbolicTerm*>(child)) {
+            SymbolicTerm* sym = dynamic_cast<SymbolicTerm*>(child);
+            if (sym->name == "+") {
+                string symbol = "+";
+            }
+            else if (sym->name == "-") {
+                string symbol = "-";
+            }
+            else if (sym->name == "+") {
+                string symbol = "*";
+            }
+        }
+        else if (dynamic_cast<ExpressionTerm*>(child)) {
+            ExpressionTerm* expression = dynamic_cast<ExpressionTerm*>(child);
+            int expressionBoundValue = getValue(expression);
+            if (symbol == "+") {
+                boundValue += expressionBoundValue;
+            }
+            else if (symbol == "-") {
+                boundValue -= expressionBoundValue;
+            }
+            else if (symbol == "*") {
+                boundValue *= expressionBoundValue;
+            } 
+        }
+    }
+
+    return boundValue;
+}
+
 void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
         if (statement->symbolicTerm->name == "sum")  {
@@ -58,14 +103,48 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
             for (auto singleElement: statement->leftElements){
                 if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
                     auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
-                    NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
-                    NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
+                    int boundValue = 0;
+                    int lowerBound = 0;
+                    bool lowerBoundFlag = false;
+                    int upperBound = 0;
+                    for (auto child: domainExpression->children) {
+                        if (dynamic_cast<NumericTerm*>(child)) {
+                            NumericTerm* num = dynamic_cast<NumericTerm*>(child);
+                            boundValue = num->value;
+                        }
+                        else if (dynamic_cast<ExpressionTerm*>(child)) {
+                            ExpressionTerm* exp = dynamic_cast<ExpressionTerm*>(child);
+                            boundValue = getValue(exp);
+                        }
+                        
+                        // Assign first value to lower bound and second value to upper bound
+                        if (!lowerBoundFlag) {
+                            lowerBound = boundValue;
+                            lowerBoundFlag = true;
+                        }
+                        else {
+                            upperBound = boundValue;
+                        }
+                    }
+
                     expression += " " + SMT::Expr("<=", {
-                        SMT::ToString(lowerBound),
+                        to_string(lowerBound),
                         SMT::ToString(statement->rightTerm),
-                        SMT::ToString(upperBound)
+                        to_string(upperBound)
                     });
+
                 }
+
+                // if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
+                //     auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
+                //     NumericTerm* lowerBound = dynamic_cast<NumericTerm*>(domainExpression->children.front());
+                //     NumericTerm* upperBound = dynamic_cast<NumericTerm*>(domainExpression->children.back());
+                //     expression += " " + SMT::Expr("<=", {
+                //         SMT::ToString(lowerBound),
+                //         SMT::ToString(statement->rightTerm),
+                //         SMT::ToString(upperBound)
+                //     });
+                // }
                 else if (dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
                     auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front());
                     expression += " " + SMT::Expr("=", {
