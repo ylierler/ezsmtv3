@@ -366,6 +366,10 @@ int ParseArguments(int argc, char *argv[], Param &params) {
         params.logic = logic;
         VLOG(2) << logicType[logic] << " logic specified in program. Ignoring logic declared in command line..." << endl;
       }
+      else if (params.logic > 3) {
+        LOG(WARNING) << "Logic " << params.logic << " is not allowed. Using default LIA logic..." << endl;
+        params.logic = 0;
+      }
 
       VLOG(1) << "Using " << logicType[params.logic] << " logic" << endl;
 

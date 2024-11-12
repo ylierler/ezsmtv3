@@ -10,17 +10,25 @@ string QF_LIA_logic::SMT_LOGIC_NAME() { return "QF_LIA"; }
 void QF_LIA_logic::processTheoryStatements(list<TheoryStatement*> statements) {
     this->statements = statements;
 
+    // lambda helper function for recursion on nested expression terms
+    std::function<void(ExpressionTerm*)> helper = [&](ExpressionTerm* expressionTerm) {
+        for (auto exp: expressionTerm->children) {
+            if (auto s = dynamic_cast<SymbolicTerm*>(exp)) {
+                this->symbolicTerms[s->id] = s;
+            }
+            else if (auto s = dynamic_cast<ExpressionTerm*>(exp)) {
+                helper(s);
+            }
+        }
+    };
+
     for (auto statement : statements) {
         statement->traverseNestedTerms([&](ITheoryTerm* term) {
             if (auto s = dynamic_cast<SymbolicTerm*>(term)) {
                 this->symbolicTerms[s->id] = s;
             }
             else if (auto s = dynamic_cast<ExpressionTerm*>(term)) {
-                for (auto childTerm: s->children){
-                    if (auto child = dynamic_cast<SymbolicTerm*>(childTerm)) {
-                        this->symbolicTerms[child->id] = child;
-                    }
-                }
+                helper(s);
             }
         });
     }
