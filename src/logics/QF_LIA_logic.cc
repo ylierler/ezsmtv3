@@ -34,45 +34,34 @@ void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
 }
 
 // fix for unary symbols and boundValue=0 for multiplication
-int getValue(ExpressionTerm* expression, int boundValue=0, string symbol="+") {
+int getValue(ExpressionTerm* expression, int boundValue=0, string operation="+") {
     for (auto child: expression->children) {
         if (dynamic_cast<NumericTerm*>(child)) {
             NumericTerm* num = dynamic_cast<NumericTerm*>(child);
-            if (symbol == "+") {
+            if (operation == "+") {
                 boundValue += num->value;
             }
-            else if (symbol == "-") {
+            else if (operation == "-") {
                 boundValue -= num->value;
             }
-            else if (symbol == "*") {
+            else if (operation == "*") {
                 boundValue *= num->value;
-            }
-        }
-        else if (dynamic_cast<SymbolicTerm*>(child)) {
-            SymbolicTerm* sym = dynamic_cast<SymbolicTerm*>(child);
-            if (sym->name == "+") {
-                string symbol = "+";
-            }
-            else if (sym->name == "-") {
-                string symbol = "-";
-            }
-            else if (sym->name == "+") {
-                string symbol = "*";
             }
         }
         else if (dynamic_cast<ExpressionTerm*>(child)) {
             ExpressionTerm* expression = dynamic_cast<ExpressionTerm*>(child);
             int expressionBoundValue = getValue(expression);
-            if (symbol == "+") {
+            if (operation == "+") {
                 boundValue += expressionBoundValue;
             }
-            else if (symbol == "-") {
+            else if (operation == "-") {
                 boundValue -= expressionBoundValue;
             }
-            else if (symbol == "*") {
+            else if (operation == "*") {
                 boundValue *= expressionBoundValue;
             } 
         }
+        operation = expression->operation->name;
     }
 
     return boundValue;

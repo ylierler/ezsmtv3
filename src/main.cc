@@ -367,7 +367,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
         VLOG(2) << logicType[logic] << " logic specified in program. Ignoring logic declared in command line..." << endl;
       }
 
-      VLOG(1) << "Using " << logicType[params.logic] << " logic..." << endl;
+      VLOG(1) << "Using " << logicType[params.logic] << " logic" << endl;
 
       params.grounderCommand = vm["grounder-command"].empty()
                                   ? "gringo"
