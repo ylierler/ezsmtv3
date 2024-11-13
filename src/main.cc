@@ -200,7 +200,11 @@ using namespace std;
 using namespace boost::algorithm;
 namespace popts = boost::program_options;
 
-std::map<int, string> logicType = {
+// curent version of ezsmt
+string ezsmt_version = "3.0";
+
+// currently supported logics
+map<int, string> logicType = {
   {0, "LIA"},
   {1, "LRA"},
   {2, "LIRA"},
@@ -298,6 +302,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   popts::options_description genericOptions("Generic Options");
   genericOptions.add_options()
     ("help,h", "Show this help menu") //
+    ("version,V", "Show EZSMT version")
     ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
@@ -348,6 +353,11 @@ int ParseArguments(int argc, char *argv[], Param &params) {
                 .run(),
             vm);
       notify(vm);
+
+      if (vm.count("version")) {
+        cout << "EZSMT version " << ezsmt_version << endl;
+        return 1;
+      }
 
       params.verboseLogLevel = vm["verbose"].as<int>();
       SetupLogging(argv[0], params.verboseLogLevel);
@@ -423,7 +433,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
 
   if (argc == 1 || showHelpMenu || vm.count("help")) {
     cout << "The EZSMT Constraint Answer Set Solver" << endl;
-    cout << "Version 3.0" << endl << endl;
+    cout << "Version " << ezsmt_version << endl << endl;
     cout << "Usage: " << argv[0] << " [options] <file>" << endl;
     cout << allOptions << endl;
     return 1;
