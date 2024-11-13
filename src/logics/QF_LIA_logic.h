@@ -18,6 +18,7 @@ public:
     string getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     static tuple<int, int> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
     static int solveExpression(ExpressionTerm* expression);
+    static int getTermValue(ITheoryTerm* term);
 
 protected:
     map<int, SymbolicTerm*> symbolicTerms;

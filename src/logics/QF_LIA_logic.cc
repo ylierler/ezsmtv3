@@ -57,7 +57,6 @@ int QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
                 value *= num->value;
             }
         }
-
         else if (dynamic_cast<ExpressionTerm*>(child)) {
             ExpressionTerm* expression = dynamic_cast<ExpressionTerm*>(child);
             int expressionvalue = solveExpression(expression);
@@ -71,38 +70,28 @@ int QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
                 value *= expressionvalue;
             } 
         }
-
         operation = expression->operation->name;
     }
-
     return value;
 }
 
-tuple<int, int> QF_LIA_logic::getLowerAndUpperBounds(ExpressionTerm* domainExpression) {
-    int value = 0;
-    int lowerBound = 0;
-    bool lowerBoundFlag = false;
-    int upperBound = 0;
-    for (auto child: domainExpression->children) {
-        if (dynamic_cast<NumericTerm*>(child)) {
-            NumericTerm* num = dynamic_cast<NumericTerm*>(child);
-            value = num->value;
-        }
-        else if (dynamic_cast<ExpressionTerm*>(child)) {
-            ExpressionTerm* exp = dynamic_cast<ExpressionTerm*>(child);
-            value = solveExpression(exp);
-        }
-        
-        // assign first value to lower bound and second value to upper bound
-        if (!lowerBoundFlag) {
-            lowerBound = value;
-            lowerBoundFlag = true;
-        }
-        else {
-            upperBound = value;
-        }
+int QF_LIA_logic::getTermValue(ITheoryTerm* term) {
+    if (auto num = dynamic_cast<NumericTerm*>(term)) {
+        return num->value;
     }
-    return tuple<int, int>(lowerBound, upperBound);
+    else if (auto exp = dynamic_cast<ExpressionTerm*>(term)) {
+        return solveExpression(exp);
+    }
+    LOG(FATAL) << "Invalid syntax for dom statement." << endl;
+}
+
+tuple<int, int> QF_LIA_logic::getLowerAndUpperBounds(ExpressionTerm* domainExpression) {
+    ITheoryTerm* lbTerm = domainExpression->children.front();
+    ITheoryTerm* ubTerm = domainExpression->children.back();
+        
+    int lowerBound = getTermValue(lbTerm);
+    int upperBound = getTermValue(ubTerm);
+    return make_tuple(lowerBound, upperBound);
 }
 
 string QF_LIA_logic::getSumAssertionStatement(TheoryStatement* statement) {

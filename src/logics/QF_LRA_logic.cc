@@ -6,9 +6,9 @@
 #include "smtstringhelpers.h"
 
 
-/*if both types ints and reals are present, return IRA logic
-mixed is true in case of non-tight program, where level ranking variables are integers
-typeMap is the map with custom specified types for IRA logic*/
+/*if both types ints and reals are present, return LIRA logic
+mixed_logic is true in case of non-tight program, where level ranking variables are integers
+typeMap is the map with custom specified types for LIRA logic*/
 string QF_LRA_logic::SMT_LOGIC_NAME() {
     if (mixed_logic or typeMap.size()) {
         return "AUFLIRA";
