@@ -137,20 +137,12 @@ void Solver::SolveProgram(Param &params, Program &program) {
       solverProcess.Send(minimizationAssertion);
     }
 
-    if (result->atomAssignments.empty()) {
-      break;
-    }
-
     auto answerSetNegation = getAnswerNegationString(*result, params.includeConstraintsInEnumeration);
     solverProcess.Send(answerSetNegation);
   }
 }
 
 string Solver::getAnswerNegationString(SolverResult& result, bool includeConstraintVariables) {
-  if (result.atomAssignments.size() == 0) {
-    LOG(FATAL) << "Cannot create answer negation for empty set";
-  }
-
   list<string> answerSetValueExpressions;
 
   for (pair<Atom*, bool> atomAssignment : result.atomAssignments) {
