@@ -242,6 +242,20 @@ void SetupLogging(char *executableName, int verbosity) {
   google::InitGoogleLogging(executableName);
 }
 
+int logicValue(string logic) {
+  map<string, int> logicVal;
+  for (map<int, string>::iterator i = logicType.begin(); i != logicType.end(); ++i)
+    logicVal[i->second] = i->first;
+
+  if (logicVal.find(logic) == logicVal.end()) {
+    LOG(WARNING) << logic << " logic is not allowed." << endl;
+    return -1;
+  } 
+  else {
+    return logicVal[logic];
+  }
+}
+
 int findLogic(list<string> files) {
   for (auto f: files) {
     ifstream file(f);
@@ -261,22 +275,15 @@ int findLogic(list<string> files) {
           continue;
         }
 
+        file.close();
+
         size_t searchText1Length = searchText1.size();
         string logic =  line.substr(searchText1Length, index2 - searchText1Length);
+        for (auto & c: logic) c = toupper(c);
 
-        if (logic == "lia") {
-          return 0;
-        }
-        else if (logic == "lra") {
-          return 1;
-        }
-        else if (logic == "lira") {
-          return 2;
-        }
-        else if (logic == "idl") {
-          return 3;
-        }
+        return logicValue(logic);
       }
+      file.close();
     }
   }
   return -1;
