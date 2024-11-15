@@ -114,15 +114,19 @@ string QF_LIA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm
     // check for unary values 
     if (
         domainExpression->children.size() == 1
-        && domainExpression->operation->name == "-"
         && dynamic_cast<NumericTerm*>(domainExpression->children.front()) 
     ){
         NumericTerm* num = dynamic_cast<NumericTerm*>(domainExpression->children.front());
         int value = num->value;
 
+        string unaryAssertionStatement = to_string(value);
+        if (domainExpression->operation->name == "-") {
+            unaryAssertionStatement = "(- " + unaryAssertionStatement + ")";
+        }
+
         string expression = " " + SMT::Expr("=", {
             SMT::ToString(rightTerm),
-            "(- " + to_string(value) + ")"
+            unaryAssertionStatement
         });
 
         return expression;

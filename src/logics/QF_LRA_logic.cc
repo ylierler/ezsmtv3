@@ -91,21 +91,16 @@ tuple<float, float> QF_LRA_logic::getLowerAndUpperBounds(ExpressionTerm* domainE
         
     float lowerBound = getTermValue(lbTerm);
     float upperBound = getTermValue(ubTerm);
-    cout << lowerBound << " " << upperBound << endl;
     return make_tuple(lowerBound, upperBound);
 }
 
 string QF_LRA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
     // check for unary values 
-    if (
-        domainExpression->children.size() == 1
-        && domainExpression->operation->name == "-"
-    )
-    {
+    if (domainExpression->children.size() == 1){
         float value;
 
         if (auto num = dynamic_cast<NumericTerm*>(domainExpression->children.front())) {
-            value = static_cast<float>(num->value);
+            value = num->value;
         }
         else if (auto num = dynamic_cast<RealTerm*>(domainExpression->children.front())) {
             value = num->value;
@@ -113,10 +108,15 @@ string QF_LRA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm
         else {
             LOG(FATAL) << "Invalid syntax for unary value." << endl;
         }
+        
+        string unaryAssertionStatement = to_string(value);
+        if (domainExpression->operation->name == "-") {
+            unaryAssertionStatement = "(- " + unaryAssertionStatement + ")";
+        }
 
         string expression = " " + SMT::Expr("=", {
             SMT::ToString(rightTerm),
-            "(- " + to_string(value) + ")"
+            unaryAssertionStatement
         });
 
         return expression;
