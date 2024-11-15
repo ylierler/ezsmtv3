@@ -44,32 +44,29 @@ void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
 int QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
     string operation="+";
     int value = 0;
+
     for (auto child: expression->children) {
-        if (dynamic_cast<NumericTerm*>(child)) {
-            NumericTerm* num = dynamic_cast<NumericTerm*>(child);
-            if (operation == "+") {
-                value += num->value;
-            }
-            else if (operation == "-") {
-                value -= num->value;
-            }
-            else if (operation == "*") {
-                value *= num->value;
-            }
+        int termValue = 0;
+
+        if (auto num = dynamic_cast<NumericTerm*>(child)) {
+            termValue = num->value;
         }
-        else if (dynamic_cast<ExpressionTerm*>(child)) {
-            ExpressionTerm* expression = dynamic_cast<ExpressionTerm*>(child);
-            int expressionvalue = solveExpression(expression);
-            if (operation == "+") {
-                value += expressionvalue;
-            }
-            else if (operation == "-") {
-                value -= expressionvalue;
-            }
-            else if (operation == "*") {
-                value *= expressionvalue;
-            } 
+        else if (auto expression = dynamic_cast<ExpressionTerm*>(child)) {
+            termValue = solveExpression(expression);
         }
+
+        // Apply the operation
+        if (operation == "+") {
+            value += termValue;
+        } 
+        else if (operation == "-") {
+            value -= termValue;
+        } 
+        else if (operation == "*") {
+            value *= termValue;
+        }
+
+        // Update operation for next term
         operation = expression->operation->name;
     }
     return value;
@@ -159,14 +156,12 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
             string expression = "or";
             for (auto singleElement: statement->leftElements){
                 // for expression term with unary values, and lower-bound and upper-bound inside dom
-                if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-                    auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
+                if (auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
                     expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
                 }
 
                 // for individual values inside dom
-                else if (dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
-                    auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front());
+                else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
                     expression += " " + SMT::Expr("=", {
                         SMT::ToString(statement->rightTerm),
                         SMT::ToString(numericTerm)

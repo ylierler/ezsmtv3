@@ -10,6 +10,12 @@ public:
     QF_LRA_logic(bool mixed_logic, map<string, string> typeMap) : mixed_logic(mixed_logic), typeMap(typeMap) {};
     string SMT_LOGIC_NAME() override;
     void getDeclarationStatements(std::ostringstream &output) override;
+    void getAssertionStatements(std::ostringstream &output) override;
+
+    string getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    static tuple<float, float> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
+    static float solveExpression(ExpressionTerm* expression);
+    static float getTermValue(ITheoryTerm* term);
 };
 
 #endif // QF_LRA_logic_H_
