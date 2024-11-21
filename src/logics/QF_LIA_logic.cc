@@ -148,6 +148,26 @@ string QF_LIA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm
     }
 }
 
+string QF_LIA_logic::getDomAssertionStatement(TheoryStatement* statement) {
+    string expression = "or";
+    for (auto singleElement: statement->leftElements){
+        // for expression term with unary values, and lower-bound and upper-bound inside dom
+        if (auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
+            expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
+        }
+
+        // for individual values inside dom
+        else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
+            expression += " " + SMT::Expr("=", {
+                SMT::ToString(statement->rightTerm),
+                SMT::ToString(numericTerm)
+            });
+        }
+    }
+    expression = "(" + expression + ")";
+    return SMT::Assert(expression);
+}
+
 void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
         string assertion;
@@ -157,23 +177,7 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
         }
         
         else if (statement->symbolicTerm->name == "dom") {
-            string expression = "or";
-            for (auto singleElement: statement->leftElements){
-                // for expression term with unary values, and lower-bound and upper-bound inside dom
-                if (auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-                    expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
-                }
-
-                // for individual values inside dom
-                else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
-                    expression += " " + SMT::Expr("=", {
-                        SMT::ToString(statement->rightTerm),
-                        SMT::ToString(numericTerm)
-                    });
-                }
-            }
-            expression = "(" + expression + ")";
-            assertion = SMT::Assert(expression);
+            assertion = getDomAssertionStatement(statement);
         }
 
         else {

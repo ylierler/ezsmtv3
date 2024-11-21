@@ -138,47 +138,31 @@ string QF_LRA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm
     }
 }
 
-void QF_LRA_logic::getAssertionStatements(std::ostringstream &output) {
-    for (const auto statement : statements) {
-        string assertion;
-
-        if (statement->symbolicTerm->name == "sum")  {
-            assertion = getSumAssertionStatement(statement);
-        }
-        
-        else if (statement->symbolicTerm->name == "dom") {
-            string expression = "or";
-            for (auto singleElement: statement->leftElements){
-                // for expression term with unary values, and lower-bound and upper-bound inside dom
-                if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-                    auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
-                    expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
-                }
-
-                // for individual integer values inside dom
-                else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
-                    expression += " " + SMT::Expr("=", {
-                        SMT::ToString(statement->rightTerm),
-                        SMT::ToString(numericTerm)
-                    });
-                }
-
-                // for individual real values inside dom
-                else if (auto realTerm = dynamic_cast<RealTerm*>(singleElement->terms.front())) {
-                    expression += " " + SMT::Expr("=", {
-                        SMT::ToString(statement->rightTerm),
-                        SMT::ToString(realTerm)
-                    });
-                }
-            }
-            expression = "(" + expression + ")";
-            assertion = SMT::Assert(expression);
+string QF_LRA_logic::getDomAssertionStatement(TheoryStatement* statement) {
+    string expression = "or";
+    for (auto singleElement: statement->leftElements){
+        // for expression term with unary values, and lower-bound and upper-bound inside dom
+        if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
+            auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
+            expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
         }
 
-        else {
-            LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the " << SMT_LOGIC_NAME() << " logic.";
+        // for individual integer values inside dom
+        else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
+            expression += " " + SMT::Expr("=", {
+                SMT::ToString(statement->rightTerm),
+                SMT::ToString(numericTerm)
+            });
         }
 
-        output << assertion;
+        // for individual real values inside dom
+        else if (auto realTerm = dynamic_cast<RealTerm*>(singleElement->terms.front())) {
+            expression += " " + SMT::Expr("=", {
+                SMT::ToString(statement->rightTerm),
+                SMT::ToString(realTerm)
+            });
+        }
     }
+    expression = "(" + expression + ")";
+    return SMT::Assert(expression);
 }

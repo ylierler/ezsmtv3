@@ -14,7 +14,8 @@ public:
     void getAssertionStatements(std::ostringstream &output) override;
     list<SymbolicTerm*> getConstraintVariables() override;
 
-    string getSumAssertionStatement(TheoryStatement* statement);
+    virtual string getSumAssertionStatement(TheoryStatement* statement);
+    virtual string getDomAssertionStatement(TheoryStatement* statement);
     string getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     static tuple<int, int> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
     static int solveExpression(ExpressionTerm* expression);
