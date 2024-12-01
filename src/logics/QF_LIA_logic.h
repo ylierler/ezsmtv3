@@ -16,7 +16,10 @@ public:
 
     virtual string getSumAssertionStatement(TheoryStatement* statement);
     virtual string getDomAssertionStatement(TheoryStatement* statement);
-    string getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    string getIndividualOrLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    string getLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    string getIndividualUnaryAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    string getIndividualExpressionAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     static tuple<int, int> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
     static int solveExpression(ExpressionTerm* expression);
     static int getTermValue(ITheoryTerm* term);

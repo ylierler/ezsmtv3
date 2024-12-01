@@ -42,7 +42,7 @@ void QF_LIA_logic::getDeclarationStatements(std::ostringstream &output) {
 }
 
 int QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
-    string operation="+";
+    string operation = expression->children.size() == 1 ? expression->operation->name : "+";
     int value = 0;
 
     for (auto child: expression->children) {
@@ -53,6 +53,9 @@ int QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
         }
         else if (auto expression = dynamic_cast<ExpressionTerm*>(child)) {
             termValue = solveExpression(expression);
+        }
+        else {
+            LOG(FATAL) << "Invalid syntax for dom statement." << endl;
         }
 
         // Apply the operation
@@ -110,53 +113,91 @@ string QF_LIA_logic::getSumAssertionStatement(TheoryStatement* statement) {
     return assertion;
 }
 
-string QF_LIA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
-    // check for unary values 
-    if (
+string QF_LIA_logic::getLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
+    auto boundTuple = getLowerAndUpperBounds(domainExpression);
+    int lowerBound = get<0>(boundTuple);
+    int upperBound = get<1>(boundTuple);
+
+    string lowerBoundString = to_string(abs(lowerBound));
+    string upperBoundString = to_string(abs(upperBound));
+
+    if (lowerBound < 0) {
+        lowerBoundString = "(- " + lowerBoundString + ")";
+    }
+
+    if (upperBound < 0) {
+        upperBoundString = "(- " + upperBoundString + ")";
+    }
+
+    string expression = " " + SMT::Expr("<=", {
+        lowerBoundString,
+        SMT::ToString(rightTerm),
+        upperBoundString
+    });
+
+    return expression;
+}
+
+string QF_LIA_logic::getIndividualUnaryAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
+    NumericTerm* num = dynamic_cast<NumericTerm*>(domainExpression->children.front());
+    int value = num->value;
+
+    string unaryAssertionStatement = to_string(value);
+    if (domainExpression->operation->name == "-") {
+        unaryAssertionStatement = "(- " + unaryAssertionStatement + ")";
+    }
+
+    string expression = " " + SMT::Expr("=", {
+        SMT::ToString(rightTerm),
+        unaryAssertionStatement
+    });
+
+    return expression;
+}
+
+string QF_LIA_logic::getIndividualExpressionAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
+    int value = solveExpression(domainExpression);
+
+    string valueString = to_string(abs(value));
+    valueString = value < 0 ? "(- " + valueString + ")" : valueString;
+
+    string expression = " " + SMT::Expr("=", {
+        SMT::ToString(rightTerm),
+        valueString
+    });
+
+    return expression;
+}
+
+string QF_LIA_logic::getIndividualOrLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
+    // for .. operation with lower-bound and upper-bound
+    if (domainExpression->operation->name == "..") {
+        return getLowerUpperBoundAssertionStatement(domainExpression, rightTerm);
+    }
+
+    // for individual values with unary operators 
+    else if (
         domainExpression->children.size() == 1
         && dynamic_cast<NumericTerm*>(domainExpression->children.front()) 
     ){
-        NumericTerm* num = dynamic_cast<NumericTerm*>(domainExpression->children.front());
-        int value = num->value;
-
-        string unaryAssertionStatement = to_string(value);
-        if (domainExpression->operation->name == "-") {
-            unaryAssertionStatement = "(- " + unaryAssertionStatement + ")";
-        }
-
-        string expression = " " + SMT::Expr("=", {
-            SMT::ToString(rightTerm),
-            unaryAssertionStatement
-        });
-
-        return expression;
+        return getIndividualUnaryAssertionStatement(domainExpression, rightTerm);
     }
 
-    // for .. operation with lower-bound and upper-bound
+    // for expression term in individual value
     else {
-        auto boundTuple = getLowerAndUpperBounds(domainExpression);
-        int lowerBound = get<0>(boundTuple);
-        int upperBound = get<1>(boundTuple);
-
-        string expression = " " + SMT::Expr("<=", {
-            to_string(lowerBound),
-            SMT::ToString(rightTerm),
-            to_string(upperBound)
-        });
-
-        return expression;
+        return getIndividualExpressionAssertionStatement(domainExpression, rightTerm);
     }
 }
 
 string QF_LIA_logic::getDomAssertionStatement(TheoryStatement* statement) {
     string expression = "or";
     for (auto singleElement: statement->leftElements){
-        // for expression term with unary values, and lower-bound and upper-bound inside dom
+        // for expression term with individual unary or expression terms and with lower and upper bound inside dom
         if (auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-            expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
+            expression += getIndividualOrLowerUpperBoundAssertionStatement(domainExpression, statement->rightTerm);
         }
 
-        // for individual values inside dom
+        // for individual integer or real values inside dom
         else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
             expression += " " + SMT::Expr("=", {
                 SMT::ToString(statement->rightTerm),
