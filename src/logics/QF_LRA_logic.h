@@ -11,11 +11,9 @@ public:
     string SMT_LOGIC_NAME() override;
     void getDeclarationStatements(std::ostringstream &output) override;
 
-    string getDomAssertionStatement(TheoryStatement* statement) override;
-    string getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
-    static tuple<float, float> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
-    static float solveExpression(ExpressionTerm* expression);
-    static float getTermValue(ITheoryTerm* term);
+    string getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm) override;
+    float getRealTermValue(RealTerm* num) override;
+    string getString(float value) override;
 };
 
 #endif // QF_LRA_logic_H_

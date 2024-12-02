@@ -38,131 +38,18 @@ void QF_LRA_logic::getDeclarationStatements(std::ostringstream &output) {
     }
 }
 
-float QF_LRA_logic::solveExpression(ExpressionTerm* expression) {
-    string operation="+";
-    float value = 0;
-
-    for (auto child: expression->children) {
-        float termValue = 0;
-
-        if (auto num = dynamic_cast<NumericTerm*>(child)) {
-            termValue = num->value;
-        }
-        else if (auto num = dynamic_cast<RealTerm*>(child)) {
-            termValue = num->value;
-        }
-        else if (auto expression = dynamic_cast<ExpressionTerm*>(child)) {
-            termValue = solveExpression(expression);
-        }
-
-        // Apply the operation
-        if (operation == "+") {
-            value += termValue;
-        } 
-        else if (operation == "-") {
-            value -= termValue;
-        } 
-        else if (operation == "*") {
-            value *= termValue;
-        }
-
-        // Update operation for next term
-        operation = expression->operation->name;
-    }
-    return value;
+string QF_LRA_logic::getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm) {
+    string expression = " " + SMT::Expr("=", {
+        SMT::ToString(rightTerm),
+        SMT::ToString(realTerm)
+    });
+    return expression;
 }
 
-float QF_LRA_logic::getTermValue(ITheoryTerm* term) {
-    if (auto num = dynamic_cast<NumericTerm*>(term)) {
-        return static_cast<float>(num->value);
-    }
-    if (auto num = dynamic_cast<RealTerm*>(term)) {
-        return num->value;
-    }
-    else if (auto exp = dynamic_cast<ExpressionTerm*>(term)) {
-        return solveExpression(exp);
-    }
-    LOG(FATAL) << "Invalid syntax for dom statement." << endl;
+float QF_LRA_logic::getRealTermValue(RealTerm* num) {
+    return num->value;
 }
 
-tuple<float, float> QF_LRA_logic::getLowerAndUpperBounds(ExpressionTerm* domainExpression) {
-    ITheoryTerm* lbTerm = domainExpression->children.front();
-    ITheoryTerm* ubTerm = domainExpression->children.back();
-        
-    float lowerBound = getTermValue(lbTerm);
-    float upperBound = getTermValue(ubTerm);
-    return make_tuple(lowerBound, upperBound);
-}
-
-string QF_LRA_logic::getUnaryOrLowerUpperBoundAssertionStatements(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
-    // check for unary values 
-    if (domainExpression->children.size() == 1){
-        float value;
-
-        if (auto num = dynamic_cast<NumericTerm*>(domainExpression->children.front())) {
-            value = num->value;
-        }
-        else if (auto num = dynamic_cast<RealTerm*>(domainExpression->children.front())) {
-            value = num->value;
-        }
-        else {
-            LOG(FATAL) << "Invalid syntax for unary value." << endl;
-        }
-        
-        string unaryAssertionStatement = to_string(value);
-        if (domainExpression->operation->name == "-") {
-            unaryAssertionStatement = "(- " + unaryAssertionStatement + ")";
-        }
-
-        string expression = " " + SMT::Expr("=", {
-            SMT::ToString(rightTerm),
-            unaryAssertionStatement
-        });
-
-        return expression;
-    }
-
-    // for .. operation with lower-bound and upper-bound
-    else {
-        auto boundTuple = getLowerAndUpperBounds(domainExpression);
-        float lowerBound = get<0>(boundTuple);
-        float upperBound = get<1>(boundTuple);
-
-        string expression = " " + SMT::Expr("<=", {
-            to_string(lowerBound),
-            SMT::ToString(rightTerm),
-            to_string(upperBound)
-        });
-
-        return expression;
-    }
-}
-
-string QF_LRA_logic::getDomAssertionStatement(TheoryStatement* statement) {
-    string expression = "or";
-    for (auto singleElement: statement->leftElements){
-        // for expression term with unary values, and lower-bound and upper-bound inside dom
-        if (dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-            auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front());
-            expression += getUnaryOrLowerUpperBoundAssertionStatements(domainExpression, statement->rightTerm);
-        }
-
-        // for individual integer values inside dom
-        else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
-            expression += " " + SMT::Expr("=", {
-                SMT::ToString(statement->rightTerm),
-                SMT::ToString(numericTerm)
-            });
-        }
-
-        // for individual real values inside dom
-        else if (auto realTerm = dynamic_cast<RealTerm*>(singleElement->terms.front())) {
-            expression += " " + SMT::Expr("=", {
-                SMT::ToString(statement->rightTerm),
-                SMT::ToString(realTerm)
-            });
-        }
-    }
-    expression = "(" + expression + ")";
-    return SMT::Assert(expression);
+string QF_LRA_logic::getString(float value) {
+    return to_string(value);
 }

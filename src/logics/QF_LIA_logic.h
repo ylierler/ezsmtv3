@@ -20,9 +20,13 @@ public:
     string getLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     string getIndividualUnaryAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     string getIndividualExpressionAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
-    static tuple<int, int> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
-    static int solveExpression(ExpressionTerm* expression);
-    static int getTermValue(ITheoryTerm* term);
+    tuple<float, float> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
+    float solveExpression(ExpressionTerm* expression);
+    float getTermValue(ITheoryTerm* term);
+
+    virtual string getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm);
+    virtual float getRealTermValue(RealTerm* num);
+    virtual string getString(float value);
 
 protected:
     map<int, SymbolicTerm*> symbolicTerms;
