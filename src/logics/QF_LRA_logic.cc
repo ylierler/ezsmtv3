@@ -38,12 +38,9 @@ void QF_LRA_logic::getDeclarationStatements(std::ostringstream &output) {
     }
 }
 
-string QF_LRA_logic::getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm) {
-    string expression = " " + SMT::Expr("=", {
-        SMT::ToString(rightTerm),
-        SMT::ToString(realTerm)
-    });
-    return expression;
+string QF_LRA_logic::getIndividualRealTermAssertionStatement(ITheoryTerm* rightTerm, RealTerm* realTerm) {
+    string valueString = getString(realTerm->value);
+    return getIndividualValueAssertionStatement(rightTerm, valueString);
 }
 
 float QF_LRA_logic::getRealTermValue(RealTerm* num) {

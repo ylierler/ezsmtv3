@@ -45,7 +45,7 @@ string QF_LIA_logic::getString(float value) {
     return to_string(static_cast<int>(value));
 }
 
-string QF_LIA_logic::getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm) {
+string QF_LIA_logic::getIndividualRealTermAssertionStatement(ITheoryTerm* rightTerm, RealTerm* realTerm) {
     LOG(FATAL) << "Real Term not allowed in LIA logic." << endl;
 }
 
@@ -54,7 +54,7 @@ float QF_LIA_logic::getRealTermValue(RealTerm* num) {
 }
 
 float QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
-    string operation = expression->children.size() == 1 ? expression->operation->name : "+";
+    string operation = (expression->children.size() == 1) ? expression->operation->name : "+";
     float value = 0;
 
     for (auto child: expression->children) {
@@ -163,14 +163,11 @@ string QF_LIA_logic::getIndividualExpressionAssertionStatement(ExpressionTerm* d
     float value = solveExpression(domainExpression);
 
     string valueString = getString(abs(value));
-    valueString = value < 0 ? "(- " + valueString + ")" : valueString;
+    if (value < 0) {
+        valueString = "(- " + valueString + ")";
+    }
 
-    string expression = " " + SMT::Expr("=", {
-        SMT::ToString(rightTerm),
-        valueString
-    });
-
-    return expression;
+    return getIndividualValueAssertionStatement(rightTerm, valueString);
 }
 
 string QF_LIA_logic::getIndividualOrLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm) {
@@ -179,7 +176,7 @@ string QF_LIA_logic::getIndividualOrLowerUpperBoundAssertionStatement(Expression
         return getLowerUpperBoundAssertionStatement(domainExpression, rightTerm);
     }
 
-    // for individual values with unary operators 
+    // for individual integer or real values with unary operators 
     else if (
         domainExpression->children.size() == 1
         && (dynamic_cast<NumericTerm*>(domainExpression->children.front())
@@ -188,10 +185,18 @@ string QF_LIA_logic::getIndividualOrLowerUpperBoundAssertionStatement(Expression
         return getIndividualUnaryAssertionStatement(domainExpression, rightTerm);
     }
 
-    // for expression term in individual value
+    // for individual values of expression term, e.g. ((2+3)-1)
     else {
         return getIndividualExpressionAssertionStatement(domainExpression, rightTerm);
     }
+}
+
+string QF_LIA_logic::getIndividualValueAssertionStatement(ITheoryTerm* rightTerm, string valueString) {
+    string expression = " " + SMT::Expr("=", {
+        SMT::ToString(rightTerm),
+        valueString
+    });
+    return expression;
 }
 
 string QF_LIA_logic::getDomAssertionStatement(TheoryStatement* statement) {
@@ -204,15 +209,13 @@ string QF_LIA_logic::getDomAssertionStatement(TheoryStatement* statement) {
 
         // for individual integer values inside dom
         else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
-            expression += " " + SMT::Expr("=", {
-                SMT::ToString(statement->rightTerm),
-                SMT::ToString(numericTerm)
-            });
+            string valueString = getString(numericTerm->value);
+            expression += getIndividualValueAssertionStatement(statement->rightTerm, valueString);
         }
 
         // for individual real values inside dom
         else if (auto realTerm = dynamic_cast<RealTerm*>(singleElement->terms.front())) {
-            expression += getIndividualRealTermExpression(statement->rightTerm, realTerm);
+            expression += getIndividualRealTermAssertionStatement(statement->rightTerm, realTerm);
         }
     }
     expression = "(" + expression + ")";

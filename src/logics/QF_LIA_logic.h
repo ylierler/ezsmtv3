@@ -16,15 +16,18 @@ public:
 
     virtual string getSumAssertionStatement(TheoryStatement* statement);
     virtual string getDomAssertionStatement(TheoryStatement* statement);
+
     string getIndividualOrLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     string getLowerUpperBoundAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     string getIndividualUnaryAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
     string getIndividualExpressionAssertionStatement(ExpressionTerm* domainExpression, ITheoryTerm* rightTerm);
+    string getIndividualValueAssertionStatement(ITheoryTerm* rightTerm, string valueString);
+
     tuple<float, float> getLowerAndUpperBounds(ExpressionTerm* domainExpression);
     float solveExpression(ExpressionTerm* expression);
     float getTermValue(ITheoryTerm* term);
 
-    virtual string getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm);
+    virtual string getIndividualRealTermAssertionStatement(ITheoryTerm* rightTerm, RealTerm* realTerm);
     virtual float getRealTermValue(RealTerm* num);
     virtual string getString(float value);
 

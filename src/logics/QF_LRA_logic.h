@@ -11,7 +11,7 @@ public:
     string SMT_LOGIC_NAME() override;
     void getDeclarationStatements(std::ostringstream &output) override;
 
-    string getIndividualRealTermExpression(ITheoryTerm* rightTerm, RealTerm* realTerm) override;
+    string getIndividualRealTermAssertionStatement(ITheoryTerm* rightTerm, RealTerm* realTerm) override;
     float getRealTermValue(RealTerm* num) override;
     string getString(float value) override;
 };
