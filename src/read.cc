@@ -260,6 +260,17 @@ void Read::readTheoryStatements(list<string> &lines) {
           LOG(FATAL) << "Could not find right theory term " << rightTermId << " referenced by line '" << line << "'";
         }
 
+        // for type specification statements
+        if (symbolicTerm->name == "type") {
+          if (params->logic == 2) {
+            saveTypes(leftElements, rightTerm);
+          }
+          else {
+            LOG(WARNING) << "LIRA logic required for type specification!! Ignoring type specifications..." << endl;
+          }
+          continue;
+        }
+
         auto statement = new TheoryStatement(atom, symbolicTerm, leftElements, operatorTerm, rightTerm);
         program->theoryStatements[atomId] = statement;
       }
@@ -267,21 +278,28 @@ void Read::readTheoryStatements(list<string> &lines) {
   }
 }
 
-void Read::saveTypes(list<ITheoryTerm*> childTerms) {
-  size_t childTermsLength = childTerms.size();
-  if (childTermsLength == 2) {
-    auto variable = dynamic_cast<SymbolicTerm*>(childTerms.front());
-    auto type = dynamic_cast<SymbolicTerm*>(childTerms.back());
-    string typeName = type->name;
-    transform(typeName.begin(), typeName.end(), typeName.begin(), ::tolower);
-    program->typeMap[variable->name] = typeName;
+void Read::saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTerm) {
+  string variableType;
+  if (auto type = dynamic_cast<SymbolicTerm*>(rightTerm)){
+    variableType = type->name;
+    transform(variableType.begin(), variableType.end(), variableType.begin(), ::tolower);
   }
   else {
-    LOG(WARNING) << "length of type specification must be 2, i.e. variable and data-type";
+    LOG(FATAL) << "Only variables types such as 'int' and 'real' are allowed for type specifications." << endl;
+  }
+
+  for (auto element: leftElements) {
+    auto term = element->terms.front();
+    if (auto variable = dynamic_cast<SymbolicTerm*>(term)) {
+      program->typeMap[variable->name] = variableType;
+    }
+    else {
+      LOG(FATAL) << "Only variable names are allowed inside type specifications." << endl;
+    }
   }
 }
 
-void Read::readTheoryTerms(list<string> &lines, int logic) {
+void Read::readTheoryTerms(list<string> &lines) {
   for (string line : lines) {
     stringstream lineStream(line);
     int statementType;
@@ -301,7 +319,7 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-          if (logic == 1 || logic == 2) {
+          if (params->logic == 1 || params->logic == 2) {
             try {
               string floatString = trim_copy_if(symbolValue, is_any_of("\"\'"));
               float floatValue = stof(floatString);
@@ -346,16 +364,6 @@ void Read::readTheoryTerms(list<string> &lines, int logic) {
                 LOG(FATAL) << "Could not find child theory term " << childTermId << " referenced by line '" << line << "'";
               }
               childTerms.push_back(childTerm);
-            }
-
-            // read the types of variables for mixed logic
-            if (operationTerm->name == "type") {
-              saveTypes(childTerms);
-              if (logic != 2 && program->typeMap.size()) {
-                LOG(WARNING) << "LIRA logic required for type specification!! Ignoring type specifications...";
-                program->typeMap.clear();
-              }
-              break;
             }
 
             ITheoryTerm* newTerm;
@@ -492,7 +500,6 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   for (auto lw: literalWeights) {
     literal = get<0>(lw);
     weight = get<1>(lw) * fValues[priority];
-    // cout << "literal: " << literal << ", weight: " << weight << endl;
 
   // if (priority != 0) {
   //   LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
@@ -512,7 +519,7 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   }
 }
 
-int Read::read(string fileName, int logic) {
+int Read::read(string fileName) {
   int lineNumber = 0;
   list<string> lines;
 
@@ -562,7 +569,7 @@ int Read::read(string fileName, int logic) {
 
   VLOG(2) << "Reading theory components";
 
-  readTheoryTerms(lines, logic);
+  readTheoryTerms(lines);
   readTheoryAtomElements(lines);
   readTheoryStatements(lines);
 

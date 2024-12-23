@@ -23,13 +23,12 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
   Api *api = new Api(program);
   Param *params = new Param();
   Read read(program, api, params);
-  int logic = 0;
 
   SECTION("should ignore comments") {
     string grounded = "asp 1 0 0\n"
                       "10 anything\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     CHECK(program->atoms.size() == 0);
     CHECK(program->rules.size() == 0);
@@ -39,7 +38,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
     string grounded = "asp 1 0 0\n"
                       "1 0 1 1 0 0\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should add atom") {
       REQUIRE(program->number_of_atoms == 1);
@@ -62,7 +61,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
     string grounded = "asp 1 0 0\n"
                       "1 0 1 1 0 1 2\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     auto atoms = program->atoms;
 
@@ -89,7 +88,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "4 1 y 1 1\n"
                       "4 1 x 1 2\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should assign names to atoms") {
       auto atoms = program->atoms;
@@ -109,7 +108,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
   //         "4 1 x 1 2\n"
   //         "4 1 z 1 3\n"
   //         "0";
-  //     REQUIRE_THROWS(read.read(writeTempFile(grounded), logic));
+  //     REQUIRE_THROWS(read.read(writeTempFile(grounded)));
   // }
 
   SECTION("parsing a choice rule with no body") {
@@ -117,7 +116,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "1 1 1 1 0 0\n"
                       "4 1 x 1 1\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should create a ChoiceRule with no body") {
       auto atom = program->atoms[0];
@@ -142,7 +141,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "4 1 z 1 2\n"
                       "4 1 x 1 3\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should create a ChoiceRule with a body") {
       auto xAtom = program->atoms[0];
@@ -163,7 +162,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "1 0 0 0 1 1\n"
                       "4 1 y 1 1\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should populate false_atom") {
       auto false_atom = program->atoms[0];
@@ -197,7 +196,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "4 1 y 1 2\n"
                       "4 1 z 1 3\n"
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     auto rule = (WeightRule *)program->rules.front();
 
@@ -227,7 +226,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "9 0 1 5\n" // Numeric
                       "9 1 2 10 helloworld\n" // Symbolic
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should parse numeric term") {
       auto term = dynamic_cast<NumericTerm*>(program->theoryTerms[1]);
@@ -253,7 +252,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "9 2 5 -2 3 1 2 3\n" // {5, 10, 15}
                       "9 2 6 -3 3 1 2 3\n" // [5, 10, 15]
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should parse tuple term in parenthesis") {
       auto term = dynamic_cast<TupleTerm*>(program->theoryTerms[4]);
@@ -296,7 +295,7 @@ TEST_CASE("read correctly parses aspif format", "[read]") {
                       "9 1 3 1 +\n" // +
                       "9 2 4 3 2 1 2\n" // 5 + x
                       "0";
-    read.read(writeTempFile(grounded), logic);
+    read.read(writeTempFile(grounded));
 
     SECTION("should parse binary operation") {
       auto term = dynamic_cast<ExpressionTerm*>(program->theoryTerms[4]);

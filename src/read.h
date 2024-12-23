@@ -33,8 +33,7 @@
 class Read {
 public:
   Read(Program *p, Api *a, Param *params);
-  int read(string fileName, int logic);
-  void saveTypes(list<ITheoryTerm*> childTerms);
+  int read(string fileName);
 
   long models; // number of models to compute
 
@@ -48,8 +47,10 @@ private:
   void readOutputLine(istringstream &line);
 
   void readTheoryStatements(list<string> &lines);
-  void readTheoryTerms(list<string> &lines, int logic);
+  void readTheoryTerms(list<string> &lines);
   void readTheoryAtomElements(list<string> &lines);
+
+  void saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTerm);
 
   map<long, Atom *> atoms;
   map<int, int> mValues, fValues;
