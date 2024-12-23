@@ -289,6 +289,10 @@ void Read::saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTe
   }
 
   for (auto element: leftElements) {
+    if (element->terms.size() > 1) {
+      LOG(FATAL) << "Please use ';' instead of ',' to separate variables in type specifications." << endl;
+    }
+    
     auto term = element->terms.front();
     if (auto variable = dynamic_cast<SymbolicTerm*>(term)) {
       program->typeMap[variable->name] = variableType;
