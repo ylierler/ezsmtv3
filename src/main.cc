@@ -195,13 +195,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "version.h"
 
 using namespace std;
 using namespace boost::algorithm;
 namespace popts = boost::program_options;
-
-// curent version of ezsmt
-string ezsmt_version = "3.0";
 
 // currently supported logics
 map<int, string> logicType = {
@@ -355,7 +353,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       notify(vm);
 
       if (vm.count("version")) {
-        cout << "EZSMT version " << ezsmt_version << endl;
+        cout << "EZSMT version " << VERSION << endl;
         return 1;
       }
 
@@ -433,7 +431,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
 
   if (argc == 1 || showHelpMenu || vm.count("help")) {
     cout << "The EZSMT Constraint Answer Set Solver" << endl;
-    cout << "Version " << ezsmt_version << endl << endl;
+    cout << "Version " << VERSION << endl << endl;
     cout << "Usage: " << argv[0] << " [options] <file>" << endl;
     cout << allOptions << endl;
     return 1;
