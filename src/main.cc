@@ -196,17 +196,19 @@
 #include <string.h>
 #include <time.h>
 #include "version.h"
+#include "theory_specs.h"
 
 using namespace std;
 using namespace boost::algorithm;
 namespace popts = boost::program_options;
 
 // currently supported logics
+enum theorySpecifications {LIA, LRA, LIRA, IDL};
 map<int, string> logicType = {
-  {0, "LIA"},
-  {1, "LRA"},
-  {2, "LIRA"},
-  {3, "IDL"}
+  {LIA, "LIA"},
+  {LRA, "LRA"},
+  {LIRA, "LIRA"},
+  {IDL, "IDL"}
 };
 
 void a_new_handler() {
@@ -508,11 +510,38 @@ int main(int argc, char *argv[]) {
     grounded_file += "_" + temp;
   }
 
+  // save relevant theory specifications
+  ofstream theoryFile;
+  string theoryFileName = "theory_specifications.lp";
+
+  theoryFile.open(theoryFileName);
+  switch (params.logic) {
+    case LIA:
+      theoryFile << LIA_THEORY;
+      break;
+    case LRA:
+      theoryFile << LRA_THEORY;
+      break;
+    case LIRA:
+      theoryFile << LIRA_THEORY;
+      break;
+    case IDL:
+      theoryFile << IDL_THEORY;
+      break;
+    default:
+      theoryFile << "";
+  }
+  theoryFile.close();
+
+  params.file = theoryFileName + " " + params.file;
   string groundingCommand = params.grounderCommand + " " + params.file +
                             " > " + grounded_file + ".grounded 2>&1";
 
   VLOG(2) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
+  
+  string delCommand = "rm " + theoryFileName;
+  system(delCommand.c_str());
 
   params.file = grounded_file + ".grounded";
 
