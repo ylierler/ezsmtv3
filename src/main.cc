@@ -306,7 +306,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
-    ("debug-file,d", popts::value<string>()->default_value(""), "Produces a file with constraints for debugging and testing against other system")
+    ("debug-file,d", popts::value<string>()->default_value(""), "Generates a given name file with constraints for debugging and testing against other system")
     ("logic,l", popts::value<int>()->default_value(0), "Logic to use: 0 -> LIA; 1 -> LRA; 2 -> LIRA; 3 -> IDL");
 
   popts::options_description cmodelsOptions("CModels Options");
@@ -322,10 +322,10 @@ int ParseArguments(int argc, char *argv[], Param &params) {
      "The type of level ranking formulas produced for non-tight programs.")
     ("reduced-completion", popts::value<bool>()->default_value(false)->implicit_value(true), //
      "Remove the part of Clark's completion that is captured by a level ranking formula.")
-    ("minimal-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
+    ("no-minimal-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
      "Sets the upper bound of level ranking variables to the number of atoms inside the "
-     "Strongly Connected Component containing that variable. A bigger upper bound "
-     "(the total number of atoms) would be selected by default.");
+     "Strongly Connected Component containing that variable. A smaller upper bound "
+     "(number of atoms in a SCC) would be selected by default.");
 
   popts::options_description solverOptions("Solver Options");
   solverOptions.add_options()
@@ -421,7 +421,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       }
 
       params.reducedCompletion = vm["reduced-completion"].as<bool>();
-      params.minimalUpperBound = vm["minimal-upper-bound"].as<bool>();
+      params.minimalUpperBound = !vm["no-minimal-upper-bound"].as<bool>();
 
       params.answerSetsToEnumerate = vm["enumerate"].as<int>();
       params.includeConstraintsInEnumeration = vm["enumerate-extended"].as<bool>();
