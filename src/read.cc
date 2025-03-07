@@ -43,6 +43,7 @@
 #include <string.h>
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include <filesystem>
 
 using namespace boost::algorithm;
 
@@ -579,8 +580,10 @@ int Read::read(string fileName) {
 
   VLOG(2) << "Done reading";
 
-  string delCommand = "rm " + fileName;
-  system(delCommand.c_str());
+  if (std::filesystem::exists(fileName)) {
+    string delCommand = "rm " + fileName;
+    system(delCommand.c_str());
+  }
 
   return 0;
 };
