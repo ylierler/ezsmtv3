@@ -196,7 +196,7 @@
 #include <string.h>
 #include <time.h>
 #include "version.h"
-#include "theory_specs.h"
+#include "theorySpecs.h"
 
 using namespace std;
 using namespace boost::algorithm;

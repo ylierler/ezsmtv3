@@ -75,7 +75,7 @@ std::string const LIRA_THEORY = R"(
 
     &dom/0 : dom_term, {=}, linear_term, head;
     &sum/0   : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
-    &logic/1 : linear_term, head
+    &logic/1 : linear_term, head;
     &type/0 : linear_term, {=}, linear_term, head
 }.
 
