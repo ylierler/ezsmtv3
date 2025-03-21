@@ -15,24 +15,49 @@ Note that EZSMT once built will be able to work with
 installed globally on your system and invocable under listed names; alternatively, the executables of these systems under listed names can be placed into tools directory (this distribution comes with executables compatible with Mac -- as of 11/22) 
  
 
-## Quick Start
+## Installation and Quick Start
 
-Clone the project and it's submodules; Note the importance of submodules with directive --recursive:
+The follwing installtion guide is specifically for Ubuntu. Corresponding steps can be followed for installation on Windows and Mac.
 
-``` sh
-git clone <this repository> --recursive
+### Clone EZSMT repository
+Clone the project and it's submodules; Note the importance of submodules with directive --recurse-submodules:
+
+```
+git clone <this repository> --recurse-submodules
 ```
 
-Install the Boost libary, version 1.78+ using your favorite package manager.
-https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
+### Install required package
+```
+apt install build-essential
+```
 
-E.g., on Ubuntu 
-sudo apt-get install libboost-all-dev
-and on Mac
-brew install boost 
+### Download and install boost package version 1.78+ (Tested on 1.79)
+Install the Boost libary, version 1.78+ from official boost website. <br>
+Read more on: https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
 
+#### Commands for installation of version 1.79:
+```
+wget https://archives.boost.io/release/1.79.0/source/boost_1_79_0.tar.bz2
+mkdir boost
+cd boost
+tar --bzip2 -xf ../boost_1_79_0.tar.bz2
+cd boost_1_79_0
+./bootstrap.sh
+./b2 ins
+```
 
-Setup build pipeline using cmake:
+## Install gringo
+```
+apt install gringo
+```
+
+### Install CMake
+```
+apt install cmake           # for ubuntu 22.04 and above
+apt snap install cmake      # others
+```
+
+### Setup build pipeline using Cmake:
 
 ```sh
 mkdir build
@@ -40,28 +65,35 @@ cd build
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
-Build the project:
+### Build the project:
 
 ``` sh
 # In <project_root>/build
 cmake --build .
 ```
 
-Add ./tools to your path if you don't want to globally install them:
+### Add build and tools to PATH
+Add ./build to your path to use EZSMT globally. <br>
+Add ./tools to your path if you don't want to globally install them.
+
+``` sh
+PATH="path/to/build:$PATH"
+PATH="path/to/tools:$PATH"
+```
+
+### Build and test EZSMT:
 
 ``` sh
 # In <project_root>/build
-PATH="../tools:$PATH"
+cmake --build . && ./test
 ```
 
-Build, test, run:
-
-``` sh
-# In <project_root>/build
-cmake --build . && ./test && ./ezsmt
+### Run EZSMT
+```
+ezsmt <encoding> <instance>
 ```
 
-## Format All Code
+## Format all code
 
 ``` sh
 clang-format -i src/*.cc src/*.h tests/*.cc
