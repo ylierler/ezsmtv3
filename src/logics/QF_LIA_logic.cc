@@ -200,26 +200,27 @@ string QF_LIA_logic::getIndividualValueAssertionStatement(ITheoryTerm* rightTerm
 }
 
 string QF_LIA_logic::getDomAssertionStatement(TheoryStatement* statement) {
-    string expression = "or";
+    string domStatement = "or";
     for (auto singleElement: statement->leftElements){
         // for expression term with individual unary or expression terms and with lower and upper bound inside dom
         if (auto domainExpression = dynamic_cast<ExpressionTerm*>(singleElement->terms.front())) {
-            expression += getIndividualOrLowerUpperBoundAssertionStatement(domainExpression, statement->rightTerm);
+            domStatement += getIndividualOrLowerUpperBoundAssertionStatement(domainExpression, statement->rightTerm);
         }
 
         // for individual integer values inside dom
         else if (auto numericTerm = dynamic_cast<NumericTerm*>(singleElement->terms.front())) {
             string valueString = getString(numericTerm->value);
-            expression += getIndividualValueAssertionStatement(statement->rightTerm, valueString);
+            domStatement += getIndividualValueAssertionStatement(statement->rightTerm, valueString);
         }
 
         // for individual real values inside dom
         else if (auto realTerm = dynamic_cast<RealTerm*>(singleElement->terms.front())) {
-            expression += getIndividualRealTermAssertionStatement(statement->rightTerm, realTerm);
+            domStatement += getIndividualRealTermAssertionStatement(statement->rightTerm, realTerm);
         }
     }
-    expression = "(" + expression + ")";
-    return SMT::Assert(expression);
+
+    domStatement = "(" + domStatement + ")";
+    return domStatement;
 }
 
 string QF_LIA_logic::getSumAssertionStatement(TheoryStatement* statement) {
@@ -236,27 +237,26 @@ string QF_LIA_logic::getSumAssertionStatement(TheoryStatement* statement) {
     }
 
     auto sumStatement = SMT::Expr(operation, {sumOfElements, SMT::ToString(statement->rightTerm)});
-
-    auto assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), sumStatement}));
-    return assertion;
+    return sumStatement;
 }
 
 void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
-        string assertion;
+        string assertionStatement;
 
         if (statement->symbolicTerm->name == "sum")  {
-            assertion = getSumAssertionStatement(statement);
+            assertionStatement = getSumAssertionStatement(statement);
         }
         
         else if (statement->symbolicTerm->name == "dom") {
-            assertion = getDomAssertionStatement(statement);
+            assertionStatement = getDomAssertionStatement(statement);
         }
 
         else {
             LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the " << SMT_LOGIC_NAME() << " logic.";
         }
 
+        string assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), assertionStatement}));
         output << assertion;
     }
 }
