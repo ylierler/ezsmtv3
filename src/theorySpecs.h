@@ -22,7 +22,7 @@ std::string const LIA_THEORY = R"(
     };
 
     &dom/0 : dom_term, {=}, linear_term, head;
-    &sum/0   : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
+    &sum/0 : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
 
@@ -48,7 +48,7 @@ std::string const LRA_THEORY = R"(
     };
 
     &dom/0 : dom_term, {=}, linear_term, head;
-    &sum/0   : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
+    &sum/0 : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
 
@@ -74,7 +74,7 @@ std::string const LIRA_THEORY = R"(
     };
 
     &dom/0 : dom_term, {=}, linear_term, head;
-    &sum/0   : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
+    &sum/0 : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
     &logic/1 : linear_term, head;
     &type/0 : linear_term, {=}, linear_term, head
 }.
@@ -101,7 +101,7 @@ std::string const IDL_THEORY = R"(
     };
 
     &dom/0 : dom_term, {=}, linear_term, head;
-    &diff/0   : linear_term, {<=}, linear_term, any;
+    &diff/0 : linear_term, {<=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
 

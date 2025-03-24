@@ -7,7 +7,7 @@
 
 
 /*if both types ints and reals are present, return LIRA logic
-mixed_logic is true in case of non-tight program, where level ranking variables are integers
+mixed_logic flag is set to true in case of non-tight LRA program, where level ranking variables are integers
 typeMap is the map with custom specified types for LIRA logic*/
 string QF_LRA_logic::SMT_LOGIC_NAME() {
     if (mixed_logic or typeMap.size()) {
