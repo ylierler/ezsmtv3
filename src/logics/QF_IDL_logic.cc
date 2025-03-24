@@ -45,22 +45,23 @@ string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
     }
 
     auto diffStatement = SMT::Expr(operation, {toString(element), SMT::ToString(statement->rightTerm)});
-    auto assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), diffStatement}));
-    return assertion;
+    return diffStatement;
 }
 
 void QF_IDL_logic::getAssertionStatements(std::ostringstream &output) {
     for (const auto statement : statements) {
-        string assertion;
+        string assertionStatement;
         if (statement->symbolicTerm->name == "diff")  {
-            assertion = getDiffAssertionStatement(statement);
+            assertionStatement = getDiffAssertionStatement(statement);
         }
         else if (statement->symbolicTerm->name == "dom") {
-            assertion = getDomAssertionStatement(statement);
+            assertionStatement = getDomAssertionStatement(statement);
         }
         else {
             LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the " << SMT_LOGIC_NAME() << " logic.";
         }
+
+        string assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), assertionStatement}));
         output << assertion;
     }
 }
