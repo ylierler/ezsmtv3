@@ -1,6 +1,6 @@
 # EZSMTv3
 
-EZSMT is a constraint answer set programming solver system that enhances the scope of Constraint Answer Set Programming (CASP) by integrating it with Satisfiability Modulo Theories (SMT) through a translational approach. It takes a program written in a Gringo 5 compatible input language, translates it into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
+EZSMT is a Constraint Answer Set Programming (CASP) solver system that enhances the scope of constraints processing by integrating it with Satisfiability Modulo Theories (SMT) through a translational approach. It takes a program written in a Gringo 5 compatible input language, translates it into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
 
 EZSMT has been tested with the Z3, CVC4, CVC5, and Yices 2 SMT Solvers. However, it can interact with any SMT-LIB compatible solver that receives input from stdin. <br>
 http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.8-x86_64-linux-opt <br>
@@ -9,36 +9,83 @@ https://github.com/Z3Prover/z3/releases/tag/z3-4.8.7 <br>
 https://yices.csl.sri.com/ <br>
 
 
-Note: EZSMT, once built, will be able to work with 
+Note: <br>
+EZSMT, once built, will be able to work with 
   z3,
   cvc4,
   cvc5,
   yices-smt2
-installed globally on your system and invocable under listed names; Alternatively, the executables of these systems under listed names can be placed into the tools directory.
+installed globally on your system and invocable under listed names; Alternatively, the executables of these systems under listed names can be placed into the tools directory. Building guide attached [below](#How-to-build-EZSMT).
+
 
 # Quick Start
-*Try the online version of EZSMT here:*
+For a quick start, experiment with [running EZSMT](https://ezsmt.unomaha.edu/) in your browser.
 
-https://ezsmt.unomaha.edu/
- 
+
+# Features
+* **Linear Integer Arithmetic (LIA) constraints**
+    * ```&logic(lia).```
+    * ```&sum{2*x; 3*y} = 14.```
+    * ```&dom{2..4; 7; 9..11} = x.```
+
+* **Linear Real Arithmetic (LRA) constraints**
+    * ```&logic(lra).```
+    * ```&sum{2*x; 3*y} = "14.5".```
+    * ```&dom{"2.5"..4; 7; 9..11} = x.```
+
+* **Linear Integer Real Arithmetic (LIRA) constraints**
+    * ```&logic(lira).```
+    * ```&type{x; y}=int.```
+    * ```&sum{2*x; 3*y; 4*z} = "18.9".```
+    * ```&dom{"2.5"..4; 7; 9..11} = x.```
+
+* **Integer Difference Logic (IDL) constraints**
+    * ```&logic(idl).```
+    * ```&diff{x - y} <= 7.```
+    * ```&dom{2..4; 7; 9..11} = x.```
+
+
+# Example
+###### Graph Coloring Problem
+```
+% Default
+#const n = 3.
+
+% Generate
+{ color(X,1..n) } = 1 :- node(X).
+
+% Test
+:- edge(X,Y), color(X,C), color(Y,C).
+
+% Nodes
+node(1..6).
+
+% (Directed) Edges
+edge(1,(2;3;4)).  edge(2,(4;5;6)).  edge(3,(1;4;5)).
+edge(4,(1;2)).    edge(5,(3;4;6)).  edge(6,(2;3;5)).
+
+% Display
+#show color/2.
+```
+*Benchmark problems can be found [here](/benchmarks_clean/).*
+
 
 # How to build EZSMT 
+*The following building guide specifically applies for Ubuntu. Corresponding steps can be taken for building on Windows and MacOS.*
 
-*The follwing installation guide specifically applies for Ubuntu. Corresponding steps can be followed for installation on Windows and MacOS.*
-
-### Clone EZSMT repository
-Clone the project and it's submodules; Note the importance of submodules with directive --recurse-submodules:
+#### Clone EZSMT repository
+Clone the project and it's submodules. Note the importance of submodules with directive **--recurse-submodules**.
 
 ```
 git clone <this-repository> --recurse-submodules
 ```
 
-### Install required packages
+#### Install required packages
 ```
 apt install build-essential
 ```
 
-### Download and install boost package version 1.78+ (Tested on 1.79)
+#### Download and install boost package version 1.78+ (Tested on 1.79)
 Install the Boost libary, version 1.78+ from official boost website. <br>
 Read more on: https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
 
@@ -53,18 +100,18 @@ cd boost_1_79_0
 ./b2 install
 ```
 
-### Install gringo
+#### Install gringo
 ```
 apt install gringo
 ```
 
-### Install CMake
+#### Install CMake
 ```
 apt install cmake           # for ubuntu 22.04 and above
 apt snap install cmake      # others
 ```
 
-### Setup build pipeline using CMake
+#### Setup build pipeline using CMake
 
 ```sh
 mkdir build
@@ -72,14 +119,14 @@ cd build
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
-### Build the project
+#### Build and test EZSMT
 
 ``` sh
-# In <project_root>/build
-cmake --build .
+# in <project_root>/build
+cmake --build . && ./test
 ```
 
-### Add build and tools directories to PATH
+#### Add build and tools directories to PATH
 *Add build directory to your path to use EZSMT globally.* <br>
 *Add tools directory to your path if you don't want to globally install them.*
 
@@ -88,19 +135,12 @@ PATH="path/to/build:$PATH"
 PATH="path/to/tools:$PATH"
 ```
 
-### Build and test EZSMT
-
-``` sh
-# in <project_root>/build
-cmake --build . && ./test
-```
-
-### Run EZSMT
+#### Run EZSMT
 ```
 ezsmt <encoding> <instance>
 ```
 
-### Format all code
+#### Format all code
 
 ``` sh
 clang-format -i src/*.cc src/*.h tests/*.cc
