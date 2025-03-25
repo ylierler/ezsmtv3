@@ -46,26 +46,36 @@ For a quick start, experiment with [running EZSMT](https://ezsmt.unomaha.edu/) i
 
 
 # Example
-###### Graph Coloring Problem
+###### Routing Min Problem
 ```
-% Default
-#const n = 3.
+% 6 nodes, start point, max cost at end node
+% directed edges with cost
+node(0..6).    init(0).      critical(6,7).
+edge(0,1,1).   edge(1,2,4).  edge(1,4,20).   edge(1,5,3).
+edge(2,3,10).  edge(2,4,2).  edge(2,5,19).   edge(3,4,6).
+edge(4,5,1).   edge(4,6,2).  edge(5,6,3).
 
-% Generate
-{ color(X,1..n) } = 1 :- node(X).
+% reachtime is >= 0 
+&sum {at(X)} >= 0 :- node(X).
 
-% Test
-:- edge(X,Y), color(X,C), color(Y,C).
+% initial node is reached at 0
+reach(X) :- init(X).
+&sum {at(X)} = 0 :- init(X).
 
-% Nodes
-node(1..6).
+% nodes reached later than the delay
+reach(Y) :- reach(X), route(X,Y).
+&sum {at(Y); -1*at(X)} >= D :- route(X,Y), edge(X,Y,D).
 
-% (Directed) Edges
-edge(1,(2;3;4)).  edge(2,(4;5;6)).  edge(3,(1;4;5)).
-edge(4,(1;2)).    edge(5,(3;4;6)).  edge(6,(2;3;5)).
+% critical nodes have to be reached in time
+:- critical(X,T), not reach(X).
+:- critical(X,T), reach(X), &sum {at(X)}>T.
 
-% Display
-#show color/2.
+% any edge can be in the route
+{route(X,Y)} :- edge(X,Y,D).
+
+% one incoming/outgoing edge for each node
+:- route(X,Y1), route(X,Y2), node(X), node(Y1), node(Y2), Y1!=Y2.
+:- route(X1,Y), route(X2,Y), node(Y), node(X1), node(X2), X1!=X2.
 ```
 *Benchmark problems can be found [here](/benchmarks_clean/).*
 
@@ -123,7 +133,8 @@ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
 
 ``` sh
 # in <project_root>/build
-cmake --build . && ./test
+cmake --build .
+./test
 ```
 
 #### Add build and tools directories to PATH
