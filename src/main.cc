@@ -302,8 +302,8 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   popts::options_description genericOptions("Generic Options");
   genericOptions.add_options()
     ("help,h", "Show this help menu") //
-    ("version,V", "Show EZSMT version")
-    ("verbose,v", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
+    ("version,v", "Show EZSMT version")
+    ("verbose,V", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
     ("debug-file,d", popts::value<string>()->default_value(""), "Generates a given name file with constraints for debugging and testing against other system")
@@ -434,7 +434,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   if (argc == 1 || showHelpMenu || vm.count("help")) {
     cout << "The EZSMT Constraint Answer Set Solver" << endl;
     cout << "Version " << VERSION << endl << endl;
-    cout << "Usage: " << argv[0] << " [options] <file>" << endl;
+    cout << "Usage: " << argv[0] << " <file> [options]" << endl;
     cout << allOptions << endl;
     return 1;
   }
