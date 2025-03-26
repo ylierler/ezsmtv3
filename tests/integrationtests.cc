@@ -18,7 +18,7 @@ void assertEnumeratedAnswerSetsMatchExpected(string testName) {
     string outputPath = "temp.output";
 
     std::stringstream command;
-    command << "./ezsmt --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -E -v 0 > " << outputPath;
+    command << "./ezsmt --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -E -V 0 > " << outputPath;
 
     cout << "Running: " << command.str() << endl;
     int exitCode = system(command.str().c_str());
@@ -60,6 +60,9 @@ TEST_CASE("Checks domain term outputs"){
     }
     SECTION("domain term test 3") {
         assertEnumeratedAnswerSetsMatchExpected("dom-test-3");
+    }
+    SECTION("domain term test 4") {
+        assertEnumeratedAnswerSetsMatchExpected("dom-test-4");
     }
 }
 
