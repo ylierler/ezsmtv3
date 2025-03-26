@@ -25,8 +25,6 @@ std::string const LIA_THEORY = R"(
     &sum/0 : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
-
-&logic(lia).
 )";
 
 std::string const LRA_THEORY = R"(
@@ -51,8 +49,6 @@ std::string const LRA_THEORY = R"(
     &sum/0 : linear_term, {<=,>=,>,<,=,!=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
-
-&logic(lra).
 )";
 
 std::string const LIRA_THEORY = R"(
@@ -78,8 +74,6 @@ std::string const LIRA_THEORY = R"(
     &logic/1 : linear_term, head;
     &type/0 : linear_term, {=}, linear_term, head
 }.
-
-&logic(lira).
 )";
 
 std::string const IDL_THEORY = R"(
@@ -104,8 +98,6 @@ std::string const IDL_THEORY = R"(
     &diff/0 : linear_term, {<=}, linear_term, any;
     &logic/1 : linear_term, head
 }.
-
-&logic(idl).
 )";
 
 #endif
