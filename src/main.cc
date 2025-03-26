@@ -197,6 +197,7 @@
 #include <time.h>
 #include "version.h"
 #include "theorySpecs.h"
+#include <filesystem>
 
 using namespace std;
 using namespace boost::algorithm;
@@ -550,7 +551,13 @@ int main(int argc, char *argv[]) {
   for (string line; getline(groundedProgram, line);) {
     if (line.find("error: ") != string::npos ||
         line.find("ERROR: (gringo): ") != string::npos) {
-      LOG(FATAL) << "Error during grounding. See output file " << params.file;
+
+      LOG(ERROR) << "Error during grounding.";
+      if (std::filesystem::exists(params.file)) {
+        system((string("cat ") + params.file).c_str());
+        system((string("rm ") + params.file).c_str());
+      }
+      return 1;
     }
   }
   groundedProgram.close();
