@@ -72,7 +72,12 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   std::getline(output, satResult);
   VLOG(3) << "Read check sat result: " << satResult;
   if (satResult != "unsat" && satResult != "sat") {
-    LOG(FATAL) << "Got unexpected result from SMT solver: " << satResult;
+    string errorMessage = "Got unexpected result from SMT solver: " + satResult;
+    if (VLOG_IS_ON(2)) {
+      LOG(FATAL) << errorMessage;
+    }
+    LOG(ERROR) << errorMessage;
+    exit(1);
   }
 
   if (satResult == "unsat") {

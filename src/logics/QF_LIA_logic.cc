@@ -46,11 +46,21 @@ string QF_LIA_logic::getString(float value) {
 }
 
 string QF_LIA_logic::getIndividualRealTermAssertionStatement(ITheoryTerm* rightTerm, RealTerm* realTerm) {
-    LOG(FATAL) << "Real Term not allowed in LIA logic." << endl;
+    string errorMessage = "Real Term not allowed in LIA logic.";
+    if (VLOG_IS_ON(2)) {
+        LOG(FATAL) << errorMessage;
+    }
+    LOG(ERROR) << errorMessage;
+    exit(1);
 }
 
 float QF_LIA_logic::getRealTermValue(RealTerm* num) {
-    LOG(FATAL) << "Real Term not allowed in LIA logic." << endl;
+    string errorMessage = "Real Term not allowed in LIA logic.";
+    if (VLOG_IS_ON(2)) {
+        LOG(FATAL) << errorMessage;
+    }
+    LOG(ERROR) << errorMessage;
+    exit(1);
 }
 
 float QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
@@ -70,7 +80,12 @@ float QF_LIA_logic::solveExpression(ExpressionTerm* expression) {
             termValue = solveExpression(expression);
         }
         else {
-            LOG(FATAL) << "Invalid syntax for dom statement." << endl;
+            string errorMessage = "Invalid syntax for dom statement.";
+            if (VLOG_IS_ON(2)) {
+                LOG(FATAL) << errorMessage;
+            }
+            LOG(ERROR) << errorMessage;
+            exit(1);
         }
 
         // Apply the operation
@@ -100,7 +115,13 @@ float QF_LIA_logic::getTermValue(ITheoryTerm* term) {
     else if (auto exp = dynamic_cast<ExpressionTerm*>(term)) {
         return solveExpression(exp);
     }
-    LOG(FATAL) << "Invalid syntax for dom statement." << endl;
+    
+    string errorMessage = "Invalid syntax for dom statement.";
+    if (VLOG_IS_ON(2)) {
+        LOG(FATAL) << errorMessage;
+    }
+    LOG(ERROR) << errorMessage;
+    exit(1);
 }
 
 tuple<float, float> QF_LIA_logic::getLowerAndUpperBounds(ExpressionTerm* domainExpression) {
@@ -253,7 +274,12 @@ void QF_LIA_logic::getAssertionStatements(std::ostringstream &output) {
         }
 
         else {
-            LOG(FATAL) << "The " << statement->symbolicTerm->name << " statement is not supported with the " << SMT_LOGIC_NAME() << " logic.";
+            string errorMessage = "The " + statement->symbolicTerm->name + " statement is not supported with the " + SMT_LOGIC_NAME() + " logic.";
+            if (VLOG_IS_ON(2)) {
+                LOG(FATAL) << errorMessage;
+            }
+            LOG(ERROR) << errorMessage;
+            exit(1);
         }
 
         string assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), assertionStatement}));
@@ -279,5 +305,10 @@ string QF_LIA_logic::toString(TheoryAtomElement* element) {
         return SMT::Expr("+", terms, true);
     }
 
-    LOG(FATAL) << "Not yet supported";
+    string errorMessage = "Not yet supported";
+    if (VLOG_IS_ON(2)) {
+        LOG(FATAL) << errorMessage;
+    }
+    LOG(ERROR) << errorMessage;
+    exit(1);
 }

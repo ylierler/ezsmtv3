@@ -308,7 +308,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
     ("debug-file,d", popts::value<string>()->default_value(""), "Generates a given name file with constraints for debugging and testing against other system")
-    ("logic,l", popts::value<int>()->default_value(0), "Logic to use: 0 -> LIA; 1 -> LRA; 2 -> LIRA; 3 -> IDL");
+    ("logic,l", popts::value<int>()->default_value(0), "Logic to use: \n0 = LIA \n1 = LRA \n2 = LIRA \n3 = IDL");
 
   popts::options_description cmodelsOptions("CModels Options");
   cmodelsOptions.add_options()
@@ -551,13 +551,21 @@ int main(int argc, char *argv[]) {
   for (string line; getline(groundedProgram, line);) {
     if (line.find("error: ") != string::npos ||
         line.find("ERROR: (gringo): ") != string::npos) {
-
-      LOG(ERROR) << "Error during grounding.";
+      
+      // print and remove error file
       if (std::filesystem::exists(params.file)) {
         system((string("cat ") + params.file).c_str());
         system((string("rm ") + params.file).c_str());
       }
-      return 1;
+
+      string errorMessage = "Error during grounding.";
+      if (!VLOG_IS_ON(2)) {
+        LOG(ERROR) << errorMessage;
+        return 1;
+      }
+      else {
+        LOG(FATAL) << errorMessage;
+      }
     }
   }
   groundedProgram.close();

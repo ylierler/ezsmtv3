@@ -108,7 +108,12 @@ public:
             return SMT::Expr(t->operation->name, childTerms);
         }
 
-        LOG(FATAL) << "Unsupported term type";
+        string errorMessage = "Unsupported term type";
+        if (VLOG_IS_ON(2)) {
+            LOG(FATAL) << errorMessage;
+        }
+        LOG(ERROR) << errorMessage;
+        exit(1);
     }
 private:
     static string escape(string name) {
