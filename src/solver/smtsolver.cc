@@ -137,7 +137,9 @@ void Solver::SolveProgram(Param &params, Program &program) {
       solverProcess.Send(minimizationAssertion);
     }
 
-    if (!result->atomAssignments.size() and !result->constraintVariableAssignments.size()) {
+    if (!result->atomAssignments.size() && 
+        (!params.includeConstraintsInEnumeration or 
+        !result->constraintVariableAssignments.size())) {
       break;
     }
 
