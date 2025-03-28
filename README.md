@@ -154,7 +154,8 @@ ezsmt <encoding> <instance> [--options]
 #### Format all code
 
 ``` sh
-clang-format -i src/*.cc src/*.h tests/*.cc
+apt install clang-format
+clang-format -i src/*.cc src/*.h src/logics/*.cc src/logics/*.h src/solver/*.cc src/solver/*.h tests/*.cc
 ```
 
 # For Developers extending EZSMT logics
