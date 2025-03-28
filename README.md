@@ -91,15 +91,18 @@ git clone <this-repository> --recurse-submodules
 ```
 
 #### Install required packages
+Run as a root user if install command fails. (Applicable to later installs as well)
 ```
 apt install build-essential
 ```
+
 
 #### Download and install boost package version 1.78+ (Tested on 1.79)
 Install the Boost libary, version 1.78+ from official boost website. <br>
 Read more on: https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
 
 ###### Commands for installation of version 1.79
+Run last two commands as a root user to give them copy permissions.
 ```
 wget https://archives.boost.io/release/1.79.0/source/boost_1_79_0.tar.bz2
 mkdir boost
@@ -115,7 +118,7 @@ cd boost_1_79_0
 apt install gringo
 ```
 
-#### Install CMake
+#### Install CMake (Version 3.22 or above)
 ```
 apt install cmake           # for ubuntu 22.04 and above
 apt snap install cmake      # others
@@ -124,6 +127,7 @@ apt snap install cmake      # others
 #### Setup build pipeline using CMake
 
 ```sh
+# in <project_root>
 mkdir build
 cd build
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
