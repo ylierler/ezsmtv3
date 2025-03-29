@@ -360,11 +360,16 @@ void Read::readTheoryTerms(list<string> &lines) {
           lineStream >> termValue;
           program->theoryTerms[termId] = new NumericTerm(termId, termValue);
           break;
+
         case SYMBOLIC_TERMS: {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-          if (params->logic == 1 || params->logic == 2) {
+
+          if ((params->logic == 1 || params->logic == 2) &&
+              ((!symbolValue.empty() && symbolValue.front() == '"' && symbolValue.back() == '"') ||
+              (!symbolValue.empty() && symbolValue.front() == '\'' && symbolValue.back() == '\'')))
+          {
             try {
               string floatString = trim_copy_if(symbolValue, is_any_of("\"\'"));
               float floatValue = stof(floatString);
@@ -373,11 +378,14 @@ void Read::readTheoryTerms(list<string> &lines) {
             catch (...) {
               program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
             }
-          } else {
+          }
+          else {
             program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
           }
+
           break;
         }
+
         case COMPOUND_TERMS:
           int t, numOfTerms;
           lineStream >> t >> numOfTerms;
@@ -388,6 +396,7 @@ void Read::readTheoryTerms(list<string> &lines) {
               int childTermId;
               lineStream >> childTermId;
               auto childTerm = program->theoryTerms[childTermId];
+
               if (childTerm == nullptr) {
                 string errorMessage = "Could not find child theory term " + to_string(childTermId) + " referenced by line '" + line + "'";
                 if (VLOG_IS_ON(2)) {
@@ -396,10 +405,12 @@ void Read::readTheoryTerms(list<string> &lines) {
                 LOG(ERROR) << errorMessage;
                 exit(1);
               }
+
               tupleTerm->children.push_back(childTerm);
             }
             program->theoryTerms[termId] = tupleTerm;
-          } else {
+          } 
+          else {
             auto operationTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[t]);
             if (operationTerm == nullptr) {
               string errorMessage = "Could not find symbolic operator theory term \"" + operationTerm->name + "\" referenced by line '" + line + "'";
@@ -438,9 +449,11 @@ void Read::readTheoryTerms(list<string> &lines) {
               for (auto child : childTerms) {
                 if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
                   symbolName << symbolicTerm->name;
-                } else if (auto numericTerm = dynamic_cast<NumericTerm*>(child)) {
+                } 
+                else if (auto numericTerm = dynamic_cast<NumericTerm*>(child)) {
                   symbolName << numericTerm->value;
-                } else {
+                } 
+                else {
                   string errorMessage = "Constraint variables can only contain numeric or symbolic terms. Line: " + line;
                   if (VLOG_IS_ON(2)) {
                     LOG(FATAL) << errorMessage;
