@@ -44,6 +44,7 @@
 #include <string>
 #include <boost/algorithm/string.hpp>
 #include <filesystem>
+#include "errorLogger.h"
 
 using namespace boost::algorithm;
 
@@ -102,11 +103,7 @@ void Read::readRuleLine(istringstream &line) {
 
   if (headType == DISJUNCTION && headLength > 1) {
     string errorMessage = "Disjunction rules with more than one head atom are not supported. Line: " + line.str();
-    if (VLOG_IS_ON(2)) {
-      LOG(FATAL) << errorMessage;
-    }
-    LOG(ERROR) << errorMessage;
-    exit(1);
+    logError(errorMessage);
   }
 
   for (int i = 0; i < headLength; i++) {
@@ -237,11 +234,7 @@ void Read::readTheoryStatements(list<string> &lines) {
         auto symbolicTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[symbolicTermId]);
         if (symbolicTerm == nullptr) {
           string errorMessage = "Could not find symbolic theory term " + to_string(symbolicTermId) + " referenced by line '" + line + "'";
-          if (VLOG_IS_ON(2)) {
-            LOG(FATAL) << errorMessage;
-          }
-          LOG(ERROR) << errorMessage;
-          exit(1);
+          logError(errorMessage);
         }
 
         int numOfElements;
@@ -253,11 +246,7 @@ void Read::readTheoryStatements(list<string> &lines) {
           auto element = program->theoryAtomElements[theoryAtomElementId];
           if (element == nullptr) {
             string errorMessage = "Could not find theory atom element " + to_string(theoryAtomElementId) + " referenced by line '" + line + "'";
-            if (VLOG_IS_ON(2)) {
-              LOG(FATAL) << errorMessage;
-            }
-            LOG(ERROR) << errorMessage;
-            exit(1);
+            logError(errorMessage);
           }
           leftElements.push_back(element);
         }
@@ -267,11 +256,7 @@ void Read::readTheoryStatements(list<string> &lines) {
         auto operatorTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[operatorTermId]);
         if (operatorTerm == nullptr) {
           string errorMessage = "Could not find operator theory term " + to_string(operatorTermId) + " referenced by line '" + line + "'";
-          if (VLOG_IS_ON(2)) {
-            LOG(FATAL) << errorMessage;
-          }
-          LOG(ERROR) << errorMessage;
-          exit(1);
+          logError(errorMessage);
         }
 
         int rightTermId;
@@ -279,11 +264,7 @@ void Read::readTheoryStatements(list<string> &lines) {
         auto rightTerm = program->theoryTerms[rightTermId];
         if (rightTerm == nullptr) {
           string errorMessage = "Could not find right theory term " + to_string(rightTermId) + " referenced by line '" + line + "'";
-          if (VLOG_IS_ON(2)) {
-            LOG(FATAL) << errorMessage;
-          }
-          LOG(ERROR) << errorMessage;
-          exit(1);
+          logError(errorMessage);
         }
 
         // for type specification statements
@@ -311,22 +292,12 @@ void Read::saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTe
     transform(variableType.begin(), variableType.end(), variableType.begin(), ::tolower);
   }
   else {
-    string errorMessage = "Only variables types such as 'int' and 'real' are allowed for type specifications.";
-    if (VLOG_IS_ON(2)) {
-      LOG(FATAL) << errorMessage;
-    }
-    LOG(ERROR) << errorMessage;
-    exit(1);
+    logError("Only variables types such as 'int' and 'real' are allowed for type specifications.");
   }
 
   for (auto element: leftElements) {
     if (element->terms.size() > 1) {
-      string errorMessage = "Please use ';' instead of ',' to separate variables in type specifications.";
-      if (VLOG_IS_ON(2)) {
-        LOG(FATAL) << errorMessage;
-      }
-      LOG(ERROR) << errorMessage;
-      exit(1);
+      logError("Please use ';' instead of ',' to separate variables in type specifications.");
     }
     
     auto term = element->terms.front();
@@ -334,12 +305,7 @@ void Read::saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTe
       program->typeMap[variable->name] = variableType;
     }
     else {
-      string errorMessage = "Only variable names are allowed inside type specifications.";
-      if (VLOG_IS_ON(2)) {
-        LOG(FATAL) << errorMessage;
-      }
-      LOG(ERROR) << errorMessage;
-      exit(1);
+      logError("Only variable names are allowed inside type specifications.");
     }
   }
 }
@@ -399,11 +365,7 @@ void Read::readTheoryTerms(list<string> &lines) {
 
               if (childTerm == nullptr) {
                 string errorMessage = "Could not find child theory term " + to_string(childTermId) + " referenced by line '" + line + "'";
-                if (VLOG_IS_ON(2)) {
-                  LOG(FATAL) << errorMessage;
-                }
-                LOG(ERROR) << errorMessage;
-                exit(1);
+                logError(errorMessage);
               }
 
               tupleTerm->children.push_back(childTerm);
@@ -414,11 +376,7 @@ void Read::readTheoryTerms(list<string> &lines) {
             auto operationTerm = dynamic_cast<SymbolicTerm*>(program->theoryTerms[t]);
             if (operationTerm == nullptr) {
               string errorMessage = "Could not find symbolic operator theory term \"" + operationTerm->name + "\" referenced by line '" + line + "'";
-              if (VLOG_IS_ON(2)) {
-                LOG(FATAL) << errorMessage;
-              }
-              LOG(ERROR) << errorMessage;
-              exit(1);
+              logError(errorMessage);
             }
 
             list<ITheoryTerm*> childTerms;
@@ -428,11 +386,7 @@ void Read::readTheoryTerms(list<string> &lines) {
               auto childTerm = program->theoryTerms[childTermId];
               if (childTerm == nullptr) {
                 string errorMessage = "Could not find child theory term " + to_string(childTermId) + " referenced by line '" + line + "'";
-                if (VLOG_IS_ON(2)) {
-                  LOG(FATAL) << errorMessage;
-                }
-                LOG(ERROR) << errorMessage;
-                exit(1);
+                logError(errorMessage);
               }
               childTerms.push_back(childTerm);
             }
@@ -455,11 +409,7 @@ void Read::readTheoryTerms(list<string> &lines) {
                 } 
                 else {
                   string errorMessage = "Constraint variables can only contain numeric or symbolic terms. Line: " + line;
-                  if (VLOG_IS_ON(2)) {
-                    LOG(FATAL) << errorMessage;
-                  }
-                  LOG(ERROR) << errorMessage;
-                  exit(1);
+                  logError(errorMessage);
                 }
 
                 // if (child != childTerms.back()) {
@@ -508,11 +458,7 @@ void Read::readTheoryAtomElements(list<string> &lines) {
           auto theoryTerm = program->theoryTerms[termId];
           if (theoryTerm == nullptr) {
             string errorMessage = "Could not find definition for theory term " + to_string(termId) + " referenced in '" + line + "'";
-            if (VLOG_IS_ON(2)) {
-              LOG(FATAL) << errorMessage;
-            }
-            LOG(ERROR) << errorMessage;
-            exit(1);
+            logError(errorMessage);
           }
 
           theoryAtomElements->terms.push_back(theoryTerm);
@@ -527,11 +473,7 @@ void Read::readTheoryAtomElements(list<string> &lines) {
           auto atom = atoms[atomId];
           if (atom == nullptr) {
             string errorMessage = "Could not find definition for atom " + to_string(atomId) + " referenced in '" + line + "'";
-            if (VLOG_IS_ON(2)) {
-              LOG(FATAL) << errorMessage;
-            }
-            LOG(ERROR) << errorMessage;
-            exit(1);
+            logError(errorMessage);
           }
 
           theoryAtomElements->literals.push_back(AtomLiteral(atom, literal >= 0));
@@ -653,11 +595,7 @@ int Read::read(string fileName) {
     std::string errorMessage = "Failed to parse grounded logic program."
                 " Stopped at " + fileName + ":" + std::to_string(lineNumber) +
                 ". Got exception message: " + e.what();
-    if (VLOG_IS_ON(2)) {
-      LOG(FATAL) << errorMessage;
-    }
-    LOG(ERROR) << errorMessage;
-    exit(1);
+    logError(errorMessage);
   }
 
   VLOG(2) << "Reading theory components";

@@ -198,6 +198,7 @@
 #include "version.h"
 #include "theorySpecs.h"
 #include <filesystem>
+#include "errorLogger.h"
 
 using namespace std;
 using namespace boost::algorithm;
@@ -558,14 +559,7 @@ int main(int argc, char *argv[]) {
         system((string("rm ") + params.file).c_str());
       }
 
-      string errorMessage = "Error during grounding.";
-      if (!VLOG_IS_ON(2)) {
-        LOG(ERROR) << errorMessage;
-        return 1;
-      }
-      else {
-        LOG(FATAL) << errorMessage;
-      }
+      logError("Error during grounding.");
     }
   }
   groundedProgram.close();

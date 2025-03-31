@@ -1,6 +1,7 @@
 #include "solver/smtprocess.h"
 #include "symbolicexpressionparser.h"
 #include "smtstringhelpers.h"
+#include "errorLogger.h"
 
 namespace bp = boost::process;
 using namespace chrono;
@@ -73,11 +74,7 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   VLOG(3) << "Read check sat result: " << satResult;
   if (satResult != "unsat" && satResult != "sat") {
     string errorMessage = "Got unexpected result from SMT solver: " + satResult;
-    if (VLOG_IS_ON(2)) {
-      LOG(FATAL) << errorMessage;
-    }
-    LOG(ERROR) << errorMessage;
-    exit(1);
+    logError(errorMessage);
   }
 
   if (satResult == "unsat") {

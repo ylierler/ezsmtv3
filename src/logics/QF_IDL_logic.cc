@@ -4,17 +4,13 @@
 #include "program.h"
 #include <numeric>
 #include "smtstringhelpers.h"
+#include "errorLogger.h"
 
 string QF_IDL_logic::SMT_LOGIC_NAME() { return "QF_IDL";}
 
 string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
     if (statement->leftElements.size() > 1) {
-        string errorMessage = "Invalid syntax for diff statment. More than one term not allowed.";
-        if (VLOG_IS_ON(2)) {
-            LOG(FATAL) << errorMessage;
-        }
-        LOG(ERROR) << errorMessage;
-        exit(1);
+        logError("Invalid syntax for diff statment. More than one term not allowed.");
     }
 
     auto element = statement->leftElements.front();
@@ -28,12 +24,7 @@ string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
             }
             else if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
                 if (++count > 2) {
-                    string errorMessage = "Invalid syntax for diff statment. More than two variables not allowed.";
-                    if (VLOG_IS_ON(2)) {
-                        LOG(FATAL) << errorMessage;
-                    }
-                    LOG(ERROR) << errorMessage;
-                    exit(1);
+                    logError("Invalid syntax for diff statment. More than two variables not allowed.");
                 }
             }
         }
@@ -45,23 +36,13 @@ string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
         countVariables(expressionTerm, variableCount);     
 
         if (expressionTerm->operation->name != "-") {
-            string errorMessage = "Invalid syntax for diff statment. Only difference operation is allowed.";
-            if (VLOG_IS_ON(2)) {
-                LOG(FATAL) << errorMessage;
-            }
-            LOG(ERROR) << errorMessage;
-            exit(1);
+            logError("Invalid syntax for diff statment. Only difference operation is allowed.");
         }
     }
 
     string operation = statement->operation->name;
     if (operation != "<=") {
-        string errorMessage = "Invalid syntax for diff statment. Only <= operator is allowed with IDL logic.";
-        if (VLOG_IS_ON(2)) {
-            LOG(FATAL) << errorMessage;
-        }
-        LOG(ERROR) << errorMessage;
-        exit(1);
+        logError("Invalid syntax for diff statment. Only <= operator is allowed with IDL logic.");
     }
 
     auto diffStatement = SMT::Expr(operation, {toString(element), SMT::ToString(statement->rightTerm)});
@@ -79,11 +60,7 @@ void QF_IDL_logic::getAssertionStatements(std::ostringstream &output) {
         }
         else {
             string errorMessage = "The " + statement->symbolicTerm->name + " statement is not supported with the " + SMT_LOGIC_NAME() + " logic.";
-            if (VLOG_IS_ON(2)) {
-                LOG(FATAL) << errorMessage;
-            }
-            LOG(ERROR) << errorMessage;
-            exit(1);
+            logError(errorMessage);
         }
 
         string assertion = SMT::Assert(SMT::Expr("=", {SMT::Var(statement->statementAtom), assertionStatement}));
