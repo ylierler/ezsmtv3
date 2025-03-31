@@ -92,15 +92,24 @@ public:
     static string ToString(ITheoryTerm* term) {
         if (auto t = dynamic_cast<NumericTerm*>(term)) {
             return to_string(t->value);
-        } else if (auto t = dynamic_cast<RealTerm*>(term)) {
+        } 
+        else if (auto t = dynamic_cast<RealTerm*>(term)) {
+            if (t->value < 0) {
+                list<string> floatList;
+                floatList.push_back(to_string(-1 * t->value));
+                return SMT::Expr("-", floatList);
+            }
             return to_string(t->value);
-        } else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {
+        } 
+        else if (auto t = dynamic_cast<SymbolicTerm*>(term)) {
             return escape(t->name);
-        } else if (auto t = dynamic_cast<TupleTerm*>(term)) {
+        } 
+        else if (auto t = dynamic_cast<TupleTerm*>(term)) {
             if (t->type == PARENTHESES) {
                 return string("(") + ToString(*(t->children.begin())) + ")";
             }
-        } else if (auto t = dynamic_cast<ExpressionTerm*>(term)) {
+        } 
+        else if (auto t = dynamic_cast<ExpressionTerm*>(term)) {
             list<string> childTerms;
             for (auto term : t->children) {
                 childTerms.push_back(ToString(term));
