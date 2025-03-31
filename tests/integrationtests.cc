@@ -93,4 +93,7 @@ TEST_CASE("Checks sum term outputs"){
     SECTION("sum term test 2") {
         assertEnumeratedAnswerSetsMatchExpected("sum-test-2");
     }
+    SECTION("sum term test real 1") {
+        assertEnumeratedAnswerSetsMatchExpected("sum-test-real-1", true, 0, false);
+    }
 }
