@@ -11,14 +11,34 @@ using namespace std;
 const int SUCCESS = 0;
 const int FAILURE = 1;
 
-void assertEnumeratedAnswerSetsMatchExpected(string testName) {
+string getEnumerationString(bool enumerate, int eCount, bool enumerateExtended, int eECount) {
+    string enumerationString = " ";
+    if (enumerate) {
+        enumerationString += "-e ";
+        if (eCount) {
+            enumerationString += to_string(eCount);
+        }
+    }
+    if (enumerateExtended) {
+        enumerationString += "-E ";
+        if (eECount) {
+            enumerationString += to_string(eECount);
+        }
+    }
+    cout << enumerationString << endl;
+    return enumerationString;
+}
+
+void assertEnumeratedAnswerSetsMatchExpected(string testName, bool enumerate=true, int eCount=0, bool enumerateExtended=true, int eECount=0, int verboseLevel=0) {
     string testPath = "../tests/test-programs/" + testName;
     string inputPath = testPath + ".lp";
     string expectedPath = testPath + ".expected";
     string outputPath = "temp.output";
 
+    string enumerationString = getEnumerationString(enumerate, eCount, enumerateExtended, eECount);
+    
     std::stringstream command;
-    command << "./ezsmt --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << " -e -E -V 0 > " << outputPath;
+    command << "./ezsmt --solver-command \"../tools/cvc5 --lang smt --output-lang smt --incremental --seed 42\" " << inputPath << enumerationString << " -V " << to_string(verboseLevel) << " > " << outputPath;
 
     cout << "Running: " << command.str() << endl;
     int exitCode = system(command.str().c_str());
