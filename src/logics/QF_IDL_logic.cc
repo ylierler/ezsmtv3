@@ -9,8 +9,12 @@
 string QF_IDL_logic::SMT_LOGIC_NAME() { return "QF_IDL";}
 
 string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
+    if (!dynamic_cast<NumericTerm*>(statement->rightTerm)) {
+        logError("Right term should always be an integer constant.");
+    }
+
     if (statement->leftElements.size() > 1) {
-        logError("Invalid syntax for diff statment. More than one term not allowed.");
+        logError("Invalid syntax for diff statment. More than one difference expression not allowed.");
     }
 
     auto element = statement->leftElements.front();

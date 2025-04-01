@@ -4,7 +4,7 @@
 #include <string>
 
 std::string const LIA_THEORY = R"(
-#theory lp {
+#theory lia {
     linear_term {
     - : 2, unary;
     * : 1, binary, left;
@@ -28,7 +28,7 @@ std::string const LIA_THEORY = R"(
 )";
 
 std::string const LRA_THEORY = R"(
-#theory lp {
+#theory lra {
     linear_term {
     - : 2, unary;
     * : 1, binary, left;
@@ -52,7 +52,7 @@ std::string const LRA_THEORY = R"(
 )";
 
 std::string const LIRA_THEORY = R"(
-#theory lp {
+#theory lira {
     linear_term {
     - : 2, unary;
     * : 1, binary, left;
@@ -77,7 +77,7 @@ std::string const LIRA_THEORY = R"(
 )";
 
 std::string const IDL_THEORY = R"(
-#theory lp {
+#theory idl {
     linear_term {
     - : 2, unary;
     * : 1, binary, left;
