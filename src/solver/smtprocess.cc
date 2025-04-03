@@ -26,8 +26,30 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
 }
 
 SMTProcess::SMTProcess(string customSolverCommand) {
+  setSolverOption(customSolverCommand);
   VLOG(3) << "Starting child process for solver: " << customSolverCommand;
   process = bp::child(customSolverCommand, bp::std_out > output, bp::std_in < input);
+}
+
+void SMTProcess::setSolverOption(string solverCommand) {
+  transform(solverCommand.begin(), solverCommand.end(), solverCommand.begin(), ::tolower);
+
+  string solver;
+  for (string solverName: solvers) {
+    transform(solverName.begin(), solverName.end(), solverName.begin(), ::tolower);
+    if (solverCommand.find(solverName) != string::npos) {
+      solver = solverName;
+    }
+  }
+
+  if (solver == "cvc4")
+    solverOption = CVC4;
+  else if (solver == "cvc5")
+    solverOption = CVC5;
+  else if (solver == "z3")
+    solverOption = Z3;
+  else if (solver == "yices")
+    solverOption = YICES;
 }
 
 void SMTProcess::Send(string body) {

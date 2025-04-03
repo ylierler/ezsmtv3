@@ -63,7 +63,7 @@ typedef enum {
   // MCHAFF  is no longer supported
 } SolverType;
 
-typedef enum { CVC4, CVC5, Z3, YICES } SMTSolverCommand;
+typedef enum { NO_VALUE = -1, CVC4, CVC5, Z3, YICES } SMTSolverCommand;
 
 typedef enum { UNSAT = -1, UNKNOWN = 0, SAT = 1 } Result;
 typedef enum {
