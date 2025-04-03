@@ -24,6 +24,7 @@ private:
   boost::process::child process;
 
   map<string, string> getRawAssignments(list<string> &variableNames);
+  void startChildProcess(string solverCommand);
   void setSolverOption(string solverCommand);
 };
 

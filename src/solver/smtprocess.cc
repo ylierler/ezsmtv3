@@ -2,6 +2,7 @@
 #include "symbolicexpressionparser.h"
 #include "smtstringhelpers.h"
 #include "errorLogger.h"
+#include "boost/process/exception.hpp"
 
 namespace bp = boost::process;
 using namespace chrono;
@@ -22,13 +23,29 @@ SMTProcess::SMTProcess(SMTSolverCommand type) {
     solverCommand = "yices-smt2 --incremental";
 
   VLOG(3) << "Starting child process for solver: " << solverCommand;
-  process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
+  startChildProcess(solverCommand);
 }
 
 SMTProcess::SMTProcess(string customSolverCommand) {
   setSolverOption(customSolverCommand);
   VLOG(3) << "Starting child process for solver: " << customSolverCommand;
-  process = bp::child(customSolverCommand, bp::std_out > output, bp::std_in < input);
+  startChildProcess(customSolverCommand);
+}
+
+void SMTProcess::startChildProcess(string solverCommand) {
+  try {
+    process = bp::child(solverCommand, bp::std_out > output, bp::std_in < input);
+  }
+  catch (bp::process_error& e) {
+    string errorMessage = string(e.what()) + 
+      "\nError while starting the child process. "
+      "Please check if you have required solvers installed.";
+    logError(errorMessage);
+  }
+  catch (...) {
+    logError("Error while starting the child process. "
+      "Please check if boost library is properly installed.");
+  }
 }
 
 void SMTProcess::setSolverOption(string solverCommand) {
