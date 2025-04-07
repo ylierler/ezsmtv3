@@ -226,21 +226,25 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
     VLOG(3) << "Read line from solver: " << line;
     singleLineStream << line;
 
-    // This is a hacky workaround to handle z3's multiline output
+    // This is a hacky workaround to handle z3's and yices' multiline output
     size_t lineLength = line.length();
+    // if cvc4 or cvc5, break
     if (solverOption == 0 || solverOption == 1) {
       break;
     }
+    // if division and negative symbols, check for four closing parenthesis at the end
     else if (line.find("(/") != std::string::npos && line.find("-") != std::string::npos) {
       if (line.substr(lineLength - 4, 4) == "))))") {
         break;
       }
     }
+    // if division or negative symbol, check for three closing parenthesis at the end
     else if (line.find("(/") != std::string::npos || line.find("-") != std::string::npos) {
       if (line.substr(lineLength - 3, 3) == ")))") {
         break;
       }
     }
+    // if no division or negative symbols, check for two closing parenthesis at the end
     else if (line.substr(lineLength - 2, 2) == "))") {
       break;
     }
@@ -251,7 +255,6 @@ map<string, string> SMTProcess::getRawAssignments(list<string> &variableNames) {
 
   SymbolicExpressionParser parser;
   auto assignmentsList = parser.ParseSymbolList(assignmentsLine);
-  // cout << "to string: " << assignmentsList->ToString() << endl;
   for (auto a : assignmentsList->children) {
     auto assignment = dynamic_cast<SymbolList*>(a);
     auto variable = dynamic_cast<Symbol*>(assignment->children.front());
