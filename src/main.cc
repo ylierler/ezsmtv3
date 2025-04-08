@@ -334,8 +334,8 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("solver,s", popts::value<string>()->default_value("cvc4"), "[z3|cvc4|cvc5|yices]\nSMT Solver to use.") //
     ("enumerate,e", popts::value<int>()->default_value(1)->implicit_value(0), //
       "Enumerate X answer sets. 0 or -e will enumerate all answer sets.") //
-    ("enumerate-extended,E", popts::value<bool>()->default_value(false)->implicit_value(true), //
-      "Enumerate extended answer sets (Include constraint values). Must be used with -e <number>.") //
+    ("enumerate-extended,E", //
+      "Enumerate extended answer sets (Include values for constraint variables). Must be used with -e <number>.") //
     ("solver-command", popts::value<string>(), //
       "Override the SMT solver command used. This will override the --solver "
       "option. The command must support reading the SMT-LIB program from "
@@ -426,7 +426,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       params.minimalUpperBound = !vm["no-minimal-upper-bound"].as<bool>();
 
       params.answerSetsToEnumerate = vm["enumerate"].as<int>();
-      params.includeConstraintsInEnumeration = vm["enumerate-extended"].as<bool>();
+      params.includeConstraintsInEnumeration = vm.count("enumerate-extended") ? true : false;
     } catch (const std::exception &e) {
       cout << "Error parsing arguments: " << e.what() << endl;
       showHelpMenu = true;

@@ -138,7 +138,7 @@ public:
   void usage(void);
   void setExecutionArgs(char args[]);
   int setSingleExecutionArgument(char *arg, char *option);
-  char *cmodels_version(void) { return (CMODELS_VERSION); }
+  const char *cmodels_version(void) { return CMODELS_VERSION; }
 
   bool addDenial(int *constaint_lits, int num_lits);
   int getNumberGroundedAtoms();
