@@ -25,7 +25,6 @@ string getEnumerationString(bool enumerate, int eCount, bool enumerateExtended, 
             enumerationString += to_string(eECount);
         }
     }
-    cout << enumerationString << endl;
     return enumerationString;
 }
 

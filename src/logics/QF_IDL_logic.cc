@@ -9,12 +9,8 @@
 string QF_IDL_logic::SMT_LOGIC_NAME() { return "QF_IDL";}
 
 string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
-    if (!dynamic_cast<NumericTerm*>(statement->rightTerm)) {
-        logError("Right term should always be an integer constant.");
-    }
-
     if (statement->leftElements.size() > 1) {
-        logError("Invalid syntax for diff statment. More than one difference expression not allowed.");
+        logError("Invalid syntax for diff statment. More than one difference expression is not allowed.");
     }
 
     auto element = statement->leftElements.front();
@@ -28,27 +24,27 @@ string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
             }
             else if (auto symbolicTerm = dynamic_cast<SymbolicTerm*>(child)) {
                 if (++count > 2) {
-                    logError("Invalid syntax for diff statment. More than two variables not allowed.");
+                    logError("Invalid syntax for diff statment. More than two variables are not allowed in a difference expression.");
                 }
             }
         }
     };
 
-    // check if there are more than two variables
+    int variableCount = 0;
+    // check if there are more than two variables in difference expression
     if (auto expressionTerm = dynamic_cast<ExpressionTerm*>(term)) {
-        int variableCount = 0;
-        countVariables(expressionTerm, variableCount);     
+        countVariables(expressionTerm, variableCount);  
 
         if (expressionTerm->operation->name != "-") {
             logError("Invalid syntax for diff statment. Only difference operation is allowed.");
         }
     }
 
-    string operation = statement->operation->name;
-    if (operation != "<=") {
-        logError("Invalid syntax for diff statment. Only <= operator is allowed with IDL logic.");
+    if ((variableCount == 2) && (!dynamic_cast<NumericTerm*>(statement->rightTerm))) {
+        logError("Right term can only be an integer when there are already two variables in the difference expression.");
     }
 
+    string operation = statement->operation->name;
     auto diffStatement = SMT::Expr(operation, {toString(element), SMT::ToString(statement->rightTerm)});
     return diffStatement;
 }
