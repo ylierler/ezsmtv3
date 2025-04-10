@@ -39,7 +39,7 @@ void SMTProcess::startChildProcess(string solverCommand) {
   catch (bp::process_error& e) {
     string errorMessage = string(e.what()) + 
       "\nError while starting the child process. "
-      "Please check if you have required solvers installed.";
+      "Please check if you have " + solvers[solverOption] + " installed.";
     logError(errorMessage);
   }
   catch (...) {
