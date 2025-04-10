@@ -331,15 +331,28 @@ void Read::readTheoryTerms(list<string> &lines) {
           int length;
           string symbolValue;
           lineStream >> length >> symbolValue;
-
-          if ((params->logic == 1 || params->logic == 2) &&
-              ((!symbolValue.empty() && symbolValue.front() == '"' && symbolValue.back() == '"') ||
+          
+          // check for quotes around a symbolic term
+          if (((!symbolValue.empty() && symbolValue.front() == '"' && symbolValue.back() == '"') ||
               (!symbolValue.empty() && symbolValue.front() == '\'' && symbolValue.back() == '\'')))
-          {
+          { 
+            // try the conversion of the symbolic term from string to float
             try {
               string floatString = trim_copy_if(symbolValue, is_any_of("\"\'"));
               float floatValue = stof(floatString);
-              program->theoryTerms[termId] = new RealTerm(termId, floatValue);
+
+              // if LRA or LIRA, use the converted float value
+              if (params->logic == 1 || params->logic == 2) {
+                program->theoryTerms[termId] = new RealTerm(termId, floatValue);
+              }
+              // else print a warning message and use it as a symbolic term
+              else {
+                string warningMessage = "Real number with quotes detected in the program. " + symbolValue +
+                  "\nPlease use command line option -l (1|2) to run it in a Real Logic setting." + 
+                  "\nFor usage information: ezsmt -h";
+                LOG(WARNING) << warningMessage;
+                program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
+              }
             }
             catch (...) {
               program->theoryTerms[termId] = new SymbolicTerm(termId, symbolValue);
@@ -411,10 +424,6 @@ void Read::readTheoryTerms(list<string> &lines) {
                   string errorMessage = "Constraint variables can only contain numeric or symbolic terms. Line: " + line;
                   logError(errorMessage);
                 }
-
-                // if (child != childTerms.back()) {
-                //   symbolName << ",";
-                // }
 
                 if (length < childTermsLength - 1) {
                   symbolName << ",";
