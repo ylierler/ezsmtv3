@@ -12,15 +12,15 @@ const int SUCCESS = 0;
 const int FAILURE = 1;
 
 string getEnumerationString(bool enumerate, int eCount, bool enumerateExtended, int eECount) {
-    string enumerationString = " ";
+    string enumerationString = "";
     if (enumerate) {
-        enumerationString += "-e ";
+        enumerationString += " -e";
         if (eCount) {
-            enumerationString += to_string(eCount);
+            enumerationString += " " + to_string(eCount);
         }
     }
     if (enumerateExtended) {
-        enumerationString += "-E ";
+        enumerationString += " -E";
         if (eECount) {
             enumerationString += to_string(eECount);
         }
@@ -92,7 +92,19 @@ TEST_CASE("Checks sum term outputs"){
     SECTION("sum term test 2") {
         assertEnumeratedAnswerSetsMatchExpected("sum-test-2");
     }
+    SECTION("sum term test 3") {
+        assertEnumeratedAnswerSetsMatchExpected("sum-test-3", true, 0, false);
+    }
     SECTION("sum term test real 1") {
         assertEnumeratedAnswerSetsMatchExpected("sum-test-lra-1", true, 0, false);
+    }
+    SECTION("sum term test real 2") {
+        assertEnumeratedAnswerSetsMatchExpected("sum-test-lra-2", true, 0, false);
+    }
+    SECTION("sum term test real 3") {
+        assertEnumeratedAnswerSetsMatchExpected("sum-test-lra-3", true, 0, false);
+    }
+    SECTION("sum term test integer real 1") {
+        assertEnumeratedAnswerSetsMatchExpected("sum-test-lira-1", true, 0, false);
     }
 }
