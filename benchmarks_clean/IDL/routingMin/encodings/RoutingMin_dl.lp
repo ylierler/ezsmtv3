@@ -1,6 +1,8 @@
-% reachtime is >= 0 and <= maxTime
-maxTime(M) :- M = #sum {D,X,Y : edge(X,Y,D)}.
-&dom {0..M} = at(X) :- node(X), maxTime(M).
+%cspvar(at(X),0,T) :- node(X), critical(Y,T).
+&dom{0..T}=at(X):- node(X), critical(Y,T).
+
+% reachtime is >= 0 
+&diff {at(X)}>= 0:- node(X).
 
 % initial node is reached at 0.
 reach(X) :- init(X).
