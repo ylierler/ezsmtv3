@@ -102,7 +102,7 @@ Install the Boost libary, version 1.78+ from official boost website. <br>
 Read more on: https://www.boost.org/doc/libs/1_79_0/more/getting_started/index.html
 
 ###### Commands for installation of version 1.79
-Run final two commands as a root user to give them copy permissions.
+Run final installation command as a root user to give it copy permissions.
 ```
 wget https://archives.boost.io/release/1.79.0/source/boost_1_79_0.tar.bz2
 mkdir boost
@@ -120,7 +120,7 @@ apt install gringo
 
 #### Install CMake (Version 4.0.0 or above)
 ```
-apt snap install cmake --classic
+snap install cmake --classic
 ```
 
 #### Setup build pipeline using CMake
