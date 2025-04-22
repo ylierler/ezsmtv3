@@ -495,9 +495,7 @@ void Read::readTheoryAtomElements(list<string> &lines) {
 }
 
 void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
-  if (params->answerSetsToEnumerate == 1) {
-    LOG(WARNING) << "Minimization statements are ignored when only one answer set is generated. Try using the -e flag.";
-  }
+  params->answerSetsToEnumerate = 0;
 
   int priority, numOfLiterals;
   line >> priority >> numOfLiterals;

@@ -52,7 +52,7 @@ void logIterationResults(int roundNumber, SolverResult& results, milliseconds to
   }
 
   if (VLOG_IS_ON(1) && !results.minimizationAtomAssignmentsOriginalWeights.empty()) {
-    cout << "Minimization:";
+    cout << "Optimization:";
   }
 
   if (!results.minimizationAtomAssignmentsOriginalWeights.empty()) {
@@ -211,7 +211,13 @@ string Solver::getProgramBodyString(Program &program) {
 
   for (MinimizationStatement *m : program.minimizations) {
     output << "(declare-const " << SMT::Var(m) << " Int)" << endl;
-    output << "(assert (= " << SMT::Var(m) << " (+";
+    output << "(assert (= " << SMT::Var(m);
+
+    size_t minAtomsSize = m->atoms.size();
+    if (minAtomsSize > 1) {
+      output << " (+";
+    }
+
     for (MinimizationAtom *a : m->atoms) {
       if (a->weight < 0) {
         output << " (ite " << SMT::Var(&a->atom) << " (- " << -(a->weight) << " ) 0)";
@@ -220,7 +226,12 @@ string Solver::getProgramBodyString(Program &program) {
         output << " (ite " << SMT::Var(&a->atom) << " " << a->weight << " 0)";
       }
     }
-    output << ")))" << endl;
+    
+    output << "))";
+    if (minAtomsSize > 1) {
+      output << ")";
+    }
+    output << endl;
   }
 
   return output.str();
