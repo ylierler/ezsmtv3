@@ -324,7 +324,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
      "The type of level ranking formulas produced for non-tight programs.")
     ("reduced-completion", popts::value<bool>()->default_value(false)->implicit_value(true), //
      "Remove the part of Clark's completion that is captured by a level ranking formula.")
-    ("no-minimal-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
+    ("all-atoms-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
      "Sets the upper bound of level ranking variables to the number of atoms inside the "
      "Strongly Connected Component containing that variable. A smaller upper bound "
      "(number of atoms in a SCC) would be selected by default.");

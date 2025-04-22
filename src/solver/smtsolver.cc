@@ -90,10 +90,11 @@ void Solver::SolveProgram(Param &params, Program &program) {
 
   string programBody = getProgramBodyString(program);
   
-  ofstream outputFile;
-  outputFile.open("temp.smt2");
-  outputFile << programBody;
-  outputFile.close();
+  // write SMT-LIB to file
+  // ofstream outputFile;
+  // outputFile.open("temp.smt2");
+  // outputFile << programBody;
+  // outputFile.close();
 
   // Override -s option with --solver-command if provided
   auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);
