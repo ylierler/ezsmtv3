@@ -325,9 +325,9 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("reduced-completion", popts::value<bool>()->default_value(false)->implicit_value(true), //
      "Remove the part of Clark's completion that is captured by a level ranking formula.")
     ("all-atoms-upper-bound", popts::value<bool>()->default_value(false)->implicit_value(true), //
-     "Sets the upper bound of level ranking variables to the number of atoms inside the "
-     "Strongly Connected Component containing that variable. A smaller upper bound "
-     "(number of atoms in a SCC) would be selected by default.");
+     "Sets the upper bound of level ranking variables equal to all atoms in the program. "
+     "A smaller upper bound equal to the number of atoms in a Strongly Connected Component "
+     "containing that variable would be selected by default.");
 
   popts::options_description solverOptions("Solver Options");
   solverOptions.add_options()
@@ -423,7 +423,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       }
 
       params.reducedCompletion = vm["reduced-completion"].as<bool>();
-      params.minimalUpperBound = !vm["no-minimal-upper-bound"].as<bool>();
+      params.minimalUpperBound = !vm["all-atoms-upper-bound"].as<bool>();
 
       params.answerSetsToEnumerate = vm["enumerate"].as<int>();
       params.includeConstraintsInEnumeration = vm.count("enumerate-extended") ? true : false;
