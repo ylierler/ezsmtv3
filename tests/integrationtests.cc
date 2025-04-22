@@ -136,3 +136,12 @@ TEST_CASE("Checks sum term outputs"){
         assertEnumeratedAnswerSetsMatchExpected("sum-test-lira-1", false, true, 0, false);
     }
 }
+
+TEST_CASE("Checks minimize directive outputs"){
+    SECTION("minimize directive test 1") {
+        assertEnumeratedAnswerSetsMatchExpected("minimize-test-1", false, false, 0, false);
+    }
+    SECTION("minimize directive test 2") {
+        assertEnumeratedAnswerSetsMatchExpected("minimize-test-2", false, false, 0, false);
+    }
+}
