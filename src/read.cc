@@ -290,6 +290,9 @@ void Read::saveTypes(list<TheoryAtomElement*> leftElements, ITheoryTerm* rightTe
   if (auto type = dynamic_cast<SymbolicTerm*>(rightTerm)){
     variableType = type->name;
     transform(variableType.begin(), variableType.end(), variableType.begin(), ::tolower);
+    if (variableType != "int" && variableType != "real") {
+      logError("Invalid variable type. Only 'int' and 'real' are allowed.");
+    }
   }
   else {
     logError("Only variables types such as 'int' and 'real' are allowed for type specifications.");
