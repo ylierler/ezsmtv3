@@ -1,3 +1,4 @@
+#include <fstream>
 #include "solver/smtprocess.h"
 #include "symbolicexpressionparser.h"
 #include "smtstringhelpers.h"
@@ -100,6 +101,33 @@ string prepareDebugAssignmentReal(string str){
   }
 }
 
+// prepare constraints and save to debug file
+void prepareDebugFile(Param params, list<string> atomNames, map<string, string> rawAtomAssignments,
+                          list<string> variableNames, map<string, string> rawVariableAssignments) {
+  ofstream debugFile;
+  debugFile.open(params.debugFileName);
+  string negatedAssignmentString = "";
+  for (auto atomName: atomNames){
+    if (rawAtomAssignments[atomName] == "true"){
+      negatedAssignmentString += ":- not " + atomName + ".\n";
+    }
+    else{
+      negatedAssignmentString += ":- " + atomName + ".\n";
+    }
+  }
+
+  for (auto varName: variableNames){
+    string varAssignment = rawVariableAssignments[varName];
+    if (params.logic == 1){
+      varAssignment = "\"" + prepareDebugAssignmentReal(varAssignment) + "\"";
+    }
+    negatedAssignmentString += "&sum {" + varName + "} = " + varAssignment + ".\n";
+  }
+
+  debugFile << negatedAssignmentString;
+  debugFile.close();
+}
+
 unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params, list<list<tuple<int, int, Atom*>>> &lw_collections) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
@@ -129,21 +157,6 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   list<string> atomNames;
   transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
   auto rawAtomAssignments = getRawAssignments(atomNames);
-  string valueString;
-
-  // prepare debug file
-  if (params.debug_file.length() > 0){
-    system(("rm -f " + params.debug_file).c_str());
-    for (auto atomName: atomNames){
-      if (rawAtomAssignments[atomName] == "true"){
-        valueString = ":- not " + atomName + ".";
-      }
-      else{
-        valueString = ":- " + atomName + ".";
-      }
-      system(("echo '" + valueString + "' >> " + params.debug_file).c_str());
-    }
-  }
 
   for (Atom* atom : atoms) {
     string atomName = atom->getSmtName();
@@ -157,16 +170,9 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   transform(constraintVariables.begin(), constraintVariables.end(), std::back_inserter(variableNames), [](SymbolicTerm* t) { return t->name; });
   auto rawVariableAssignments = getRawAssignments(variableNames);
 
-  // prepare debug file
-  if (params.debug_file.length() > 0){
-    for (auto varName: variableNames){
-      string varAssignment = rawVariableAssignments[varName];
-      if (params.logic == 1){
-        varAssignment = "\"" + prepareDebugAssignmentReal(varAssignment) + "\"";
-      }
-      valueString = "&sum {" + varName + "} = " + varAssignment + ".";
-      system(("echo '" + valueString + "' >> " + params.debug_file).c_str());
-    }
+  // check if debug file name is provided
+  if (params.debugFileName.length() > 0){
+    prepareDebugFile(params, atomNames, rawAtomAssignments, variableNames, rawVariableAssignments);
   }
 
   for (SymbolicTerm* variable : constraintVariables) {

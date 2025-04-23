@@ -308,7 +308,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     ("verbose,V", popts::value<int>()->default_value(1)->implicit_value(2), "Verbose logging level:\n0 = Minimal output,\n1 = Default output,\n2 = Debug output,\n3 = Verbose debug output") //
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
-    ("debug-file,d", popts::value<string>()->default_value(""), "Generates a given name file with constraints for debugging and testing against other system")
+    ("debug-file,d", popts::value<string>()->default_value("")->implicit_value("debug.lp"), "Generates a given name file with constraints for debugging and testing against other systems")
     ("logic,l", popts::value<int>()->default_value(0), "Logic to use: \n0 = LIA \n1 = LRA \n2 = LIRA \n3 = IDL \nAlternatively, use &logic(lia|lra|lira|idl) within the script.");
 
   popts::options_description cmodelsOptions("CModels Options");
@@ -377,7 +377,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
         params.numOfFiles++;
       }
       params.file = trim_copy(params.file);
-      params.debug_file = vm["debug-file"].as<string>().c_str();
+      params.debugFileName = vm["debug-file"].as<string>().c_str();
       params.logic = vm["logic"].as<int>();
 
       int logic = findLogic(files);

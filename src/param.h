@@ -19,7 +19,7 @@ public:
   // or set by functions
   char config[100];
   std::string file;
-  std::string debug_file;
+  std::string debugFileName;
   int logic;
   bool mixed_logic;
   char dirName[256];
