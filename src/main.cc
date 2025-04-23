@@ -309,6 +309,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
     // ("file,f", popts::value<string>(), "Input file") // for single input file
     ("file,f", popts::value<vector<string>>()->multitoken(), "Input file") // for multiple input files
     ("debug-file,d", popts::value<string>()->default_value("")->implicit_value("debug.lp"), "Generates a given name file with constraints for debugging and testing against other systems")
+    ("smt-lib,S", popts::value<string>()->default_value("")->implicit_value("temp.smt2"), "Writes generated SMT-LIB program to the given file name")
     ("logic,l", popts::value<int>()->default_value(0), "Logic to use: \n0 = LIA \n1 = LRA \n2 = LIRA \n3 = IDL \nAlternatively, use &logic(lia|lra|lira|idl) within the script.");
 
   popts::options_description cmodelsOptions("CModels Options");
@@ -378,6 +379,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
       }
       params.file = trim_copy(params.file);
       params.debugFileName = vm["debug-file"].as<string>().c_str();
+      params.smtFileName = vm["smt-lib"].as<string>().c_str();
       params.logic = vm["logic"].as<int>();
 
       int logic = findLogic(files);

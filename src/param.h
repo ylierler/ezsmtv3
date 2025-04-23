@@ -20,6 +20,7 @@ public:
   char config[100];
   std::string file;
   std::string debugFileName;
+  std::string smtFileName;
   int logic;
   bool mixed_logic;
   char dirName[256];

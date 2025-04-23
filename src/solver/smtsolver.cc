@@ -70,6 +70,14 @@ void logIterationResults(int roundNumber, SolverResult& results, milliseconds to
   cout << endl;
 }
 
+// write generated SMT-LIB to a file
+void saveSMTLIB(Param params, string programBody) {
+  ofstream smtFile;
+  smtFile.open(params.smtFileName);
+  smtFile << programBody;
+  smtFile.close();
+}
+
 void Solver::SolveProgram(Param &params, Program &program) {
   list<TheoryStatement*> theoryStatements;
   for (auto pair : program.theoryStatements) {
@@ -89,12 +97,11 @@ void Solver::SolveProgram(Param &params, Program &program) {
   this->logic->processTheoryStatements(theoryStatements);
 
   string programBody = getProgramBodyString(program);
-  
-  // write SMT-LIB to file
-  // ofstream outputFile;
-  // outputFile.open("temp.smt2");
-  // outputFile << programBody;
-  // outputFile.close();
+
+  // check if SMT-LIB file name is provided
+  if (params.smtFileName.length() > 0) {
+    saveSMTLIB(params, programBody);
+  }
 
   // Override -s option with --solver-command if provided
   auto solverProcess = !params.smtSolverCommand.empty() ? SMTProcess(params.smtSolverCommand) : SMTProcess(params.SMTsolver);
