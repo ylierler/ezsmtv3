@@ -517,17 +517,14 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   program->lwCollections.push_front(literalWeights);
 
   int weightsSum = accumulate(weights.begin(), weights.end(), 0.0);
-  mValues[priority] = 1 + weightsSum < 0 ? -(weightsSum) : weightsSum;
-  // cout << "mValues[" << priority << "]: " << mValues[priority] << endl;
+  mValues[priority] = 1 + weightsSum;
+
   fValues[priority] = 1;
   for (auto m: mValues) {
     if (m.first < priority) {
-      // cout << "m.second: " << m.second << endl;
       fValues[priority] *= m.second;
     } 
   }
-
-  // cout << "fValues[" << priority << "]: " << fValues[priority] << endl;
   
   int normalized_priority = 0;
   auto minimizationStatement = new MinimizationStatement(minimizationStatementId, normalized_priority);
@@ -540,20 +537,10 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   for (auto lw: literalWeights) {
     literal = get<0>(lw);
     weight = get<1>(lw) * fValues[priority];
-
-  // if (priority != 0) {
-  //   LOG(WARNING) << "Minimization statements with non-zero priorities are not supported. Ignoring minimization statement with priority " << priority;
-  // }
-
-  // auto minimizationStatement = new MinimizationStatement(minimizationStatementId, priority);
-
-  // for (int i = 0; i < numOfLiterals; i++) {
-  //   int literal, weight;
-  //   line >> literal >> weight;
-
     auto atom = getAtomFromLiteral(literal);
-    minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight));
+    minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight, literal < 0));
   }
+
   if (len_minimizations <= 0) {
     program->minimizations.push_back(minimizationStatement);
   }

@@ -38,11 +38,13 @@ struct sortedLE;
 
 class MinimizationAtom {
 public:
-  MinimizationAtom(Atom &atom, double weight) : atom(atom) {
+  MinimizationAtom(Atom &atom, double weight, bool negation) : atom(atom) {
     this->weight = weight;
+    this->negation = negation;
   };
   Atom &atom;
   double weight;
+  bool negation;
 };
 
 const string NEVER_ATOM = "EZSMT_NEVER";

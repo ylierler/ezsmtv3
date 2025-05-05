@@ -128,7 +128,7 @@ void prepareDebugFile(Param params, list<string> atomNames, map<string, string> 
   debugFile.close();
 }
 
-unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params, list<list<tuple<int, int, Atom*>>> &lw_collections) {
+unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(Program program, list<SymbolicTerm*> &constraintVariables, Param params) {
   auto result = unique_ptr<SolverResult>(new SolverResult());
 
   auto solveStart = high_resolution_clock::now();
@@ -151,14 +151,25 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
 
   result->isSatisfiable = true;
 
+  list<Atom*> answerSetAtoms;
+  list<Atom*> allDeclaredAtoms;
+  for (auto a : program.atoms) {
+    if (a->showInOutputAnswerSet) {
+      answerSetAtoms.push_back(a);
+    }
+    if (!a->isLevelRankingConstraint()) {
+      allDeclaredAtoms.push_back(a);
+    }
+  }
+
   auto getValuesStart = high_resolution_clock::now();
 
   // Atoms
   list<string> atomNames;
-  transform(atoms.begin(), atoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
+  transform(allDeclaredAtoms.begin(), allDeclaredAtoms.end(), std::back_inserter(atomNames), [](Atom* a) { return a->getSmtName(); });
   auto rawAtomAssignments = getRawAssignments(atomNames);
 
-  for (Atom* atom : atoms) {
+  for (Atom* atom : answerSetAtoms) {
     string atomName = atom->getSmtName();
     if (rawAtomAssignments.find(atomName) != rawAtomAssignments.end()) {
       result->atomAssignments[atom] = rawAtomAssignments[atomName] == "true" ? true : false;
@@ -183,6 +194,7 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
 
   // Minimization statements
   list<string> minimizationAtomNames;
+  auto minimizations = program.minimizations;
   transform(minimizations.begin(), minimizations.end(), std::back_inserter(minimizationAtomNames), [](MinimizationStatement* m) { return m->getAtomName(); });
   auto rawMinimizationAssignments = getRawAssignments(minimizationAtomNames);
   for (auto minimization : minimizations) {
@@ -193,12 +205,17 @@ unique_ptr<SolverResult> SMTProcess::CheckSatAndGetAssignments(list<Atom*> &atom
   }
 
   // Roll back to original weights
-  for (auto literalWeights: lw_collections) {
+  for (auto literalWeights: program.lwCollections) {
     int weightsSum = 0;
     for (auto lw: literalWeights){
+      int literal = get<0>(lw);
       int weight = get<1>(lw);
       auto a = get<2>(lw);
-      if (result->atomAssignments[a]) {
+      
+      if (literal > 0 && rawAtomAssignments[a->getSmtName()] == "true") {
+        weightsSum += weight;
+      }
+      else if (literal < 0 && rawAtomAssignments[a->getSmtName()] == "false") {
         weightsSum += weight;
       }
     }

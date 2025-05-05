@@ -15,7 +15,7 @@ public:
   SMTProcess(string solverCommand);
 
   void Send(string body);
-  unique_ptr<SolverResult> CheckSatAndGetAssignments(list<Atom*> &atoms, list<SymbolicTerm*> &constraintVariables, list<MinimizationStatement*> &minimizations, Param &params, list<list<tuple<int, int, Atom*>>> &lwCollections);
+  unique_ptr<SolverResult> CheckSatAndGetAssignments(Program program, list<SymbolicTerm*> &constraintVariables, Param params);
 private:
   SMTSolverCommand solverOption = NO_VALUE;
   vector<string> solvers = {"CVC4", "CVC5", "Z3", "YICES"};

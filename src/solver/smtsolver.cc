@@ -109,18 +109,12 @@ void Solver::SolveProgram(Param &params, Program &program) {
   solverProcess.Send(programBody);
 
   auto constraintVariables = logic->getConstraintVariables();
-  list<Atom*> answerSetAtoms;
-  for (auto a : program.atoms) {
-    if (a->showInOutputAnswerSet) {
-      answerSetAtoms.push_back(a);
-    }
-  }
 
   auto roundStart = high_resolution_clock::now();
 
   int i = 1;
   for (;; i++) {
-    auto result = solverProcess.CheckSatAndGetAssignments(answerSetAtoms, constraintVariables, program.minimizations, params, program.lwCollections);
+    auto result = solverProcess.CheckSatAndGetAssignments(program, constraintVariables, params);
 
     if (i == 1) {
       LOG(INFO) << (result->isSatisfiable ? "SAT" : "UNSAT");
@@ -227,11 +221,19 @@ string Solver::getProgramBodyString(Program &program) {
     }
 
     for (MinimizationAtom *a : m->atoms) {
-      if (a->weight < 0) {
-        output << " (ite " << SMT::Var(&a->atom) << " (- " << -(a->weight) << " ) 0)";
+      string atomString;
+      if (a->negation) {
+        atomString = "(not " + SMT::Var(&a->atom) + ")";
       }
       else {
-        output << " (ite " << SMT::Var(&a->atom) << " " << a->weight << " 0)";
+        atomString = SMT::Var(&a->atom);
+      }
+
+      if (a->weight < 0) {
+        output << " (ite " << atomString << " (- " << -(a->weight) << " ) 0)";
+      }
+      else {
+        output << " (ite " << atomString << " " << a->weight << " 0)";
       }
     }
     
