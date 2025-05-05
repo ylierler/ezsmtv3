@@ -144,4 +144,7 @@ TEST_CASE("Checks minimize directive outputs"){
     SECTION("minimize directive test 2") {
         assertEnumeratedAnswerSetsMatchExpected("minimize-test-2", false, false, 0, false);
     }
+    SECTION("minimize directive test 3") {
+        assertEnumeratedAnswerSetsMatchExpected("minimize-test-3", false, false, 0, false);
+    }
 }
