@@ -85,7 +85,7 @@ void Solver::SolveProgram(Param &params, Program &program) {
   }
 
   if (params.logic == 1 || params.logic == 2) {
-    this->logic = new QF_LRA_logic(params.mixed_logic, program.typeMap);
+    this->logic = new QF_LRA_logic(params.levelRanking, program.typeMap);
   } 
   else if (params.logic == 3) {
     this->logic = new QF_IDL_logic();

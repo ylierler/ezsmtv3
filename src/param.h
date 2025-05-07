@@ -22,7 +22,7 @@ public:
   std::string debugFileName;
   std::string smtFileName;
   int logic;
-  bool mixed_logic;
+  bool levelRanking;
   char dirName[256];
   char cmodelsname[256];
   char dimacsFileName[512];
@@ -106,7 +106,7 @@ public:
     cm_wfm = false;
     sort = false;
     nowellfounded = false;
-    mixed_logic = false;
+    levelRanking = false;
   }
   void finish() {
     if (sys == SIMO)

@@ -5,9 +5,9 @@
 
 class QF_LRA_logic : public QF_LIA_logic {
 public:
-    bool mixed_logic;
+    bool levelRanking;
     map<string, string> typeMap;
-    QF_LRA_logic(bool mixed_logic, map<string, string> typeMap) : mixed_logic(mixed_logic), typeMap(typeMap) {};
+    QF_LRA_logic(bool levelRanking, map<string, string> typeMap) : levelRanking(levelRanking), typeMap(typeMap) {};
     string SMT_LOGIC_NAME() override;
     void getDeclarationStatements(std::ostringstream &output) override;
 
