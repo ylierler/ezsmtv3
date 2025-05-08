@@ -6,7 +6,14 @@
 #include "smtstringhelpers.h"
 #include "errorLogger.h"
 
-string QF_IDL_logic::SMT_LOGIC_NAME() { return "QF_IDL";}
+string QF_IDL_logic::SMT_LOGIC_NAME() {
+    if (optimization) {
+        VLOG(1) << "IDL logic with optimization is converted to LIA logic."
+            "\nUsing LIA logic" << endl;
+        return "QF_LIA";
+    }
+    return "QF_IDL";
+}
 
 string QF_IDL_logic::getDiffAssertionStatement(TheoryStatement* statement) {
     if (statement->leftElements.size() > 1) {

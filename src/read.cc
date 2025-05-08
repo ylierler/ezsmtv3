@@ -499,6 +499,7 @@ void Read::readTheoryAtomElements(list<string> &lines) {
 
 void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   params->answerSetsToEnumerate = 0;
+  params->optimization = true;
 
   int priority, numOfLiterals;
   line >> priority >> numOfLiterals;

@@ -23,6 +23,7 @@ public:
   std::string smtFileName;
   int logic;
   bool levelRanking;
+  bool optimization;
   char dirName[256];
   char cmodelsname[256];
   char dimacsFileName[512];
@@ -107,6 +108,7 @@ public:
     sort = false;
     nowellfounded = false;
     levelRanking = false;
+    optimization = false;
   }
   void finish() {
     if (sys == SIMO)

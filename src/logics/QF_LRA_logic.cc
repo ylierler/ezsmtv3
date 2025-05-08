@@ -10,7 +10,7 @@
 levelRanking flag is set to true in case of non-tight LRA program, where level ranking variables are integers
 typeMap is the map with custom specified types for LIRA logic*/
 string QF_LRA_logic::SMT_LOGIC_NAME() {
-    if (levelRanking or typeMap.size()) {
+    if (levelRanking || optimization || typeMap.size()) {
         return "AUFLIRA";
     }
     return "QF_LRA";
