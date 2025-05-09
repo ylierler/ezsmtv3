@@ -137,20 +137,20 @@ TEST_CASE("Checks sum term outputs"){
     }
 }
 
-TEST_CASE("Checks minimize directive outputs"){
-    SECTION("minimize directive test 1") {
-        assertEnumeratedAnswerSetsMatchExpected("minimize-test-1", false, false, 0, false);
+TEST_CASE("Checks optimization directive outputs"){
+    SECTION("optimization directive test 1") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-1", false, false, 0, false);
     }
-    SECTION("minimize directive test 2") {
-        assertEnumeratedAnswerSetsMatchExpected("minimize-test-2", false, false, 0, false);
+    SECTION("optimization directive test 2") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-2", false, false, 0, false);
     }
-    SECTION("minimize directive test 3") {
-        assertEnumeratedAnswerSetsMatchExpected("minimize-test-3", false, false, 0, false);
+    SECTION("optimization directive test 3") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-3", false, false, 0, false);
     }
-    SECTION("minimize directive test 4") {
-        assertEnumeratedAnswerSetsMatchExpected("minimize-test-4", false, false, 0, false);
+    SECTION("optimization directive test 4") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-4", false, false, 0, false);
     }
-    SECTION("minimize directive test 5") {
-        assertEnumeratedAnswerSetsMatchExpected("minimize-test-5", false, false, 0, false);
+    SECTION("optimization directive test 5") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-5", false, false, 0, false);
     }
 }
