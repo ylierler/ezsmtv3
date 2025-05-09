@@ -230,7 +230,7 @@ string Solver::getProgramBodyString(Program &program) {
       }
 
       if (a->weight < 0) {
-        output << " (ite " << atomString << " (- " << -(a->weight) << " ) 0)";
+        output << " (ite " << atomString << " (- " << -(a->weight) << ") 0)";
       }
       else {
         output << " (ite " << atomString << " " << a->weight << " 0)";

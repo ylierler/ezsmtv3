@@ -509,6 +509,12 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   list<tuple<int, int, Atom*>> literalWeights;
   for (int i = 0; i < numOfLiterals; i++) {
     line >> literal >> weight;
+
+    // drop literal if weight is 0
+    if (weight == 0) {
+      continue;
+    }
+
     weights.push_back(weight);
     Atom *a = getAtomFromLiteral(literal);
     tuple<int, int, Atom*> lw(literal, weight, a);
@@ -517,7 +523,12 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
 
   program->lwCollections.push_front(literalWeights);
 
-  int weightsSum = accumulate(weights.begin(), weights.end(), 0.0);
+  // calculate sum of absolute weights for a priority level
+  int weightsSum = 0;
+  for (int weight: weights) {
+    weightsSum += weight < 0 ? -1*weight : weight;
+  }
+
   mValues[priority] = 1 + weightsSum;
 
   fValues[priority] = 1;
@@ -538,6 +549,13 @@ void Read::readMinimizeLine(istringstream &line, int minimizationStatementId) {
   for (auto lw: literalWeights) {
     literal = get<0>(lw);
     weight = get<1>(lw) * fValues[priority];
+
+    // weight and literal conversion if negative weight
+    if (weight < 0) {
+      weight = -1 * weight;
+      literal = -1 * literal;
+    }
+
     auto atom = getAtomFromLiteral(literal);
     minimizationStatement->atoms.push_back(new MinimizationAtom(*atom, weight, literal < 0));
   }
