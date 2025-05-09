@@ -12,11 +12,11 @@
 &sum { q(X)} > 0 :- used(X), subs(X).
 
 % Expence for each substance = quantity * cost per unit + fixed cost.
-&sum {p(X); -Y * q(X)} = Z :- subs(X), cost(X,Y), used(X), using_cost(Z).
-&sum { p(X)} = 0  :- subs(X), cost(X,Y), not used(X).
+&sum {p(X)} = Z + Y*q(X) :- subs(X), cost(X,Y), used(X), using_cost(Z).
+&sum { p(X)} = 0 :- subs(X), cost(X,Y), not used(X).
 
 % Amount of each component in each substance.
-&sum {c(Y,X); -Z*q(X)} =0 :- subs(X), comp(Y), tab(X,Y,Z).
+&sum {c(Y,X)} = Z*q(X) :- subs(X), comp(Y), tab(X,Y,Z).
 
 % For each component, the amount in the final product has to be
 % greater than the minimum requested.
