@@ -20,18 +20,22 @@ void QF_LRA_logic::getDeclarationStatements(std::ostringstream &output) {
     for (const auto p : this->symbolicTerms) {
         auto term = p.second;
         string termName = term->name;
-        int index = termName.find("(");
 
-        if (index && typeMap.size()) {
-            string name = termName.substr(0, index);
+        if (typeMap.size()) {
+            int index = termName.find("(");
+            string functionalName = termName.substr(0, index);
 
-            if (typeMap.find(name) != typeMap.end()) {
-                string type = typeMap[name];
-
-                if (type == "int") {
-                    output << SMT::DeclareConst(termName, "Int");
-                    continue;
-                }
+            string type = "";
+            if (typeMap.find(termName) != typeMap.end()) {
+                type = typeMap[termName];
+            }
+            else if (typeMap.find(functionalName) != typeMap.end()) {
+                type = typeMap[functionalName];
+            }
+            
+            if (type == "int") {
+                output << SMT::DeclareConst(termName, "Int");
+                continue;
             }
         }
         output << SMT::DeclareConst(termName, "Real");
