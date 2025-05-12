@@ -1,6 +1,0 @@
-output ["% lb(lambda) = ",show(lb_lambda),";\n","objective = ",show(objective),";\n","m = array2d(",show(rows),", ",show(cols),", ",show(m),");\n"];
-set of int: rows = 1..10;
-set of int: cols = 1..350;
-int: lb_lambda = 22;
-array [rows,cols] of int: m;
-int: objective;

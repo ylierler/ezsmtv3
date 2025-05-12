@@ -1,4 +1,0 @@
-output ["p = ",show(p),";\n","objective = ",show(objective),";\n"];
-int: num_variables = 143;
-array [1..num_variables] of int: p;
-int: objective;

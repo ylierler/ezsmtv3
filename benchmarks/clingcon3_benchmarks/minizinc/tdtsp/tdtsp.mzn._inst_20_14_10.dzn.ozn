@@ -1,6 +1,0 @@
-output ["position = "++format(position)++";\n","tvar = "++format(tvar)++";\n","objective = "++format(objective)++";\n"];
-int: n = 20;
-set of int: VISIT1 = 1..21;
-array [VISIT1] of int: position;
-array [VISIT1] of int: tvar;
-int: objective = tvar[n+1];

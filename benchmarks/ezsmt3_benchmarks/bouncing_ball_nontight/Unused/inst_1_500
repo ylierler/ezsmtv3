@@ -1,3 +1,0 @@
-required(pos(0) == 500).
-cspvar(pos(X),0,500) :- step(X).    %cspvar(pos(X),0,pos(0))
-

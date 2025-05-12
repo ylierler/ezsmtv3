@@ -1,3 +1,0 @@
-output ["n = ",show(n),";\n"]++["s = ",show(s),";\n"];
-int: n = 207;
-array [1..n] of int: s;

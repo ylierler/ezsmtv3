@@ -1,5 +1,0 @@
-output ["p = "++format(p)++";\n","objective = "++format(objective)++";\n"];
-int: n = 13;
-int: m = 12;
-array [1..m,1..n] of int: p;
-int: objective = sum([i*p[1,i] | i in 1..n, ]);

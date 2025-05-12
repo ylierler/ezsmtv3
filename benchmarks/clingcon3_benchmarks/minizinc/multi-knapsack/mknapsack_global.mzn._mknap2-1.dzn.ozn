@@ -1,5 +1,0 @@
-output ["x = ",show(x),";\n","objective = ",show(objective),";\n"];
-set of int: VRange = 1..60;
-array [VRange] of int: c = [2,77,6,67,930,3,6,270,33,13,110,21,56,974,47,734,238,75,200,51,47,63,7,6,468,72,95,82,91,83,27,13,6,76,55,72,300,6,65,39,63,61,52,85,29,640,558,53,47,25,3,6,568,6,2,780,69,31,774,22];
-array [VRange] of int: x;
-int: objective = sum([c[i]*x[i] | i in VRange, ]);

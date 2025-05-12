@@ -1,9 +1,0 @@
-maxheight(20).
-width(10).
-rectangle(1,2,15).
-rectangle(2,2,15).
-rectangle(3,3,7).
-rectangle(4,1,9).
-rectangle(5,3,8).
-rectangle(6,2,12).
-rectangle(7,2,12).

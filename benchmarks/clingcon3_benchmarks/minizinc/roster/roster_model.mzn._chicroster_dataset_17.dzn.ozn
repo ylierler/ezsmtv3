@@ -1,6 +1,0 @@
-output (["roster = array2d(1.."++format(weeks)++", 1..7, "++format(roster)++");\n","evemorn = "++format(evemorn)++";\n","isolated = "++format(isolated)++";\n","objective = "++format(objective)++";\n"]++["% Roster: \n","% Week:  M T W T F S S\n"])++[(if j==1 then "%    "++format(i)++":  " else "" endif++""++format(roster[i,j])++"")++if j==7 then "\n" else " " endif | i in 1..weeks, j in 1..7, ];
-int: weeks = 24;
-int: evemorn;
-int: isolated;
-int: objective = evemorn+isolated;
-array [1..weeks,1..7] of int: roster;

@@ -1,8 +1,0 @@
-goal(I) :- 
-	robot(R), step(I), I==n,
-	h(state(R,stopped), I).
-required(v_final(x(R), I)==150) :- robot(R), step(I), I==n.
-required(v_final(y(R), I)==150) :- robot(R), step(I), I==n.
-% For this experiment, we only allow the planner to plan 90 degree turns
-required(v_final(dir(R), I)-v_initial(dir(R), I)==90) :- robot(R), step(I), o(stop(R,turn_l),I), I>=curr_step.
-required(v_final(dir(R), I)-v_initial(dir(R), I)==-90) :- robot(R), step(I), o(stop(R,turn_r),I), I>=curr_step.
