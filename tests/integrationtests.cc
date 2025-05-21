@@ -153,4 +153,7 @@ TEST_CASE("Checks optimization directive outputs"){
     SECTION("optimization directive test 5") {
         assertEnumeratedAnswerSetsMatchExpected("optimization-test-5", false, false, 0, false);
     }
+    SECTION("optimization directive test 6") {
+        assertEnumeratedAnswerSetsMatchExpected("optimization-test-6", false, false, 0, false);
+    }
 }
