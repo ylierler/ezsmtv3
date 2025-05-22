@@ -197,7 +197,6 @@
 #include <time.h>
 #include "version.h"
 #include "theorySpecs.h"
-#include <filesystem>
 #include "errorLogger.h"
 
 using namespace std;
@@ -544,8 +543,7 @@ int main(int argc, char *argv[]) {
   VLOG(2) << "Running grounding command: " << groundingCommand;
   system(groundingCommand.c_str());
   
-  string delCommand = "rm " + theoryFileName;
-  system(delCommand.c_str());
+  deleteFile(theoryFileName);
 
   params.file = grounded_file + ".grounded";
 
@@ -556,10 +554,8 @@ int main(int argc, char *argv[]) {
         line.find("ERROR: (gringo): ") != string::npos) {
       
       // print and remove error file
-      if (std::filesystem::exists(params.file)) {
-        system((string("cat ") + params.file).c_str());
-        system((string("rm ") + params.file).c_str());
-      }
+      printFileContent(params.file);
+      deleteFile(params.file);
 
       logError("Error during grounding.");
     }
@@ -568,8 +564,7 @@ int main(int argc, char *argv[]) {
 
   VLOG(3) << "Grounded program:";
   if (VLOG_IS_ON(3)) {
-    system((string("cat ") + params.file).c_str());
-    cout << endl;
+    printFileContent(params.file);
   }
 
   ctable.cmodels.output.timerAll.start();

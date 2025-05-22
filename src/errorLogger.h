@@ -4,5 +4,7 @@
 #include <string>
 
 void logError(std::string errorMessage, int errorCode=1);
+void printFileContent(std::string fileName);
+void deleteFile(std::string fileName);
 
 #endif
