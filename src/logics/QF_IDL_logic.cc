@@ -4,7 +4,7 @@
 #include "program.h"
 #include <numeric>
 #include "smtstringhelpers.h"
-#include "errorLogger.h"
+#include "utils.h"
 
 string QF_IDL_logic::SMT_LOGIC_NAME() {
     if (optimization) {

@@ -7,7 +7,7 @@
 #include <string>
 #include "theory.h"
 #include "program.h"
-#include "errorLogger.h"
+#include "utils.h"
 
 using namespace std;
 

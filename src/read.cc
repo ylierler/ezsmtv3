@@ -43,7 +43,7 @@
 #include <string.h>
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include "errorLogger.h"
+#include "utils.h"
 
 using namespace boost::algorithm;
 

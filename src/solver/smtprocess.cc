@@ -2,7 +2,7 @@
 #include "solver/smtprocess.h"
 #include "symbolicexpressionparser.h"
 #include "smtstringhelpers.h"
-#include "errorLogger.h"
+#include "utils.h"
 #include "boost/process/exception.hpp"
 
 namespace bp = boost::process;

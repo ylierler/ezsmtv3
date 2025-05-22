@@ -4,7 +4,7 @@
 #include "program.h"
 #include <numeric>
 #include "smtstringhelpers.h"
-#include "errorLogger.h"
+#include "utils.h"
 
 string QF_LIA_logic::SMT_LOGIC_NAME() { return "QF_LIA"; }
 
