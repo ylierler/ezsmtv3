@@ -294,6 +294,13 @@ int findLogic(list<string> files) {
   return -1;
 }
 
+void printHelpText(string executableName, boost::program_options::options_description allOptions) {
+  cout << "The EZSMT Constraint Answer Set Solver" << endl;
+  cout << "Version " << VERSION << endl << endl;
+  cout << "Usage: " << executableName << " <file> [options]" << endl;
+  cout << allOptions << endl;
+}
+
 int ParseArguments(int argc, char *argv[], Param &params) {
   bool showHelpMenu = false;
   popts::variables_map vm;
@@ -355,6 +362,11 @@ int ParseArguments(int argc, char *argv[], Param &params) {
                 .run(),
             vm);
       notify(vm);
+
+      if (vm.count("help")) {
+        printHelpText(argv[0], allOptions);
+        return 1;
+      }
 
       if (vm.count("version")) {
         cout << "EZSMT version " << VERSION << endl;
@@ -435,10 +447,7 @@ int ParseArguments(int argc, char *argv[], Param &params) {
   }
 
   if (argc == 1 || showHelpMenu || vm.count("help")) {
-    cout << "The EZSMT Constraint Answer Set Solver" << endl;
-    cout << "Version " << VERSION << endl << endl;
-    cout << "Usage: " << argv[0] << " <file> [options]" << endl;
-    cout << allOptions << endl;
+    printHelpText(argv[0], allOptions);
     return 1;
   }
 

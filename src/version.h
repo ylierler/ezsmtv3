@@ -3,6 +3,6 @@
 
 #include <string>
 
-std::string const VERSION = "3.0.17";
+std::string const VERSION = "3.0.18";
 
 #endif
