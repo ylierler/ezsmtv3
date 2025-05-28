@@ -2,7 +2,8 @@
 
 EZSMT is a Constraint Answer Set Programming (CASP) solver system that performs processing of logic programs with constraints using Satisfiability Modulo Theories (SMT) solving technology. 
 It takes a program written in a Gringo 5 compatible input language extended with special theory atoms capable to capture constraints supported by EZSMT.
-It then translates this program into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets.
+It then translates this program into formulas written in SMT-LIB, and calls an SMT solver to compute answer sets. The University of Nebraska Omaha (UNO) home of EZSMT can be found [here](https://www.unomaha.edu/college-of-information-science-and-technology/natural-language-processing-and-knowledge-representation-lab/software/ezsmt.php). The paper documenting the system is located on the UNO site.
+
 
 EZSMT has been tested with SMT Solvers CVC4, CVC5, Yices 2, and Z3. However, it can interact with any SMT-LIB compatible solver that supports input in SMT-LIB format. 
 
@@ -77,7 +78,7 @@ reach(Y) :- reach(X), route(X,Y).
 Various Benchmark problems utilizing EZSMT can be found in this repository under benchmark subfolder
 
 # UNO Home of the system and its documentation
-The University of Nebraska Omaha home of EZSMT can be found [here](https://www.unomaha.edu/college-of-information-science-and-technology/natural-language-processing-and-knowledge-representation-lab/software/ezsmt.php). The paper documenting the system can be found there.
+The University of Nebraska Omaha home of EZSMT can be found [here](https://www.unomaha.edu/college-of-information-science-and-technology/natural-language-processing-and-knowledge-representation-lab/software/ezsmt.php). The paper documenting the system is located on that site.
 
 
 # How to build EZSMT
